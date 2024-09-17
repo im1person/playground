@@ -169,9 +169,14 @@
         }
 
         runTimes.value = value;
+        runTimesSlider.value = Math.min(value, 100);
+      }
 
-        // 更新滑塊值，但限制在滑塊的最大值範圍內
-        runTimesSlider.value = Math.min(value, runTimesSlider.max);
+      function updateRunTimesFromSlider() {
+        const runTimes = document.getElementById("runTimes");
+        const runTimesSlider = document.getElementById("runTimesSlider");
+
+        runTimes.value = runTimesSlider.value;
       }
 
       // 添加事件監聽器
@@ -186,7 +191,7 @@
         .addEventListener("input", updateRunTimes);
       document
         .getElementById("runTimesSlider")
-        .addEventListener("input", updateRunTimes);
+        .addEventListener("input", updateRunTimesFromSlider);
     </script>
   </body>
 </html>
