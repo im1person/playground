@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>隨機數字生成器</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        transition:
+          background-color 0.3s,
+          color 0.3s;
+        background-color: #333;
+        color: #fff;
+      }
+      input,
+      button {
+        margin: 10px 0;
+      }
+      .light-mode {
+        background-color: #fff;
+        color: #333;
+      }
+      #lightModeBtn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
+      #result {
+        font-family: monospace;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .result-line {
+        display: block;
+        margin-bottom: 10px;
+      }
+      .ball {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-right: 5px;
+        font-weight: bold;
+        color: white;
+        line-height: 1;
+      }
+      .ball span {
+        display: inline-block;
+        width: 20px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="lightModeBtn" onclick="toggleLightMode()">淺色模式</button>
+    <h1>隨機數字生成器 (1-49)</h1>
+    <label for="pickCount">選擇數量 (6-48):</label>
+    <input type="number" id="pickCount" min="6" max="48" value="6" />
+    <br />
+    <label for="runTimes">運行次數:</label>
+    <input type="number" id="runTimes" min="1" value="1" />
+    <br />
+    <button onclick="generateNumbers()">生成數字</button>
+    <div id="result"></div>
+
+    <script>
+      function toggleLightMode() {
+        document.body.classList.toggle("light-mode");
+        const btn = document.getElementById("lightModeBtn");
+        btn.textContent = document.body.classList.contains("light-mode")
+          ? "深色模式"
+          : "淺色模式";
+      }
+
+      function generateNumbers() {
+        const pickCount = Math.min(
+          Math.max(parseInt(document.getElementById("pickCount").value, 10), 6),
+          48
+        );
+        const runTimes = Math.max(
+          parseInt(document.getElementById("runTimes").value, 10),
+          1
+        );
+        let resultHTML = "";
+
+        for (let i = 0; i < runTimes; i++) {
+          const numbers = [];
+          const availableNumbers = Array.from({ length: 49 }, (_, i) => i + 1);
+
+          for (let j = 0; j < pickCount; j++) {
+            const randomIndex = Math.floor(
+              Math.random() * availableNumbers.length
+            );
+            numbers.push(availableNumbers.splice(randomIndex, 1)[0]);
+          }
+
+          numbers.sort((a, b) => a - b);
+
+          const coloredNumbers = numbers.map((num) => {
+            let color;
+            if (
+              [
+                1, 2, 7, 8, 12, 13, 18, 19, 23, 24, 29, 30, 34, 35, 40, 45, 46,
+              ].includes(num)
+            ) {
+              color = "#d9716d"; // 紅球
+            } else if (
+              [
+                3, 4, 9, 10, 14, 15, 20, 25, 26, 31, 36, 37, 41, 42, 47, 48,
+              ].includes(num)
+            ) {
+              color = "#4b7185"; // 藍球
+            } else {
+              color = "#8bb16f"; // 綠球
+            }
+            return `<span class="ball" style="background-color: ${color}"><span>${num.toString().padStart(2, " ")}</span></span>`;
+          });
+
+          resultHTML += `<span class="result-line">第 ${(i + 1).toString().padStart(3, " ")} 次: ${coloredNumbers.join("")}</span>`;
+        }
+
+        document.getElementById("result").innerHTML = resultHTML;
+      }
+    </script>
+  </body>
+</html>
