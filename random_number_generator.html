@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
@@ -10,9 +10,7 @@
         max-width: 600px;
         margin: 0 auto;
         padding: 20px;
-        transition:
-          background-color 0.3s,
-          color 0.3s;
+        transition: background-color 0.3s, color 0.3s;
         background-color: #333;
         color: #fff;
       }
@@ -55,37 +53,39 @@
         width: 20px;
         text-align: center;
       }
-      .input-group {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
+      .exclude-number {
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        border: 1px solid #fff;
+        border-radius: 5px;
+        margin: 5px;
+        text-align: center;
+        line-height: 30px;
+        cursor: pointer;
+        transition: background-color 0.3s;
       }
-      .input-group label {
-        width: 150px;
-      }
-      .input-group input[type="number"] {
-        width: 60px;
-        margin-right: 10px;
-      }
-      .input-group input[type="range"] {
-        flex-grow: 1;
+      .exclude-number.selected {
+        opacity: 0.3; /* 選中的顏色 */
       }
     </style>
   </head>
   <body>
     <button id="lightModeBtn" onclick="toggleLightMode()">淺色模式</button>
     <h1>隨機數字生成器 (1-49)</h1>
-    <div class="input-group">
-      <label for="pickCount">選擇數量 (6-48):</label>
-      <input type="number" id="pickCount" min="6" max="48" value="6" />
-      <input type="range" id="pickCountSlider" min="6" max="48" value="6" />
+    <label for="pickCount">選擇數量 (6-48):</label>
+    <input type="number" id="pickCount" min="6" max="48" value="6" />
+    <input type="range" id="pickCountSlider" min="6" max="48" value="6" />
+    <br />
+    <label for="runTimes">運行次數:</label>
+    <input type="number" id="runTimes" min="1" max="9999" value="1" />
+    <input type="range" id="runTimesSlider" min="1" max="100" value="1" />
+    <br />
+    <div>
+      <label>排除的數字:</label>
+      <div id="excludeNumbersContainer"></div>
+      <button onclick="generateNumbers()">生成數字</button>
     </div>
-    <div class="input-group">
-      <label for="runTimes">運行次數:</label>
-      <input type="number" id="runTimes" min="1" max="9999" value="1" />
-      <input type="range" id="runTimesSlider" min="1" max="100" value="1" />
-    </div>
-    <button onclick="generateNumbers()">生成數字</button>
     <div id="result"></div>
 
     <script>
@@ -97,6 +97,93 @@
           : "淺色模式";
       }
 
+      // 初始化排除數字的容器
+      const excludeNumbersContainer = document.getElementById(
+        "excludeNumbersContainer"
+      );
+      const excludeNumbers = new Set();
+
+      // 定義顏色對應
+      const numberColors = {
+        1: "#d9716d",
+        2: "#d9716d",
+        7: "#d9716d",
+        8: "#d9716d",
+        12: "#d9716d",
+        13: "#d9716d",
+        18: "#d9716d",
+        19: "#d9716d",
+        23: "#d9716d",
+        24: "#d9716d",
+        29: "#d9716d",
+        30: "#d9716d",
+        34: "#d9716d",
+        35: "#d9716d",
+        40: "#d9716d",
+        45: "#d9716d",
+        46: "#d9716d",
+        3: "#4b7185",
+        4: "#4b7185",
+        9: "#4b7185",
+        10: "#4b7185",
+        14: "#4b7185",
+        15: "#4b7185",
+        20: "#4b7185",
+        25: "#4b7185",
+        26: "#4b7185",
+        31: "#4b7185",
+        36: "#4b7185",
+        37: "#4b7185",
+        41: "#4b7185",
+        42: "#4b7185",
+        47: "#4b7185",
+        48: "#4b7185",
+        5: "#8bb16f",
+        6: "#8bb16f",
+        11: "#8bb16f",
+        15: "#8bb16f",
+        16: "#8bb16f",
+        17: "#8bb16f",
+        21: "#8bb16f",
+        22: "#8bb16f",
+        27: "#8bb16f",
+        28: "#8bb16f",
+        32: "#8bb16f",
+        33: "#8bb16f",
+        38: "#8bb16f",
+        39: "#8bb16f",
+        43: "#8bb16f",
+        44: "#8bb16f",
+        49: "#8bb16f",
+      };
+
+      // 創建 1 到 49 的按鈕
+      for (let i = 1; i <= 49; i++) {
+        const button = document.createElement("div");
+        button.className = "exclude-number";
+        button.textContent = i;
+        button.style.backgroundColor = numberColors[i] || "#fff"; // 設置背景顏色
+        button.onclick = () => toggleExcludeNumber(i);
+        excludeNumbersContainer.appendChild(button);
+      }
+
+      function toggleExcludeNumber(num) {
+        if (excludeNumbers.has(num)) {
+          excludeNumbers.delete(num);
+        } else {
+          excludeNumbers.add(num);
+        }
+        updateExcludeButtons();
+      }
+
+      function updateExcludeButtons() {
+        const buttons = document.querySelectorAll(".exclude-number");
+        buttons.forEach((button) => {
+          const num = parseInt(button.textContent, 10);
+          button.classList.toggle("selected", excludeNumbers.has(num));
+        });
+      }
+
       function generateNumbers() {
         const pickCount = Math.min(
           Math.max(parseInt(document.getElementById("pickCount").value, 10), 6),
@@ -106,11 +193,15 @@
           Math.max(parseInt(document.getElementById("runTimes").value, 10), 1),
           9999
         );
+
         let resultHTML = "";
 
         for (let i = 0; i < runTimes; i++) {
           const numbers = [];
-          const availableNumbers = Array.from({ length: 49 }, (_, i) => i + 1);
+          const availableNumbers = Array.from(
+            { length: 49 },
+            (_, i) => i + 1
+          ).filter((num) => !excludeNumbers.has(num)); // 排除選擇的數字
 
           for (let j = 0; j < pickCount; j++) {
             const randomIndex = Math.floor(
@@ -138,10 +229,14 @@
             } else {
               color = "#8bb16f"; // 綠球
             }
-            return `<span class="ball" style="background-color: ${color}"><span>${num.toString().padStart(2, " ")}</span></span>`;
+            return `<span class="ball" style="background-color: ${color}"><span>${num
+              .toString()
+              .padStart(2, " ")}</span></span>`;
           });
 
-          resultHTML += `<span class="result-line">第 ${(i + 1).toString().padStart(3, " ")} 次: ${coloredNumbers.join("")}</span>`;
+          resultHTML += `<span class="result-line">第 ${(i + 1)
+            .toString()
+            .padStart(3, " ")} 次: ${coloredNumbers.join("")}</span>`;
         }
 
         document.getElementById("result").innerHTML = resultHTML;
@@ -192,6 +287,8 @@
       document
         .getElementById("runTimesSlider")
         .addEventListener("input", updateRunTimesFromSlider);
+    </script>
+  </body>
     </script>
   </body>
 </html>
