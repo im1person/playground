@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="mainTitleTag" data-en="My Playground" data-zh-Hant="我的遊樂場">My Playground</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    body {
+      transition: background-color 0.3s, color 0.3s;
+    }
+    body.light {
+      background: #f0f0f0;
+      color: #222;
+    }
+    body.dark {
+      background: #181c1f;
+      color: #f0f0f0;
+    }
+    .hub-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 40px;
+    }
+    .game-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+    .game-entry {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 30px 40px;
+      text-align: center;
+      transition: transform 0.15s, box-shadow 0.15s;
+      min-width: 220px;
+      cursor: pointer;
+      border: 2px solid #eee;
+    }
+    body.dark .game-entry {
+      background: #23272a;
+      color: #f0f0f0;
+      border-color: #333;
+    }
+    .game-entry:hover {
+      transform: translateY(-6px) scale(1.04);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+      border-color: #b3e5fc;
+    }
+    .game-title {
+      font-size: 1.3em;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #1976d2;
+    }
+    body.dark .game-title {
+      color: #90caf9;
+    }
+    .game-desc {
+      color: #444;
+      font-size: 1em;
+    }
+    body.dark .game-desc {
+      color: #bbb;
+    }
+    .top-bar {
+      gap: 16px;
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto 10px auto;
+      padding-top: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <a href="index.html" class="home-btn" aria-label="Home" title="Home">🏠</a>
+    <select id="localeSelect" class="locale-select">
+      <option value="en">English</option>
+      <option value="zh-Hant">繁體中文</option>
+    </select>
+    <button id="themeToggle" class="theme-toggle"></button>
+  </div>
+  <div class="hub-container">
+    <h1 id="mainTitle">🎮 My Playground</h1>
+    <div class="game-list">
+      <a class="game-entry" href="games/random-number-generator/index.html">
+        <div class="game-title" data-en="Random Number Generator" data-zh-Hant="隨機數字生成器">Random Number Generator</div>
+        <div class="game-desc" data-en="Pick random numbers, exclude numbers, and more!" data-zh-Hant="產生隨機號碼，支援排除功能等！">Pick random numbers, exclude numbers, and more!</div>
+      </a>
+      <a class="game-entry" href="games/falling-balls/index.html">
+        <div class="game-title" data-en="Falling Balls Game" data-zh-Hant="彈跳球遊戲">Falling Balls Game</div>
+        <div class="game-desc" data-en="Pop falling balls for points. Fast, fun, and mobile-friendly!" data-zh-Hant="點擊彈跳球得分，快速有趣並支援手機！">Pop falling balls for points. Fast, fun, and mobile-friendly!</div>
+      </a>
+    </div>
+  </div>
+  <script type="module">
+    import { initThemeToggle } from './assets/theme-toggle.js';
+    import { initLocaleMenu } from './assets/locale-menu.js';
+    initThemeToggle();
+    initLocaleMenu({
+      onLocaleChange: (locale) => {
+        document.getElementById('mainTitle').textContent =
+          locale === 'zh-Hant' ? '🎮 我的遊樂場' : '🎮 My Playground';
+        document.getElementById('mainTitleTag').textContent =
+          locale === 'zh-Hant' ? '我的遊樂場' : 'My Playground';
+      }
+    });
+  </script>
+</body>
+</html> 
