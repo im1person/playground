@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title data-en="Falling Balls Game" data-zh-Hant="彈跳球遊戲">Falling Balls Game</title>
-  <link rel="stylesheet" href="../../assets/style.css">
-  <style>
-    body {
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Falling Balls Game" data-zh-Hant="彈跳球遊戲">
+      Falling Balls Game
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <style>
+      body {
         font-family: Arial, sans-serif;
         max-width: 600px;
         margin: 0 auto;
@@ -23,27 +25,25 @@
         background-color: #fff;
         color: #333;
       }
-  </style>  
-</head>
-<body>
-  <div class="top-bar">
-    <a href="../../index.html" class="home-btn" aria-label="Home" title="Home">🏠</a>
-    <select id="localeSelect" class="locale-select">
-      <option value="en">English</option>   
-      <option value="zh-Hant">繁體中文</option>
-    </select>
-    <button id="themeToggle" class="theme-toggle"></button>
-  </div>
-  <h1 data-en="Falling Balls Game" data-zh-Hant="彈跳球遊戲">Falling Balls Game</h1>
-  <canvas id="gameCanvas" width="400" height="600"></canvas>
-  <div id="score" data-en="Score: 0" data-zh-Hant="分數: 0">Score: 0</div>
-  <button id="startBtn" data-en="Start Game" data-zh-Hant="開始遊戲">Start Game</button>
-  <script src="../../assets/main.js"></script>
-  <script type="module">
-    import { initThemeToggle } from '../../assets/theme-toggle.js';
-    import { initLocaleMenu } from '../../assets/locale-menu.js';
-    initThemeToggle();
-    initLocaleMenu();
-  </script>
-</body>
-</html> 
+    </style>
+  </head>
+  <body>
+    <h1 data-en="Falling Balls Game" data-zh-Hant="彈跳球遊戲">
+      Falling Balls Game
+    </h1>
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <div id="score" data-en="Score: 0" data-zh-Hant="分數: 0">Score: 0</div>
+    <button id="startBtn" data-en="Start Game" data-zh-Hant="開始遊戲">
+      Start Game
+    </button>
+    <script src="../../assets/main.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>
