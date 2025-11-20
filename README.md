@@ -6,6 +6,7 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 
 - `/games/random-number-generator/` — Random Number Generator
 - `/games/falling-balls/` — Falling Balls Game
+- `/games/url-parser/` — URL Parser Tool
 - `/assets/` — Shared styles, theme toggle, and locale menu components
 - `/index.html` — Playground hub
 
@@ -13,6 +14,7 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 
 - [Random Number Generator](games/random-number-generator/index.html): Pick random numbers, exclude numbers, and more.
 - [Falling Balls Game](games/falling-balls/index.html): Pop falling balls for points. Fast, fun, and mobile-friendly.
+- [URL Parser](games/url-parser/index.html): Parse, analyze, and edit URLs with a modern interface.
 
 ## Reusable UI Components
 

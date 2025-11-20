@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="URL Parser" data-zh-Hant="URL 解析器">URL Parser</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <style>
+      :root {
+        --bg-color: #202124;
+        --card-bg: #303134;
+        --border-color: #5f6368;
+        --text-color: #e8eaed;
+        --sub-text: #9aa0a6;
+        --primary-color: #8ab4f8;
+        --primary-bg-hover: rgba(138, 180, 248, 0.1);
+        --success-color: #81c995;
+        --danger-color: #f28b82;
+        --input-bg: #202124;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --font-main: "Segoe UI", system-ui, -apple-system, sans-serif;
+        --font-mono: "Roboto Mono", monospace;
+      }
+
+      .light-mode {
+        --bg-color: #f0f2f5;
+        --card-bg: #ffffff;
+        --border-color: #dadce0;
+        --text-color: #202124;
+        --sub-text: #5f6368;
+        --primary-color: #1a73e8;
+        --primary-bg-hover: rgba(26, 115, 232, 0.08);
+        --success-color: #1e8e3e;
+        --danger-color: #d93025;
+        --input-bg: #ffffff;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      body {
+        font-family: var(--font-main);
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        padding: 20px;
+        transition: background-color 0.3s, color 0.3s;
+        line-height: 1.5;
+      }
+
+      .main-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-top: 20px;
+      }
+
+      h1 {
+        font-weight: 600;
+        margin-bottom: 30px;
+        color: var(--text-color);
+        font-size: 2rem;
+        text-align: center;
+      }
+
+      h1 span {
+        color: var(--primary-color);
+      }
+
+      /* Grid Layout */
+      .parser-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 24px;
+      }
+
+      /* Cards */
+      .card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 12px;
+      }
+
+      .card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+      }
+
+      /* Input Section */
+      .input-card {
+        grid-column: 1 / -1;
+        padding: 32px;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .input-label {
+        color: var(--sub-text);
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+
+      .url-input-container {
+        position: relative;
+        display: flex;
+        gap: 12px;
+      }
+
+      .url-input-wrapper {
+        position: relative;
+        flex-grow: 1;
+      }
+
+      input[type="text"] {
+        width: 100%;
+        padding: 14px 16px;
+        padding-right: 70px; /* Reserve space for Paste button */
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        outline: none;
+        transition: all 0.2s;
+        box-sizing: border-box;
+        font-family: var(--font-main);
+      }
+
+      input[type="text"]:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px var(--primary-bg-hover);
+      }
+
+      /* Buttons */
+      .btn {
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        font-family: var(--font-main);
+      }
+
+      .btn-primary {
+        background-color: var(--primary-color);
+        color: var(--bg-color);
+        padding: 0 24px;
+      }
+      .light-mode .btn-primary {
+        color: #fff;
+      }
+
+      .btn-primary:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+      }
+
+      .btn-text {
+        background: transparent;
+        color: var(--primary-color);
+        padding: 4px 12px;
+      }
+
+      .btn-text:hover {
+        background: var(--primary-bg-hover);
+      }
+
+      .paste-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 12px;
+        color: var(--sub-text);
+        z-index: 2; /* Ensure it stays on top */
+        background: var(
+          --input-bg
+        ); /* Optional: background to cover text if padding fails */
+        padding: 4px 8px;
+        border-radius: 4px;
+      }
+
+      .paste-btn:hover {
+        color: var(--primary-color);
+        background: var(--primary-bg-hover);
+      }
+
+      /* Data Display */
+      .data-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .data-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .data-label {
+        font-size: 0.75rem;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 4px;
+        letter-spacing: 0.5px;
+      }
+
+      .data-value {
+        font-family: var(--font-mono);
+        font-size: 0.95rem;
+        color: var(--text-color);
+        word-break: break-all;
+        background: rgba(0, 0, 0, 0.1);
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid transparent;
+      }
+      .light-mode .data-value {
+        background: #f8f9fa;
+        border-color: #e8eaed;
+      }
+
+      /* Table Styling */
+      .table-container {
+        overflow-x: auto;
+      }
+
+      .params-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+      }
+
+      .params-table th {
+        text-align: left;
+        color: var(--sub-text);
+        font-size: 0.8rem;
+        padding: 0 8px;
+        font-weight: 600;
+      }
+
+      .params-table td {
+        vertical-align: top;
+      }
+
+      .params-table input {
+        padding: 10px;
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        border: 1px solid var(--border-color);
+        background: var(--input-bg);
+      }
+
+      .btn-icon {
+        padding: 8px;
+        border-radius: 6px;
+        color: var(--danger-color);
+        background: transparent;
+        border: 1px solid transparent;
+      }
+
+      .btn-icon:hover {
+        background: rgba(242, 139, 130, 0.1);
+        border-color: var(--danger-color);
+      }
+
+      .btn-add {
+        width: 100%;
+        padding: 10px;
+        margin-top: 12px;
+        background: transparent;
+        border: 1px dashed var(--border-color);
+        color: var(--success-color);
+      }
+
+      .btn-add:hover {
+        background: rgba(129, 201, 149, 0.1);
+        border-color: var(--success-color);
+      }
+
+      /* Footer / Generated URL */
+      .footer-section {
+        grid-column: 1 / -1;
+        margin-top: 0;
+      }
+
+      .copy-box {
+        display: flex;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .copy-box:focus-within {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px var(--primary-bg-hover);
+      }
+
+      .copy-input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        font-family: var(--font-mono);
+        padding: 14px 16px;
+        color: var(--text-color);
+        outline: none;
+      }
+
+      .btn-copy {
+        background: transparent;
+        border: none;
+        border-left: 1px solid var(--border-color);
+        color: var(--primary-color);
+        padding: 0 24px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background 0.2s;
+      }
+
+      .btn-copy:hover {
+        background: var(--primary-bg-hover);
+      }
+
+      @media (max-width: 768px) {
+        .parser-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-wrapper">
+      <h1
+        data-en="URL <span>Parser</span>"
+        data-zh-Hant="URL <span>解析器</span>"
+      >
+        URL <span>Parser</span>
+      </h1>
+
+      <div class="parser-grid">
+        <!-- Input Section -->
+        <div class="card input-card">
+          <div class="input-group">
+            <label
+              class="input-label"
+              data-en="Enter URL to parse"
+              data-zh-Hant="輸入要解析的 URL"
+              >Enter URL to parse</label
+            >
+            <div class="url-input-container">
+              <div class="url-input-wrapper">
+                <input
+                  type="text"
+                  id="urlInput"
+                  placeholder="https://example.com/path?query=123"
+                />
+                <button
+                  id="pasteBtn"
+                  class="btn btn-text paste-btn"
+                  data-en="Paste"
+                  data-zh-Hant="貼上"
+                >
+                  Paste
+                </button>
+              </div>
+              <button
+                id="parseBtn"
+                class="btn btn-primary"
+                data-en="Parse"
+                data-zh-Hant="解析"
+              >
+                Parse
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="resultSection" style="display: contents">
+          <!-- Components Card -->
+          <div class="card">
+            <div class="card-header">
+              <h2
+                class="card-title"
+                data-en="Components"
+                data-zh-Hant="組成部分"
+              >
+                Components
+              </h2>
+            </div>
+            <div class="data-list">
+              <div class="data-item">
+                <span class="data-label" data-en="Protocol" data-zh-Hant="協議"
+                  >Protocol</span
+                >
+                <span id="protocol" class="data-value">-</span>
+              </div>
+              <div class="data-item">
+                <span class="data-label" data-en="Host" data-zh-Hant="主機"
+                  >Host</span
+                >
+                <span id="host" class="data-value">-</span>
+              </div>
+              <div class="data-item">
+                <span class="data-label" data-en="Port" data-zh-Hant="端口"
+                  >Port</span
+                >
+                <span id="port" class="data-value">-</span>
+              </div>
+              <div class="data-item">
+                <span class="data-label" data-en="Pathname" data-zh-Hant="路徑"
+                  >Pathname</span
+                >
+                <span id="pathname" class="data-value">-</span>
+              </div>
+              <div class="data-item">
+                <span class="data-label" data-en="Hash" data-zh-Hant="錨點"
+                  >Hash</span
+                >
+                <span id="hash" class="data-value">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Query Params Card -->
+          <div class="card">
+            <div class="card-header">
+              <h2
+                class="card-title"
+                data-en="Query Parameters"
+                data-zh-Hant="查詢參數"
+              >
+                Query Parameters
+              </h2>
+            </div>
+            <div id="queryParams" class="table-container"></div>
+            <button
+              id="addParamBtn"
+              class="btn btn-add"
+              data-en="+ Add Parameter"
+              data-zh-Hant="+ 新增參數"
+            >
+              + Add Parameter
+            </button>
+          </div>
+
+          <!-- Generated URL Card -->
+          <div class="card footer-section" id="generatedSection">
+            <div class="card-header">
+              <h2
+                class="card-title"
+                data-en="Generated URL"
+                data-zh-Hant="產生的 URL"
+              >
+                Generated URL
+              </h2>
+            </div>
+            <div class="copy-box">
+              <input
+                type="text"
+                id="generatedUrl"
+                class="copy-input"
+                readonly
+              />
+              <button
+                id="copyBtn"
+                class="btn-copy"
+                data-en="Copy"
+                data-zh-Hant="複製"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="parser.js"></script>
+
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      window.updateLocale = initLocaleMenu();
+    </script>
+  </body>
+</html>
