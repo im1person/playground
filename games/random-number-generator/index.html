@@ -3,8 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-en="Random Number Generator" data-zh-Hant="隨機數字生成器">Random Number Generator</title>  <!-- basic on the locale  -->
-    <link rel="stylesheet" href="../../assets/style.css">
+    <title data-en="Random Number Generator" data-zh-Hant="隨機數字生成器">
+      Random Number Generator
+    </title>
+    <!-- basic on the locale  -->
+    <link rel="stylesheet" href="../../assets/style.css" />
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -69,32 +72,44 @@
       .exclude-number.selected {
         opacity: 0.3; /* 選中的顏色 */
       }
-      
     </style>
   </head>
   <body>
     <!-- <button id="lightModeBtn" onclick="toggleLightMode()">淺色模式</button>         -->
-    <div class="top-bar">
-      <a href="../../index.html" class="home-btn" aria-label="Home" title="Home">🏠</a>
-      <select id="localeSelect" class="locale-select">
-        <option value="en">English</option>
-        <option value="zh-Hant">繁體中文</option>
-      </select>
-      <button id="themeToggle" class="theme-toggle"></button>
-    </div>
-    <h1 id="mainTitle" data-en="Random Number Generator (1-49)" data-zh-Hant="隨機數字生成器 (1-49)">隨機數字生成器 (1-49)</h1>
-    <label for="pickCount" data-en="Pick count (6-48):" data-zh-Hant="選擇數量 (6-48):">選擇數量 (6-48):</label>
+    <h1
+      id="mainTitle"
+      data-en="Random Number Generator (1-49)"
+      data-zh-Hant="隨機數字生成器 (1-49)"
+    >
+      隨機數字生成器 (1-49)
+    </h1>
+    <label
+      for="pickCount"
+      data-en="Pick count (6-48):"
+      data-zh-Hant="選擇數量 (6-48):"
+      >選擇數量 (6-48):</label
+    >
     <input type="number" id="pickCount" min="6" max="48" value="6" />
     <input type="range" id="pickCountSlider" min="6" max="48" value="6" />
     <br />
-    <label for="runTimes" data-en="Runs:" data-zh-Hant="運行次數:">運行次數:</label>
+    <label for="runTimes" data-en="Runs:" data-zh-Hant="運行次數:"
+      >運行次數:</label
+    >
     <input type="number" id="runTimes" min="1" max="9999" value="1" />
     <input type="range" id="runTimesSlider" min="1" max="100" value="1" />
     <br />
     <div>
-      <label data-en="Excluded numbers:" data-zh-Hant="排除的數字:">排除的數字:</label>
+      <label data-en="Excluded numbers:" data-zh-Hant="排除的數字:"
+        >排除的數字:</label
+      >
       <div id="excludeNumbersContainer"></div>
-      <button id="generateBtn" data-en="Generate Numbers" data-zh-Hant="生成數字">生成數字</button>
+      <button
+        id="generateBtn"
+        data-en="Generate Numbers"
+        data-zh-Hant="生成數字"
+      >
+        生成數字
+      </button>
     </div>
     <div id="result"></div>
 
@@ -187,8 +202,8 @@
       }
 
       function getResultPrefix(i) {
-        const locale = localStorage.getItem('playground-locale') || 'zh-Hant';
-        if (locale === 'en') {
+        const locale = localStorage.getItem("playground-locale") || "zh-Hant";
+        if (locale === "en") {
           return `Run ${i}:`;
         } else {
           return `第 ${i} 次:`;
@@ -247,7 +262,9 @@
               .padStart(2, " ")}</span></span>`;
           });
 
-          resultHTML += `<span class="result-line">${getResultPrefix(i + 1)} ${coloredNumbers.join("")}</span>`;
+          resultHTML += `<span class="result-line">${getResultPrefix(
+            i + 1
+          )} ${coloredNumbers.join("")}</span>`;
         }
 
         document.getElementById("result").innerHTML = resultHTML;
@@ -300,11 +317,13 @@
         .getElementById("runTimesSlider")
         .addEventListener("input", updateRunTimesFromSlider);
       // Update generate button to use locale
-      document.getElementById('generateBtn').onclick = generateNumbers;
+      document.getElementById("generateBtn").onclick = generateNumbers;
     </script>
     <script type="module">
-      import { initThemeToggle } from '../../assets/theme-toggle.js';
-      import { initLocaleMenu } from '../../assets/locale-menu.js';
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
       initThemeToggle();
       initLocaleMenu();
     </script>
