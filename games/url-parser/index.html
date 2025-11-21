@@ -44,12 +44,16 @@
         padding: 20px;
         transition: background-color 0.3s, color 0.3s;
         line-height: 1.5;
+        display: block; /* Override assets/style.css flex layout */
       }
 
       .main-wrapper {
-        max-width: 1200px;
+        max-width: 100%;
         margin: 0 auto;
         padding-top: 20px;
+        padding-left: 20px;
+        padding-right: 20px;
+        box-sizing: border-box;
       }
 
       h1 {
@@ -66,8 +70,8 @@
 
       /* Grid Layout */
       .parser-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+        display: flex;
+        flex-direction: column;
         gap: 24px;
         margin-top: 24px;
       }
@@ -211,14 +215,16 @@
       /* Data Display */
       .data-list {
         display: flex;
-        flex-direction: column;
-        gap: 12px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 24px;
       }
 
       .data-item {
         display: flex;
         flex-direction: column;
         gap: 4px;
+        flex: 1 1 150px; /* Grow, shrink, min-width */
       }
 
       .data-label {
@@ -239,6 +245,7 @@
         padding: 8px 12px;
         border-radius: 6px;
         border: 1px solid transparent;
+        flex-grow: 1; /* Ensure value box takes up available height */
       }
       .light-mode .data-value {
         background: #f8f9fa;
@@ -330,6 +337,11 @@
         padding: 14px 16px;
         color: var(--text-color);
         outline: none;
+        resize: vertical; /* Allow vertical resize if needed */
+        min-height: 50px; /* Minimum height for single line */
+        white-space: pre-wrap; /* Wrap text */
+        word-break: break-all; /* Break long lines */
+        overflow: hidden; /* Hide scrollbars if auto-sizing */
       }
 
       .btn-copy {
@@ -347,10 +359,29 @@
         background: var(--primary-bg-hover);
       }
 
-      @media (max-width: 768px) {
-        .parser-grid {
-          grid-template-columns: 1fr;
-        }
+      .card.grid-full {
+        grid-column: 1 / -1;
+      }
+
+      .bulk-textarea {
+        width: 100%;
+        min-height: 200px;
+        background: var(--input-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px;
+        font-family: var(--font-mono);
+        font-size: 0.9rem;
+        resize: vertical;
+        outline: none;
+        box-sizing: border-box;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .bulk-textarea:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px var(--primary-bg-hover);
       }
     </style>
   </head>
@@ -448,7 +479,7 @@
           </div>
 
           <!-- Query Params Card -->
-          <div class="card">
+          <div class="card" id="queryParamsCard">
             <div class="card-header">
               <h2
                 class="card-title"
@@ -457,8 +488,40 @@
               >
                 Query Parameters
               </h2>
+              <button
+                id="bulkEditToggle"
+                class="btn btn-text"
+                data-en="Bulk Edit"
+                data-zh-Hant="批量編輯"
+              >
+                Bulk Edit
+              </button>
             </div>
             <div id="queryParams" class="table-container"></div>
+            <div id="bulkEditContainer" style="display: none">
+              <textarea
+                id="bulkEditTextarea"
+                class="bulk-textarea"
+                placeholder="key:value"
+              ></textarea>
+              <div
+                class="input-label"
+                style="margin-top: 8px; font-size: 0.8rem; line-height: 1.4"
+              >
+                <div
+                  data-en="Rows are separated by new lines"
+                  data-zh-Hant="每行代表一個參數"
+                >
+                  Rows are separated by new lines
+                </div>
+                <div
+                  data-en="Keys and values are separated by :"
+                  data-zh-Hant="鍵與值之間用 : 分隔"
+                >
+                  Keys and values are separated by :
+                </div>
+              </div>
+            </div>
             <button
               id="addParamBtn"
               class="btn btn-add"
@@ -481,12 +544,12 @@
               </h2>
             </div>
             <div class="copy-box">
-              <input
-                type="text"
+              <textarea
                 id="generatedUrl"
                 class="copy-input"
                 readonly
-              />
+                rows="1"
+              ></textarea>
               <button
                 id="copyBtn"
                 class="btn-copy"

@@ -1,4 +1,5 @@
 let currentUrlObj = null;
+let isBulkMode = false;
 
 document.getElementById("parseBtn").addEventListener("click", parseUrl);
 document.getElementById("urlInput").addEventListener("keypress", function (e) {
@@ -35,6 +36,13 @@ document.getElementById("copyBtn").addEventListener("click", () => {
   });
 });
 
+document
+  .getElementById("bulkEditToggle")
+  .addEventListener("click", toggleBulkEdit);
+document
+  .getElementById("bulkEditTextarea")
+  .addEventListener("input", updateUrlFromBulk);
+
 function parseUrl() {
   const urlString = document.getElementById("urlInput").value.trim();
   const resultSection = document.getElementById("resultSection");
@@ -64,37 +72,12 @@ function parseUrl() {
     document.getElementById("pathname").textContent = url.pathname;
     document.getElementById("hash").textContent = url.hash || "-";
 
-    const queryParams = document.getElementById("queryParams");
-    queryParams.innerHTML = "";
+    // Render both views (or at least prep them)
+    renderParamsTable();
+    renderBulkTextarea();
 
-    const table = document.createElement("table");
-    table.className = "params-table";
-    table.id = "paramsTable";
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th data-en="Key" data-zh-Hant="鍵" style="width: 40%">Key</th>
-          <th data-en="Value" data-zh-Hant="值" style="width: 45%">Value</th>
-          <th style="width: 15%"></th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    `;
-    queryParams.appendChild(table);
-
-    if (url.searchParams.size > 0) {
-      url.searchParams.forEach((value, key) => {
-        addParamRow(key, value, false);
-      });
-    } else {
-      // If empty, we might want to show an empty row or just the table headers
-      // Keep it empty for now, user can add
-    }
-
-    // Ensure result section is visible (it uses display: contents, but we might want to toggle visibility of children if we wanted to hide before parse)
-    // Since we changed layout, let's just assume it's always visible or valid
-
-    updateGeneratedUrl();
+    // Update Generated URL based on current state (which matches URL input initially)
+    document.getElementById("generatedUrl").value = currentUrlObj.href;
 
     if (window.updateLocale) {
       window.updateLocale(localStorage.getItem("playground-locale") || "en");
@@ -105,8 +88,46 @@ function parseUrl() {
   }
 }
 
+function renderParamsTable() {
+  const queryParams = document.getElementById("queryParams");
+  queryParams.innerHTML = "";
+
+  const table = document.createElement("table");
+  table.className = "params-table";
+  table.id = "paramsTable";
+  table.innerHTML = `
+      <thead>
+        <tr>
+          <th data-en="Key" data-zh-Hant="鍵" style="width: 40%">Key</th>
+          <th data-en="Value" data-zh-Hant="值" style="width: 45%">Value</th>
+          <th style="width: 15%"></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    `;
+  queryParams.appendChild(table);
+
+  if (currentUrlObj && currentUrlObj.searchParams.size > 0) {
+    currentUrlObj.searchParams.forEach((value, key) => {
+      addParamRow(key, value, false);
+    });
+  }
+}
+
+function renderBulkTextarea() {
+  if (!currentUrlObj) return;
+  const params = [];
+  currentUrlObj.searchParams.forEach((value, key) => {
+    params.push(`${key}:${value}`);
+  });
+  document.getElementById("bulkEditTextarea").value = params.join("\n");
+}
+
 function addParamRow(key, value, updateUrl = true) {
   const tbody = document.querySelector("#paramsTable tbody");
+  // Safety check if table exists (might not if we haven't parsed yet)
+  if (!tbody) return;
+
   const row = document.createElement("tr");
 
   row.innerHTML = `
@@ -141,19 +162,91 @@ function addParamRow(key, value, updateUrl = true) {
 }
 
 function updateGeneratedUrl() {
+  // Updates from Table View
   if (!currentUrlObj) return;
 
   const newParams = new URLSearchParams();
-  document.querySelectorAll("#paramsTable tbody tr").forEach((row) => {
-    const key = row.querySelector(".param-key").value;
-    const value = row.querySelector(".param-value").value;
-    if (key) {
-      newParams.append(key, value);
+  // Check if table exists
+  const rows = document.querySelectorAll("#paramsTable tbody tr");
+  if (rows.length > 0) {
+    rows.forEach((row) => {
+      const key = row.querySelector(".param-key").value;
+      const value = row.querySelector(".param-value").value;
+      if (key) {
+        newParams.append(key, value);
+      }
+    });
+  } else if (!isBulkMode) {
+    // If in table mode and no rows, params are empty
+    // (If in bulk mode, we don't use this function usually, but see logic below)
+  }
+
+  currentUrlObj.search = newParams.toString();
+  document.getElementById("generatedUrl").value = currentUrlObj.href;
+}
+
+function updateUrlFromBulk() {
+  // Updates from Bulk View
+  if (!currentUrlObj) return;
+  const text = document.getElementById("bulkEditTextarea").value;
+  const lines = text.split("\n");
+  const newParams = new URLSearchParams();
+
+  lines.forEach((line) => {
+    if (!line.trim()) return;
+    // Split by first colon only
+    const separatorIndex = line.indexOf(":");
+    if (separatorIndex !== -1) {
+      const key = line.substring(0, separatorIndex).trim();
+      const value = line.substring(separatorIndex + 1).trim();
+      if (key) newParams.append(key, value);
+    } else {
+      const key = line.trim();
+      if (key) newParams.append(key, "");
     }
   });
 
   currentUrlObj.search = newParams.toString();
   document.getElementById("generatedUrl").value = currentUrlObj.href;
+}
+
+function toggleBulkEdit() {
+  isBulkMode = !isBulkMode;
+  const tableContainer = document.getElementById("queryParams");
+  const addBtn = document.getElementById("addParamBtn");
+  const bulkContainer = document.getElementById("bulkEditContainer");
+  const toggleBtn = document.getElementById("bulkEditToggle");
+  const card = document.getElementById("queryParamsCard");
+
+  if (isBulkMode) {
+    // Switching to Bulk
+    // First ensure bulk text is up to date with current URL object (which matches table)
+    renderBulkTextarea();
+
+    tableContainer.style.display = "none";
+    addBtn.style.display = "none";
+    bulkContainer.style.display = "block";
+    // card.classList.add("grid-full"); // No longer needed with flex layout
+
+    toggleBtn.setAttribute("data-en", "Key-Value Edit");
+    toggleBtn.setAttribute("data-zh-Hant", "表格編輯");
+  } else {
+    // Switching to Table
+    // Ensure table is up to date with current URL object (which matches bulk text)
+    renderParamsTable();
+
+    tableContainer.style.display = "block";
+    addBtn.style.display = "inline-flex";
+    bulkContainer.style.display = "none";
+    // card.classList.remove("grid-full"); // No longer needed with flex layout
+
+    toggleBtn.setAttribute("data-en", "Bulk Edit");
+    toggleBtn.setAttribute("data-zh-Hant", "批量編輯");
+  }
+
+  if (window.updateLocale) {
+    window.updateLocale(localStorage.getItem("playground-locale") || "en");
+  }
 }
 
 function escapeHtml(text) {
