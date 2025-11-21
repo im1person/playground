@@ -12,9 +12,9 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 
 ## Entries
 
-- [Random Number Generator](games/random-number-generator/index.html): Pick random numbers, exclude numbers, and more.
-- [Falling Balls Game](games/falling-balls/index.html): Pop falling balls for points. Fast, fun, and mobile-friendly.
-- [URL Parser](games/url-parser/index.html): Parse, analyze, and edit URLs with a modern interface.
+- [Random Number Generator](https://im1person.github.io/playground/games/random-number-generator/): Pick random numbers, exclude numbers, and more.
+- [Falling Balls Game](https://im1person.github.io/playground/games/falling-balls/): Pop falling balls for points. Fast, fun, and mobile-friendly.
+- [URL Parser](https://im1person.github.io/playground/games/url-parser/): Parse, analyze, and edit URLs with a modern interface.
 
 ## Reusable UI Components
 
