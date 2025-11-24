@@ -34,19 +34,28 @@
         display: flex;
         gap: 20px;
         align-items: flex-start;
+        justify-content: center;
         margin-top: 20px;
       }
-      .info-panel {
+      .left-panel,
+      .right-panel {
         display: flex;
         flex-direction: column;
-        gap: 10px;
-        font-size: 1.2em;
+        gap: 20px;
+        min-width: 120px;
+      }
+      .right-panel {
+        align-items: flex-start;
+      }
+      .left-panel {
+        align-items: flex-end;
+        text-align: right;
       }
       .controls-info {
         margin-top: 20px;
         font-size: 0.9em;
         color: #aaa;
-        max-width: 300px;
+        max-width: 200px;
       }
       body.light-mode .controls-info {
         color: #666;
@@ -54,11 +63,18 @@
       .preview-box {
         margin-top: 10px;
         text-align: center;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 8px;
       }
       .preview-box canvas {
-        border: 2px solid #555;
-        background-color: #000;
+        border: none; /* Remove border to make them look closer */
+        background-color: transparent;
         margin-top: 5px;
+      }
+      /* Reset background for canvases in queue if needed, or keep transparent */
+      #next-queue canvas {
+          background-color: transparent;
       }
       body.light-mode .preview-box canvas {
         border-color: #ccc;
@@ -75,6 +91,16 @@
       }
       button#startBtn:hover {
         background-color: #45a049;
+      }
+      .mobile-preview-row {
+        display: none;
+        width: 100%;
+        justify-content: center;
+        gap: 12px;
+      }
+      .mobile-preview-row .preview-box {
+        flex: 1;
+        max-width: 140px;
       }
 
       /* Mobile Controls */
@@ -128,38 +154,85 @@
 
       @media (max-width: 768px) {
         body {
-          overscroll-behavior: none; /* Prevent pull-to-refresh */
-          touch-action: none; /* Prevent browser handling of gestures */
+          padding-bottom: 300px; /* Increase space for fixed controls */
+          overflow-y: auto; /* Ensure scrolling is possible */
         }
         .game-container {
           flex-direction: column;
           align-items: center;
-          margin-bottom: 20px;
+          justify-content: flex-start;
+          margin-top: 10px;
+          gap: 15px;
         }
-        .info-panel {
+        .left-panel,
+        .right-panel {
           flex-direction: row;
           flex-wrap: wrap;
           justify-content: center;
           width: 100%;
+          align-items: center; /* Vertically center items in the row */
+          text-align: center;
+          gap: 20px;
+          min-width: 0; /* Allow shrinking */
         }
-        canvas#tetris {
-          width: 80vw;
-          height: 133vw; /* Maintain aspect ratio 240:400 = 0.6 */
-          max-width: 300px;
-          max-height: 500px;
+        
+        /* Reset alignments from desktop */
+        .left-panel { align-items: center; text-align: center; }
+        .right-panel { align-items: center; }
+
+        /* Mobile Layout Order */
+        .left-panel { order: 1; }
+        canvas#tetris { order: 2; margin: 10px 0; }
+        .right-panel { order: 3; }
+        
+        /* Adjust preview boxes on mobile */
+        .preview-box {
+            margin: 0; /* Remove desktop margin */
+            flex: 0 0 auto; /* Don't stretch */
+        }
+        
+        #next-queue canvas:not(:first-child) {
+          display: none; /* Only show first next piece on mobile to save space */
+        }
+        
+        .status-group {
+            display: flex;
+            flex-direction: row !important; /* Force row for score/level on mobile */
+            gap: 20px !important;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 200px; /* Limit button width */
         }
 
         /* Hide keyboard controls info on mobile */
-        .controls-info ul {
-          display: none;
+        .controls-info, .controls-info ul {
+          display: none !important;
         }
+        .mobile-preview-row {
+          display: flex;
+        }
+        .mobile-preview-row .preview-box {
+          max-width: 160px;
+        }
+        
         /* Show gesture info */
         .gesture-info {
-          display: block !important;
-          margin-top: 10px;
-          font-size: 0.9em;
-          color: #aaa;
-          text-align: center;
+           display: block !important;
+           margin: 10px auto;
+           font-size: 0.9em;
+           color: #aaa;
+           text-align: center;
+           width: 100%;
+           background: rgba(0,0,0,0.2);
+           padding: 10px;
+           border-radius: 8px;
         }
       }
 
@@ -172,99 +245,109 @@
     <h1 data-en="Tetris" data-zh-Hant="俄羅斯方塊">Tetris</h1>
 
     <div class="game-container">
-      <canvas id="tetris" width="240" height="400"></canvas>
-      <div class="info-panel">
-        <div
-          class="status-group"
-          style="display: flex; flex-direction: column; gap: 10px"
-        >
-          <div id="score" data-en="Score: 0" data-zh-Hant="分數: 0">
-            Score: 0
-          </div>
-          <div id="level" data-en="Level: 1" data-zh-Hant="等級: 1">
-            Level: 1
-          </div>
+      <!-- Left Panel: Status & Hold -->
+      <div class="left-panel">
+        <div class="preview-box">
+          <div data-en="Hold" data-zh-Hant="暫存">Hold</div>
+          <canvas id="hold" width="100" height="100"></canvas>
         </div>
 
-        <div class="preview-group" style="display: flex; gap: 10px">
-          <div class="preview-box">
-            <div data-en="Next" data-zh-Hant="下一個">Next</div>
-            <canvas id="next" width="100" height="100"></canvas>
-          </div>
-
-          <div class="preview-box">
-            <div data-en="Hold" data-zh-Hant="暫存">Hold</div>
-            <canvas id="hold" width="100" height="100"></canvas>
-          </div>
+        <div class="status-group">
+          <div id="score" data-en="Score: 0" data-zh-Hant="分數: 0" style="font-size: 1.2em; font-weight: bold;">Score: 0</div>
+          <div id="level" data-en="Level: 1" data-zh-Hant="等級: 1" style="font-size: 1.2em;">Level: 1</div>
         </div>
-
-        <div class="button-group" style="display: flex; flex-direction: column">
-          <button id="startBtn" data-en="Start Game" data-zh-Hant="開始遊戲">
-            Start Game
-          </button>
-          <button
-            id="matrixBtn"
-            data-en="Toggle Matrix View"
-            data-zh-Hant="切換矩陣視圖"
-            style="margin-top: 10px; background-color: #00bcd4"
-          >
-            Toggle Matrix View
-          </button>
-        </div>
-
-        <!-- Gesture instructions for mobile -->
-        <div class="gesture-info">
-          <p data-en="Mobile Controls:" data-zh-Hant="手機操作:">
-            Mobile Controls:
-          </p>
-          <ul
-            style="
-              padding-left: 20px;
-              margin-top: 5px;
-              list-style: none;
-              padding: 0;
-            "
-          >
-            <li data-en="Tap: Rotate" data-zh-Hant="點擊: 旋轉">Tap: Rotate</li>
-            <li data-en="Swipe Left/Right: Move" data-zh-Hant="左右滑動: 移動">
-              Swipe Left/Right: Move
-            </li>
-            <li
-              data-en="Swipe Down: Hard Drop"
-              data-zh-Hant="向下滑動: 直接落下"
-            >
-              Swipe Down: Hard Drop
-            </li>
-            <li data-en="Swipe Up: Hold" data-zh-Hant="向上滑動: 暫存">
-              Swipe Up: Hold
-            </li>
-          </ul>
-        </div>
-
+        
         <div class="controls-info">
           <p data-en="Controls:" data-zh-Hant="操作說明:">Controls:</p>
           <ul style="padding-left: 20px; margin-top: 5px">
-            <li data-en="← → : Move Left/Right" data-zh-Hant="← → : 左右移動">
-              ← → : Move Left/Right
-            </li>
-            <li data-en="↓ : Soft Drop" data-zh-Hant="↓ : 加速下落">
-              ↓ : Soft Drop
-            </li>
-            <li data-en="Space : Hard Drop" data-zh-Hant="空白鍵 : 直接落下">
-              Space : Hard Drop
-            </li>
-            <li data-en="↑ / Q / W : Rotate" data-zh-Hant="↑ / Q / W : 旋轉">
-              ↑ / Q / W : Rotate
-            </li>
-            <li data-en="C / Shift : Hold" data-zh-Hant="C / Shift : 暫存">
-              C / Shift : Hold
-            </li>
+            <li data-en="← → : Move" data-zh-Hant="← → : 移動">← → : Move</li>
+            <li data-en="↓ : Soft Drop" data-zh-Hant="↓ : 加速下落">↓ : Soft Drop</li>
+            <li data-en="Space : Hard Drop" data-zh-Hant="空白鍵 : 直接落下">Space : Hard Drop</li>
+            <li data-en="↑ / Q / W : Rotate" data-zh-Hant="↑ / Q / W : 旋轉">↑ / Q / W : Rotate</li>
+            <li data-en="C / Shift : Hold" data-zh-Hant="C / Shift : 暫存">C / Shift : Hold</li>
           </ul>
         </div>
       </div>
-    </div>
+
+      <!-- Center: Game Board -->
+      <canvas id="tetris" width="240" height="400"></canvas>
+
+      <!-- Right Panel: Next Queue & Buttons -->
+      <div class="right-panel">
+        <div class="preview-box">
+          <div data-en="Next" data-zh-Hant="下一個">Next</div>
+          <div id="next-queue" style="display: flex; flex-direction: column; align-items: center;">
+             <canvas id="next" width="100" height="100"></canvas>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button id="startBtn" data-en="Start Game" data-zh-Hant="開始遊戲">Start Game</button>
+          <button id="matrixBtn" data-en="Toggle Matrix View" data-zh-Hant="切換矩陣視圖" style="margin-top: 10px; background-color: #00bcd4">
+            Toggle Matrix View
+          </button>
+        </div>
+      </div>
 
     <script src="game.js"></script>
+    <script>
+      (function () {
+        const leftPanel = document.querySelector(".left-panel");
+        const rightPanel = document.querySelector(".right-panel");
+        if (!leftPanel || !rightPanel) return;
+
+        const holdPreview = leftPanel.querySelector(".preview-box");
+        const nextPreview = rightPanel.querySelector(".preview-box");
+        const statusGroup = leftPanel.querySelector(".status-group");
+        const buttonGroup = rightPanel.querySelector(".button-group");
+        if (!holdPreview || !nextPreview || !statusGroup || !buttonGroup) return;
+
+        const mobileRow = document.createElement("div");
+        mobileRow.className = "mobile-preview-row";
+
+        const mq = window.matchMedia("(max-width: 768px)");
+
+        const moveToMobile = () => {
+          if (!mobileRow.contains(holdPreview)) {
+            mobileRow.appendChild(holdPreview);
+          }
+          if (!mobileRow.contains(nextPreview)) {
+            mobileRow.appendChild(nextPreview);
+          }
+          if (mobileRow.parentNode !== rightPanel) {
+            rightPanel.insertBefore(mobileRow, buttonGroup);
+          }
+        };
+
+        const moveToDesktop = () => {
+          if (mobileRow.contains(nextPreview)) {
+            rightPanel.insertBefore(nextPreview, buttonGroup);
+          }
+          if (mobileRow.contains(holdPreview)) {
+            leftPanel.insertBefore(holdPreview, statusGroup);
+          }
+          if (mobileRow.parentNode) {
+            mobileRow.parentNode.removeChild(mobileRow);
+          }
+        };
+
+        const updatePlacement = () => {
+          if (mq.matches) {
+            moveToMobile();
+          } else {
+            moveToDesktop();
+          }
+        };
+
+        if (typeof mq.addEventListener === "function") {
+          mq.addEventListener("change", updatePlacement);
+        } else if (typeof mq.addListener === "function") {
+          mq.addListener(updatePlacement);
+        }
+
+        updatePlacement();
+      })();
+    </script>
     <script type="module">
       import { initThemeToggle } from "../../assets/theme-toggle.js";
       import { initLocaleMenu } from "../../assets/locale-menu.js";

@@ -1,12 +1,17 @@
 const canvas = document.getElementById("tetris");
 const context = canvas.getContext("2d");
-const nextCanvas = document.getElementById("next");
-const nextContext = nextCanvas.getContext("2d");
+// Main next canvas is now just the first one, but we might generate more dynamically or use one tall canvas
+// Let's use a container logic or multiple canvases.
+// Simpler: Use one tall canvas for 'next' or generate canvases in JS?
+// The user asked for 5 previews.
+// Let's modify index.html to not have a single hardcoded canvas but a container?
+// Actually, I already modified index.html to have a #next-queue container.
+// So 'nextCanvas' logic needs to change.
+const nextQueueContainer = document.getElementById("next-queue");
 const holdCanvas = document.getElementById("hold");
 const holdContext = holdCanvas.getContext("2d");
 
 context.scale(20, 20);
-nextContext.scale(20, 20);
 holdContext.scale(20, 20);
 
 const btn = document.getElementById("startBtn");
@@ -26,7 +31,7 @@ const arena = createMatrix(12, 20);
 const player = {
   pos: { x: 0, y: 0 },
   matrix: null,
-  next: null,
+  nextQueue: [], // Array of matrices
   hold: null,
   canHold: true,
   score: 0,
@@ -152,11 +157,31 @@ function draw() {
 
   drawMatrix(player.matrix, player.pos);
 
-  // Draw Next Piece
-  drawPreview(nextContext, player.next);
+  // Draw Next Queue
+  updateNextQueueUI();
 
   // Draw Hold Piece
   drawPreview(holdContext, player.hold);
+}
+
+function updateNextQueueUI() {
+  nextQueueContainer.innerHTML = "";
+  const previewCount = 5;
+  player.nextQueue.slice(0, previewCount).forEach((matrix, index) => {
+    const canvas = document.createElement("canvas");
+    // Make pieces smaller and tighter
+    const size = index === 0 ? 80 : 60; // First one slightly bigger
+    canvas.width = size;
+    canvas.height = size;
+    canvas.style.marginBottom = "-10px"; // Negative margin to reduce gap
+
+    const ctx = canvas.getContext("2d");
+    const scale = size / 5; // 5 blocks wide grid (standard pieces are max 4, but we center in 5)
+    ctx.scale(scale, scale);
+
+    drawPreview(ctx, matrix);
+    nextQueueContainer.appendChild(canvas);
+  });
 }
 
 function drawGhostPiece() {
@@ -176,8 +201,8 @@ function drawGhostPiece() {
 }
 
 function drawPreview(ctx, matrix) {
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0, 0, ctx.canvas.width / 20, ctx.canvas.height / 20); // Clear logic adapted for scaled context
+  // Clear the canvas with transparency (logical size is always 5x5)
+  ctx.clearRect(0, 0, 5, 5);
 
   if (!matrix) return;
 
@@ -328,12 +353,20 @@ function playerMove(dir) {
 function playerReset() {
   const pieces = "ILJOTSZ";
 
-  if (player.next === null) {
-    player.next = createPiece(pieces[(pieces.length * Math.random()) | 0]);
+  // Fill queue if empty (start of game)
+  if (player.nextQueue.length === 0) {
+    while (player.nextQueue.length < 5) {
+      player.nextQueue.push(
+        createPiece(pieces[(pieces.length * Math.random()) | 0])
+      );
+    }
   }
 
-  player.matrix = player.next;
-  player.next = createPiece(pieces[(pieces.length * Math.random()) | 0]);
+  player.matrix = player.nextQueue.shift();
+  player.nextQueue.push(
+    createPiece(pieces[(pieces.length * Math.random()) | 0])
+  );
+
   player.pos.y = 0;
   player.pos.x =
     ((arena[0].length / 2) | 0) - ((player.matrix[0].length / 2) | 0);
@@ -346,7 +379,7 @@ function playerReset() {
     player.level = 1;
     player.lines = 0;
     player.hold = null;
-    player.next = null;
+    player.nextQueue = []; // Clear queue on game over
     dropInterval = 1000;
     updateScore();
     isGameOver = true;
@@ -633,7 +666,7 @@ btn.addEventListener("click", () => {
     player.level = 1;
     player.lines = 0;
     player.hold = null;
-    player.next = null;
+    player.nextQueue = []; // Clear queue to force refill
     dropInterval = 1000;
     playerReset();
     updateScore();
