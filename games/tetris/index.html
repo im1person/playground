@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Tetris" data-zh-Hant="俄羅斯方塊">Tetris</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+        box-sizing: border-box;
+        background-color: #202028;
+        color: #fff;
+        transition: background-color 0.3s, color 0.3s;
+      }
+      body.light-mode {
+        background-color: #f0f0f0;
+        color: #333;
+      }
+      #tetris {
+        border: 2px solid #fff;
+        background-color: #000;
+      }
+      body.light-mode #tetris {
+        border-color: #333;
+      }
+      .game-container {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+        margin-top: 20px;
+      }
+      .info-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        font-size: 1.2em;
+      }
+      .controls-info {
+        margin-top: 20px;
+        font-size: 0.9em;
+        color: #aaa;
+        max-width: 300px;
+      }
+      body.light-mode .controls-info {
+        color: #666;
+      }
+      .preview-box {
+        margin-top: 10px;
+        text-align: center;
+      }
+      .preview-box canvas {
+        border: 2px solid #555;
+        background-color: #000;
+        margin-top: 5px;
+      }
+      body.light-mode .preview-box canvas {
+        border-color: #ccc;
+      }
+      button#startBtn {
+        padding: 10px 20px;
+        font-size: 1.2em;
+        cursor: pointer;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        margin-top: 10px;
+      }
+      button#startBtn:hover {
+        background-color: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 data-en="Tetris" data-zh-Hant="俄羅斯方塊">Tetris</h1>
+
+    <div class="game-container">
+      <canvas id="tetris" width="240" height="400"></canvas>
+      <div class="info-panel">
+        <div id="score" data-en="Score: 0" data-zh-Hant="分數: 0">Score: 0</div>
+        <div id="level" data-en="Level: 1" data-zh-Hant="等級: 1">Level: 1</div>
+
+        <div class="preview-box">
+          <div data-en="Next" data-zh-Hant="下一個">Next</div>
+          <canvas id="next" width="100" height="100"></canvas>
+        </div>
+
+        <div class="preview-box">
+          <div data-en="Hold" data-zh-Hant="暫存">Hold</div>
+          <canvas id="hold" width="100" height="100"></canvas>
+        </div>
+
+        <button id="startBtn" data-en="Start Game" data-zh-Hant="開始遊戲">
+          Start Game
+        </button>
+        <button
+          id="matrixBtn"
+          data-en="Toggle Matrix View"
+          data-zh-Hant="切換矩陣視圖"
+          style="margin-top: 10px; background-color: #00bcd4"
+        >
+          Toggle Matrix View
+        </button>
+
+        <div class="controls-info">
+          <p data-en="Controls:" data-zh-Hant="操作說明:">Controls:</p>
+          <ul style="padding-left: 20px; margin-top: 5px">
+            <li data-en="← → : Move Left/Right" data-zh-Hant="← → : 左右移動">
+              ← → : Move Left/Right
+            </li>
+            <li data-en="↓ : Soft Drop" data-zh-Hant="↓ : 加速下落">
+              ↓ : Soft Drop
+            </li>
+            <li data-en="Space : Hard Drop" data-zh-Hant="空白鍵 : 直接落下">
+              Space : Hard Drop
+            </li>
+            <li data-en="↑ / Q / W : Rotate" data-zh-Hant="↑ / Q / W : 旋轉">
+              ↑ / Q / W : Rotate
+            </li>
+            <li data-en="C / Shift : Hold" data-zh-Hant="C / Shift : 暫存">
+              C / Shift : Hold
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>
