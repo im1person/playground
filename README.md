@@ -7,6 +7,7 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 - `/games/random-number-generator/` — Random Number Generator
 - `/games/falling-balls/` — Falling Balls Game
 - `/games/url-parser/` — URL Parser Tool
+- `/games/tetris/` — Tetris Game
 - `/assets/` — Shared styles, theme toggle, and locale menu components
 - `/index.html` — Playground hub
 
@@ -15,6 +16,7 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 - [Random Number Generator](https://im1person.github.io/playground/games/random-number-generator/): Pick random numbers, exclude numbers, and more.
 - [Falling Balls Game](https://im1person.github.io/playground/games/falling-balls/): Pop falling balls for points. Fast, fun, and mobile-friendly.
 - [URL Parser](https://im1person.github.io/playground/games/url-parser/): Parse, analyze, and edit URLs with a modern interface.
+- [Tetris](https://im1person.github.io/playground/games/tetris/): Classic Tetris game. Stack blocks and clear lines!
 
 ## Reusable UI Components
 
