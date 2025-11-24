@@ -76,6 +76,96 @@
       button#startBtn:hover {
         background-color: #45a049;
       }
+
+      /* Mobile Controls */
+      .mobile-controls {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 20px;
+        width: 100%;
+        max-width: 300px;
+      }
+      .control-row {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+      }
+      .control-btn {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.1);
+        border: 2px solid #666;
+        color: #fff;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      .control-btn:active {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+      body.light-mode .control-btn {
+        background-color: rgba(0, 0, 0, 0.1);
+        border-color: #ccc;
+        color: #333;
+      }
+      body.light-mode .control-btn:active {
+        background-color: rgba(0, 0, 0, 0.2);
+      }
+
+      #drop-btn {
+        width: 80px;
+        height: 80px;
+        font-size: 30px;
+        border-color: #d32f2f;
+        background-color: rgba(211, 47, 47, 0.2);
+      }
+
+      @media (max-width: 768px) {
+        body {
+          overscroll-behavior: none; /* Prevent pull-to-refresh */
+          touch-action: none; /* Prevent browser handling of gestures */
+        }
+        .game-container {
+          flex-direction: column;
+          align-items: center;
+          margin-bottom: 20px;
+        }
+        .info-panel {
+          flex-direction: row;
+          flex-wrap: wrap;
+          justify-content: center;
+          width: 100%;
+        }
+        canvas#tetris {
+          width: 80vw;
+          height: 133vw; /* Maintain aspect ratio 240:400 = 0.6 */
+          max-width: 300px;
+          max-height: 500px;
+        }
+
+        /* Hide keyboard controls info on mobile */
+        .controls-info ul {
+          display: none;
+        }
+        /* Show gesture info */
+        .gesture-info {
+          display: block !important;
+          margin-top: 10px;
+          font-size: 0.9em;
+          color: #aaa;
+          text-align: center;
+        }
+      }
+
+      .gesture-info {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -84,30 +174,72 @@
     <div class="game-container">
       <canvas id="tetris" width="240" height="400"></canvas>
       <div class="info-panel">
-        <div id="score" data-en="Score: 0" data-zh-Hant="分數: 0">Score: 0</div>
-        <div id="level" data-en="Level: 1" data-zh-Hant="等級: 1">Level: 1</div>
-
-        <div class="preview-box">
-          <div data-en="Next" data-zh-Hant="下一個">Next</div>
-          <canvas id="next" width="100" height="100"></canvas>
-        </div>
-
-        <div class="preview-box">
-          <div data-en="Hold" data-zh-Hant="暫存">Hold</div>
-          <canvas id="hold" width="100" height="100"></canvas>
-        </div>
-
-        <button id="startBtn" data-en="Start Game" data-zh-Hant="開始遊戲">
-          Start Game
-        </button>
-        <button
-          id="matrixBtn"
-          data-en="Toggle Matrix View"
-          data-zh-Hant="切換矩陣視圖"
-          style="margin-top: 10px; background-color: #00bcd4"
+        <div
+          class="status-group"
+          style="display: flex; flex-direction: column; gap: 10px"
         >
-          Toggle Matrix View
-        </button>
+          <div id="score" data-en="Score: 0" data-zh-Hant="分數: 0">
+            Score: 0
+          </div>
+          <div id="level" data-en="Level: 1" data-zh-Hant="等級: 1">
+            Level: 1
+          </div>
+        </div>
+
+        <div class="preview-group" style="display: flex; gap: 10px">
+          <div class="preview-box">
+            <div data-en="Next" data-zh-Hant="下一個">Next</div>
+            <canvas id="next" width="100" height="100"></canvas>
+          </div>
+
+          <div class="preview-box">
+            <div data-en="Hold" data-zh-Hant="暫存">Hold</div>
+            <canvas id="hold" width="100" height="100"></canvas>
+          </div>
+        </div>
+
+        <div class="button-group" style="display: flex; flex-direction: column">
+          <button id="startBtn" data-en="Start Game" data-zh-Hant="開始遊戲">
+            Start Game
+          </button>
+          <button
+            id="matrixBtn"
+            data-en="Toggle Matrix View"
+            data-zh-Hant="切換矩陣視圖"
+            style="margin-top: 10px; background-color: #00bcd4"
+          >
+            Toggle Matrix View
+          </button>
+        </div>
+
+        <!-- Gesture instructions for mobile -->
+        <div class="gesture-info">
+          <p data-en="Mobile Controls:" data-zh-Hant="手機操作:">
+            Mobile Controls:
+          </p>
+          <ul
+            style="
+              padding-left: 20px;
+              margin-top: 5px;
+              list-style: none;
+              padding: 0;
+            "
+          >
+            <li data-en="Tap: Rotate" data-zh-Hant="點擊: 旋轉">Tap: Rotate</li>
+            <li data-en="Swipe Left/Right: Move" data-zh-Hant="左右滑動: 移動">
+              Swipe Left/Right: Move
+            </li>
+            <li
+              data-en="Swipe Down: Hard Drop"
+              data-zh-Hant="向下滑動: 直接落下"
+            >
+              Swipe Down: Hard Drop
+            </li>
+            <li data-en="Swipe Up: Hold" data-zh-Hant="向上滑動: 暫存">
+              Swipe Up: Hold
+            </li>
+          </ul>
+        </div>
 
         <div class="controls-info">
           <p data-en="Controls:" data-zh-Hant="操作說明:">Controls:</p>

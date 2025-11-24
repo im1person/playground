@@ -146,6 +146,10 @@ function draw() {
   }
 
   drawMatrix(arena, { x: 0, y: 0 });
+
+  // Draw Ghost Piece (Landing Preview)
+  drawGhostPiece();
+
   drawMatrix(player.matrix, player.pos);
 
   // Draw Next Piece
@@ -153,6 +157,22 @@ function draw() {
 
   // Draw Hold Piece
   drawPreview(holdContext, player.hold);
+}
+
+function drawGhostPiece() {
+  if (isGameOver || isPaused) return;
+
+  // Clone player position to calculate drop position
+  const ghostPos = { x: player.pos.x, y: player.pos.y };
+
+  // Move ghost down until collision
+  while (!collide(arena, { matrix: player.matrix, pos: ghostPos })) {
+    ghostPos.y++;
+  }
+  ghostPos.y--; // Step back up one block
+
+  // Draw ghost piece with transparency
+  drawMatrix(player.matrix, ghostPos, context, true);
 }
 
 function drawPreview(ctx, matrix) {
@@ -186,7 +206,7 @@ function drawGrid() {
   context.stroke();
 }
 
-function drawMatrix(matrix, offset, ctx = context) {
+function drawMatrix(matrix, offset, ctx = context, isGhost = false) {
   if (isMatrixMode) {
     ctx.font = "1px monospace"; // Since we scaled by 20, 1px is actually 20px
     ctx.textAlign = "center";
@@ -216,7 +236,7 @@ function drawMatrix(matrix, offset, ctx = context) {
         // However, drawMatrix iterates the matrix passed in.
 
         if (value !== 0) {
-          ctx.fillStyle = colors[value];
+          ctx.fillStyle = isGhost ? "rgba(255, 255, 255, 0.2)" : colors[value];
           ctx.fillText(value, x + offset.x + 0.5, y + offset.y + 0.5);
         } else if (matrix === arena) {
           // Only draw 0s for the main arena matrix
@@ -225,8 +245,15 @@ function drawMatrix(matrix, offset, ctx = context) {
         }
       } else {
         if (value !== 0) {
-          ctx.fillStyle = colors[value];
+          ctx.fillStyle = isGhost ? "rgba(255, 255, 255, 0.2)" : colors[value];
           ctx.fillRect(x + offset.x, y + offset.y, 1, 1);
+
+          if (isGhost) {
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+            ctx.lineWidth = 0.05;
+            ctx.strokeRect(x + offset.x, y + offset.y, 1, 1);
+            return; // Skip bevel effects for ghost
+          }
 
           // Grid effect for blocks
           ctx.lineWidth = 0.05;
@@ -385,8 +412,48 @@ function playerRotate(dir) {
   }
 }
 
+// Keyboard state
+const keys = {
+  37: {
+    pressed: false,
+    handler: () => playerMove(-1),
+    lastTime: 0,
+    startTime: 0,
+  }, // Left
+  39: {
+    pressed: false,
+    handler: () => playerMove(1),
+    lastTime: 0,
+    startTime: 0,
+  }, // Right
+  40: {
+    pressed: false,
+    handler: () => playerDrop(),
+    lastTime: 0,
+    startTime: 0,
+  }, // Down
+};
+const keyRepeatDelay = 150;
+const keyRepeatRate = 50;
+
+function handleKeyInput(time) {
+  Object.keys(keys).forEach((keyCode) => {
+    const key = keys[keyCode];
+    if (key.pressed) {
+      if (time - key.startTime > keyRepeatDelay) {
+        if (time - key.lastTime > keyRepeatRate) {
+          key.handler();
+          key.lastTime = time;
+        }
+      }
+    }
+  });
+}
+
 function update(time = 0) {
   if (isGameOver || isPaused) return;
+
+  handleKeyInput(time);
 
   const deltaTime = time - lastTime;
   lastTime = time;
@@ -411,16 +478,17 @@ function updateScore() {
 document.addEventListener("keydown", (event) => {
   if (isGameOver) return;
 
-  if (event.keyCode === 37) {
-    // Left
-    playerMove(-1);
-  } else if (event.keyCode === 39) {
-    // Right
-    playerMove(1);
-  } else if (event.keyCode === 40) {
-    // Down
-    playerDrop();
-  } else if (event.keyCode === 81) {
+  if (keys[event.keyCode]) {
+    if (!keys[event.keyCode].pressed) {
+      keys[event.keyCode].pressed = true;
+      keys[event.keyCode].startTime = performance.now();
+      keys[event.keyCode].lastTime = performance.now();
+      keys[event.keyCode].handler(); // Trigger immediately
+    }
+    return;
+  }
+
+  if (event.keyCode === 81) {
     // Q
     playerRotate(-1);
   } else if (event.keyCode === 87 || event.keyCode === 38) {
@@ -435,12 +503,126 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
+document.addEventListener("keyup", (event) => {
+  if (keys[event.keyCode]) {
+    keys[event.keyCode].pressed = false;
+  }
+});
+
 matrixBtn.addEventListener("click", () => {
   isMatrixMode = !isMatrixMode;
   draw();
   btn.blur(); // Remove focus so space bar doesn't trigger button
   matrixBtn.blur();
 });
+
+// Mobile Gesture Controls
+const setupGestureControls = () => {
+  const el = document.getElementById("tetris"); // Touch on canvas
+  let touchstartX = 0;
+  let touchstartY = 0;
+  let touchstartTime = 0;
+  let lastMoveX = 0;
+  let moveThreshold = 30; // Distance to move 1 block
+
+  el.addEventListener(
+    "touchstart",
+    (e) => {
+      e.preventDefault(); // Prevent scrolling
+      touchstartX = e.changedTouches[0].screenX;
+      touchstartY = e.changedTouches[0].screenY;
+      touchstartTime = new Date().getTime();
+      lastMoveX = touchstartX;
+    },
+    { passive: false }
+  );
+
+  el.addEventListener(
+    "touchmove",
+    (e) => {
+      e.preventDefault();
+      if (isGameOver || isPaused) return;
+
+      const currentX = e.changedTouches[0].screenX;
+      const diffX = currentX - lastMoveX;
+
+      // Continuous Horizontal Movement
+      if (Math.abs(diffX) > moveThreshold) {
+        const direction = diffX > 0 ? 1 : -1;
+        // Calculate how many steps to move based on distance
+        const steps = Math.floor(Math.abs(diffX) / moveThreshold);
+
+        for (let i = 0; i < steps; i++) {
+          playerMove(direction);
+        }
+
+        // Update lastMoveX to be the point after moving steps * threshold
+        // This avoids "losing" distance if moving fast
+        lastMoveX += direction * steps * moveThreshold;
+      }
+    },
+    { passive: false }
+  );
+
+  el.addEventListener(
+    "touchend",
+    (e) => {
+      e.preventDefault();
+      const touchendX = e.changedTouches[0].screenX;
+      const touchendY = e.changedTouches[0].screenY;
+      const touchendTime = new Date().getTime();
+
+      handleGesture(
+        touchstartX,
+        touchstartY,
+        touchendX,
+        touchendY,
+        touchendTime - touchstartTime
+      );
+    },
+    { passive: false }
+  );
+
+  const handleGesture = (startX, startY, endX, endY, duration) => {
+    if (isGameOver || isPaused) return;
+
+    const diffX = endX - startX;
+    const diffY = endY - startY;
+
+    // Thresholds
+    const minSwipeDistance = 30;
+    const tapThreshold = 10;
+
+    // Tap: Rotate
+    // Only if not much movement happened (both X and Y)
+    if (
+      Math.abs(diffX) < tapThreshold &&
+      Math.abs(diffY) < tapThreshold &&
+      duration < 300
+    ) {
+      playerRotate(1);
+      return;
+    }
+
+    // Vertical swipes (Hold/Drop)
+    // Prioritize vertical swipe if Y distance is significant and clearly vertical dominant
+    if (
+      Math.abs(diffY) > Math.abs(diffX) &&
+      Math.abs(diffY) > minSwipeDistance
+    ) {
+      if (diffY > 0) {
+        // Swipe down: Hard Drop
+        playerHardDrop();
+      } else {
+        // Swipe up: Hold
+        playerHold();
+      }
+    }
+    // Horizontal movement is handled by touchmove now
+  };
+};
+
+setupGestureControls();
 
 btn.addEventListener("click", () => {
   if (isGameOver) {
