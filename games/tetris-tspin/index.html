@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-en="Tetris" data-zh-Hant="俄羅斯方塊">Tetris</title>
+    <title data-en="Tetris (T-Spin)" data-zh-Hant="俄羅斯方塊 (T-Spin)">Tetris (T-Spin)</title>
     <link rel="stylesheet" href="../../assets/style.css" />
     <style>
       body {
@@ -261,14 +261,14 @@
         width: 18px;
         height: 18px;
         border-radius: 50%;
-        background: #9c27b0;
+        background: #e91e63;
         cursor: pointer;
       }
       #speedSlider::-moz-range-thumb {
         width: 18px;
         height: 18px;
         border-radius: 50%;
-        background: #9c27b0;
+        background: #e91e63;
         cursor: pointer;
         border: none;
       }
@@ -276,10 +276,10 @@
         background: #ccc;
       }
       body.light-mode #speedSlider::-webkit-slider-thumb {
-        background: #9c27b0;
+        background: #e91e63;
       }
       body.light-mode #speedSlider::-moz-range-thumb {
-        background: #9c27b0;
+        background: #e91e63;
       }
       body.light-mode #speedValue {
         color: #666;
@@ -287,7 +287,7 @@
     </style>
   </head>
   <body>
-    <h1 data-en="Tetris" data-zh-Hant="俄羅斯方塊">Tetris</h1>
+    <h1 data-en="Tetris (T-Spin)" data-zh-Hant="俄羅斯方塊 (T-Spin)">Tetris (T-Spin)</h1>
 
     <div class="game-container">
       <!-- Left Panel: Status & Hold -->
@@ -331,14 +331,26 @@
           <button id="matrixBtn" data-en="Toggle Matrix View" data-zh-Hant="切換矩陣視圖" style="margin-top: 10px; background-color: #00bcd4">
             Toggle Matrix View
           </button>
-          <button id="autoBtn" data-en="Auto Solver" data-zh-Hant="自動解題" style="margin-top: 10px; background-color: #9c27b0">
-            Auto Solver
+          <button id="autoBtn" data-en="Auto Solver (Normal)" data-zh-Hant="自動解題 (一般)" style="margin-top: 10px; background-color: #9c27b0">
+            Auto Solver (Normal)
+          </button>
+          <button id="tspinAutoBtn" data-en="Auto Solver (T-Spin)" data-zh-Hant="自動解題 (T-Spin)" style="margin-top: 10px; background-color: #e91e63">
+            Auto Solver (T-Spin)
           </button>
           <div id="speedControl" style="margin-top: 15px; display: none; width: 100%;">
             <label for="speedSlider" style="display: block; margin-bottom: 5px; font-size: 0.9em;" data-en="Auto Solver Speed" data-zh-Hant="自動解題速度">Auto Solver Speed</label>
-            <input type="range" id="speedSlider" min="10" max="1000" value="50" style="width: 100%;">
-            <div id="speedValue" style="text-align: center; font-size: 0.8em; margin-top: 5px; color: #aaa;" data-en="50ms" data-zh-Hant="50毫秒">50ms</div>
+            <input type="range" id="speedSlider" min="10" max="1000" value="300" style="width: 100%;">
+            <div id="speedValue" style="text-align: center; font-size: 0.8em; margin-top: 5px; color: #aaa;" data-en="300ms" data-zh-Hant="300毫秒">300ms</div>
           </div>
+          <button id="demoSetupBtn" data-en="Demo T-Spin Setup" data-zh-Hant="T-Spin 演示設置" style="margin-top: 10px; background-color: #FF9800">
+            Demo T-Spin Setup
+          </button>
+          <button id="demoDTCannonBtn" data-en="Demo DT Cannon" data-zh-Hant="DT 炮演示" style="margin-top: 10px; background-color: #FF5722">
+            Demo DT Cannon
+          </button>
+          <button id="debugEffectBtn" data-en="Trigger T-Spin Effect" data-zh-Hant="觸發 T-Spin 特效" style="margin-top: 10px; background-color: #607d8b">
+            Trigger T-Spin Effect
+          </button>
           <a href="intro.html" style="margin-top: 15px; color: #aaa; text-decoration: none; font-size: 0.9em; text-align: center; display: block;" data-en="Game Guide & Logic" data-zh-Hant="遊戲指南與邏輯">Game Guide & Logic</a>
         </div>
       </div>
@@ -351,8 +363,9 @@
         const speedSlider = document.getElementById('speedSlider');
         const speedValue = document.getElementById('speedValue');
         const autoBtn = document.getElementById('autoBtn');
+        const tspinAutoBtn = document.getElementById('tspinAutoBtn');
         
-        if (!speedControl || !speedSlider || !speedValue || !autoBtn) return;
+        if (!speedControl || !speedSlider || !speedValue) return;
         
         // Show/hide slider based on auto solver state
         const updateSliderVisibility = () => {
@@ -375,10 +388,13 @@
         
         speedSlider.addEventListener('input', updateSpeedDisplay);
         
-        // Monitor auto solver button state
+        // Monitor auto solver button states
         const observer = new MutationObserver(updateSliderVisibility);
         if (autoBtn) {
           observer.observe(autoBtn, { attributes: true, attributeFilter: ['style'] });
+        }
+        if (tspinAutoBtn) {
+          observer.observe(tspinAutoBtn, { attributes: true, attributeFilter: ['style'] });
         }
         
         // Also check periodically (fallback)
