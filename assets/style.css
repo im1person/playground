@@ -31,7 +31,9 @@ h1 {
   cursor: pointer;
 }
 
-.theme-toggle, .locale-select, .back-btn {
+.theme-toggle,
+.locale-select,
+.back-btn {
   font-size: 1em;
   padding: 6px 12px;
   border-radius: 6px;
@@ -78,23 +80,25 @@ body .light-mode .back-btn:hover {
   background: #fff;
   color: #1976d2;
   border: 2px solid #b3e5fc;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   cursor: pointer;
   transition: background 0.2s, color 0.2s, border 0.2s;
   margin-right: 16px;
   text-decoration: none;
 }
-body.dark .home-btn, body .light-mode .home-btn {
+body.dark .home-btn,
+body .light-mode .home-btn {
   background: #23272a;
   color: #90caf9;
   border: 2px solid #374151;
 }
-.home-btn:hover, .home-btn:focus {
+.home-btn:hover,
+.home-btn:focus {
   background: #b3e5fc;
   color: #1976d2;
   border-color: #1976d2;
   outline: none;
-} 
+}
 
 .top-bar {
   display: flex;
@@ -102,4 +106,67 @@ body.dark .home-btn, body .light-mode .home-btn {
   align-items: center;
   gap: 16px;
   width: 100%;
+  flex-wrap: wrap;
+}
+
+.locale-toggle-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 0.95em;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  background: #fff;
+  color: #1976d2;
+  border: 2px solid #b3e5fc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+}
+
+body.dark .locale-toggle-btn,
+body .light-mode .locale-toggle-btn {
+  background: #23272a;
+  color: #90caf9;
+  border: 2px solid #374151;
+}
+
+.locale-toggle-btn:hover,
+.locale-toggle-btn:focus {
+  background: #b3e5fc;
+  color: #1976d2;
+  border-color: #1976d2;
+  outline: none;
+}
+
+@media (max-width: 600px) {
+  .locale-select {
+    display: none;
+  }
+  .locale-toggle-btn {
+    display: inline-flex;
+  }
+  #themeToggle.theme-icon-only {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 1.4em;
+    padding: 0;
+    border: 2px solid #b3e5fc;
+    background: #fff;
+    color: #1976d2;
+  }
+  body.dark #themeToggle.theme-icon-only,
+  body .light-mode #themeToggle.theme-icon-only {
+    background: #23272a;
+    color: #90caf9;
+    border: 2px solid #374151;
+  }
+  .top-bar {
+    justify-content: center;
+  }
 }
