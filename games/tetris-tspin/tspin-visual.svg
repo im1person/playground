@@ -1,0 +1,33 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="300" fill="#202028" />
+  
+  <!-- T Piece -->
+  <rect x="150" y="100" width="50" height="50" fill="#9c27b0" stroke="white" stroke-width="2"/>
+  <rect x="100" y="150" width="50" height="50" fill="#9c27b0" stroke="white" stroke-width="2"/>
+  <rect x="150" y="150" width="50" height="50" fill="#9c27b0" stroke="white" stroke-width="2"/>
+  <rect x="200" y="150" width="50" height="50" fill="#9c27b0" stroke="white" stroke-width="2"/>
+  
+  <!-- Corners (A, B, C, D) -->
+  <!-- Top Left (Occupied) -->
+  <circle cx="100" cy="100" r="10" fill="gold" />
+  <text x="85" y="90" fill="white" font-family="Arial" font-size="14">A</text>
+  
+  <!-- Top Right (Occupied) -->
+  <circle cx="250" cy="100" r="10" fill="gold" />
+  <text x="255" y="90" fill="white" font-family="Arial" font-size="14">B</text>
+  
+  <!-- Bottom Left (Occupied) -->
+  <circle cx="100" cy="250" r="10" fill="gold" />
+  <text x="85" y="265" fill="white" font-family="Arial" font-size="14">C</text>
+  
+  <!-- Bottom Right (Empty/Front) -->
+  <circle cx="250" cy="250" r="10" fill="#555" />
+  <text x="255" y="265" fill="white" font-family="Arial" font-size="14">D</text>
+  
+  <!-- T Center -->
+  <circle cx="175" cy="175" r="5" fill="white" />
+  
+  <!-- Caption -->
+  <text x="200" y="285" fill="white" font-family="Arial" font-size="16" text-anchor="middle">3 of 4 Corners Occupied = T-Spin</text>
+</svg>
