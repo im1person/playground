@@ -73,8 +73,10 @@ let rowClearAnimation = {
   active: false,
   rowsToClear: [], // Array of row indices to clear
   progress: 0, // 0 to 1
-  duration: 300, // milliseconds
+  duration: 150, // milliseconds (faster animation)
   startTime: 0,
+  particles: [], // Particle effects
+  flashIntensity: 0, // Flash effect intensity
 };
 
 // Standard Rotation System (SRS) kick tables
@@ -231,6 +233,9 @@ function arenaSweep() {
     rowClearAnimation.rowsToClear = rowsToClear;
     rowClearAnimation.progress = 0;
     rowClearAnimation.startTime = performance.now();
+    rowClearAnimation.flashIntensity = 1.0;
+    // Generate particles for visual effect
+    rowClearAnimation.particles = generateRowClearParticles(rowsToClear);
   }
 
   // Calculate score immediately (before animation completes)
@@ -305,6 +310,24 @@ function updateRowClearAnimation(time) {
     1
   );
 
+  // Update flash intensity (peaks at start, fades out)
+  rowClearAnimation.flashIntensity = Math.max(
+    0,
+    1 - rowClearAnimation.progress * 2
+  );
+
+  // Update particles
+  rowClearAnimation.particles = rowClearAnimation.particles.filter(
+    (particle) => {
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+      particle.vy += 0.1; // Gravity
+      particle.life -= 0.02;
+      particle.alpha = particle.life;
+      return particle.life > 0;
+    }
+  );
+
   // When animation completes, actually remove the rows
   if (rowClearAnimation.progress >= 1) {
     // Sort rows from bottom to top to avoid index shifting issues
@@ -321,7 +344,37 @@ function updateRowClearAnimation(time) {
     rowClearAnimation.active = false;
     rowClearAnimation.rowsToClear = [];
     rowClearAnimation.progress = 0;
+    rowClearAnimation.particles = [];
+    rowClearAnimation.flashIntensity = 0;
   }
+}
+
+// Generate particles for row clear effect
+function generateRowClearParticles(rowsToClear) {
+  const particles = [];
+  rowsToClear.forEach((y) => {
+    // Generate particles for each block in the cleared row
+    for (let x = 0; x < arena[0].length; x++) {
+      if (arena[y] && arena[y][x] !== 0) {
+        const color = colors[arena[y][x]];
+        // Create 3-5 particles per block
+        const particleCount = 3 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < particleCount; i++) {
+          particles.push({
+            x: x + 0.5 + (Math.random() - 0.5) * 0.5,
+            y: y + 0.5 + (Math.random() - 0.5) * 0.5,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: -0.5 - Math.random() * 0.5,
+            color: color,
+            size: 0.1 + Math.random() * 0.15,
+            life: 1.0,
+            alpha: 1.0,
+          });
+        }
+      }
+    }
+  });
+  return particles;
 }
 
 function collide(arena, player) {
@@ -418,18 +471,37 @@ function draw() {
 }
 
 function drawArenaWithAnimation() {
-  const { rowsToClear, progress } = rowClearAnimation;
+  const { rowsToClear, progress, particles, flashIntensity } =
+    rowClearAnimation;
   const rowsToClearSet = new Set(rowsToClear);
 
   // Use easing function for smooth animation (ease-out)
   const easedProgress = 1 - Math.pow(1 - progress, 3);
 
+  // Draw flash effect overlay
+  if (flashIntensity > 0) {
+    context.save();
+    context.globalAlpha = flashIntensity * 0.3;
+    context.fillStyle = "#ffffff";
+    rowsToClear.forEach((y) => {
+      context.fillRect(0, y, arena[0].length, 1);
+    });
+    context.restore();
+  }
+
   arena.forEach((row, y) => {
     if (rowsToClearSet.has(y)) {
-      // Draw rows being cleared with fade-out effect
+      // Draw rows being cleared with fade-out and glow effect
       const alpha = 1 - easedProgress;
       if (alpha > 0) {
         context.save();
+
+        // Add glow effect
+        if (alpha > 0.5) {
+          context.shadowBlur = 10;
+          context.shadowColor = "#ffffff";
+        }
+
         context.globalAlpha = alpha;
         drawMatrixRow(row, { x: 0, y: y });
         context.restore();
@@ -452,6 +524,26 @@ function drawArenaWithAnimation() {
       }
     }
   });
+
+  // Draw particles
+  context.save();
+  particles.forEach((particle) => {
+    context.globalAlpha = particle.alpha;
+    context.fillStyle = particle.color;
+    context.beginPath();
+    context.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+    context.fill();
+
+    // Add sparkle effect for some particles
+    if (Math.random() > 0.7) {
+      context.fillStyle = "#ffffff";
+      context.globalAlpha = particle.alpha * 0.8;
+      context.beginPath();
+      context.arc(particle.x, particle.y, particle.size * 0.5, 0, Math.PI * 2);
+      context.fill();
+    }
+  });
+  context.restore();
 }
 
 function drawMatrixRow(row, offset) {
