@@ -26,11 +26,19 @@
         margin-top: 40px;
       }
       .game-list {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
         gap: 30px;
-        justify-content: center;
-        margin-top: 30px;
+        justify-items: stretch;
+        margin: 30px auto 0;
+        width: 100%;
+        max-width: 1100px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+      @media (max-width: 640px) {
+        .game-list {
+          grid-template-columns: minmax(0, 1fr);
+          gap: 20px;
+        }
       }
       .game-entry {
         background: #fff;
@@ -42,6 +50,16 @@
         min-width: 220px;
         cursor: pointer;
         border: 2px solid #eee;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        text-decoration: none;
+        color: inherit;
+      }
+      .game-entry:link,
+      .game-entry:visited {
+        color: inherit;
+        text-decoration: none;
       }
       body.dark .game-entry {
         background: #23272a;
@@ -52,6 +70,92 @@
         transform: translateY(-6px) scale(1.04);
         box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
         border-color: #b3e5fc;
+      }
+      .game-entry.sudoku-card,
+      .game-entry.action-card {
+        cursor: default;
+        gap: 16px;
+      }
+      .game-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+      .game-actions .action {
+        padding: 10px 18px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-weight: 600;
+        border: 2px solid #1976d2;
+        color: #1976d2;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 90px;
+        transition: color 0.2s, background 0.2s, border-color 0.2s,
+          box-shadow 0.2s;
+        box-shadow: 0 2px 6px rgba(25, 118, 210, 0.15);
+      }
+      .game-actions .action:link,
+      .game-actions .action:visited {
+        color: #1976d2;
+      }
+      body.dark .game-actions .action {
+        border-color: #90caf9;
+        color: #90caf9;
+        box-shadow: 0 2px 6px rgba(144, 202, 249, 0.25);
+      }
+      body.dark .game-actions .action:link,
+      body.dark .game-actions .action:visited {
+        color: #90caf9;
+      }
+      .game-actions .action.primary {
+        background: #1976d2;
+        color: #fff;
+      }
+      body.dark .game-actions .action.primary {
+        background: #90caf9;
+        color: #111;
+      }
+      .game-actions .action.primary:hover,
+      .game-actions .action.primary:focus-visible {
+        box-shadow: 0 4px 12px rgba(25, 118, 210, 0.35);
+      }
+      body.dark .game-actions .action.primary:hover,
+      body.dark .game-actions .action.primary:focus-visible {
+        box-shadow: 0 4px 12px rgba(144, 202, 249, 0.45);
+      }
+      .game-actions .action.secondary {
+        background: transparent;
+      }
+      .game-actions .action.secondary:hover,
+      .game-actions .action.secondary:focus-visible {
+        background: rgba(25, 118, 210, 0.08);
+      }
+      body.dark .game-actions .action.secondary:hover,
+      body.dark .game-actions .action.secondary:focus-visible {
+        background: rgba(144, 202, 249, 0.15);
+      }
+      .game-actions .action.icon-only {
+        padding: 0;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+        font-size: 1.4em;
+        min-width: 0;
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+        white-space: nowrap;
       }
       .game-title {
         font-size: 1.3em;
@@ -98,6 +202,36 @@
             Pick random numbers, exclude numbers, and more!
           </div>
         </a>
+        <div class="game-entry sudoku-card action-card">
+          <div class="game-title" data-en="Sudoku" data-zh-Hant="數獨">
+            Sudoku
+          </div>
+          <div
+            class="game-desc"
+            data-en="Four-tier Sudoku with notes, hints, and auto-solve support."
+            data-zh-Hant="四種難度，支援筆記、提示與自動解。"
+          >
+            Four-tier Sudoku with notes, hints, and auto-solve support.
+          </div>
+          <div class="game-actions">
+            <a
+              href="games/sudoku/index.html"
+              class="action primary"
+              data-en="Play"
+              data-zh-Hant="開始"
+            >
+              Play
+            </a>
+            <a
+              href="games/sudoku/intro.html"
+              class="action secondary icon-only"
+              aria-label="Intro"
+            >
+              <span aria-hidden="true">ℹ️</span>
+              <span class="sr-only">Intro</span>
+            </a>
+          </div>
+        </div>
         <a class="game-entry" href="games/falling-balls/index.html">
           <div
             class="game-title"
@@ -130,7 +264,7 @@
             Parse and analyze URLs into their components.
           </div>
         </a>
-        <a class="game-entry" href="games/tetris/index.html">
+        <div class="game-entry action-card">
           <div class="game-title" data-en="Tetris" data-zh-Hant="俄羅斯方塊">
             Tetris
           </div>
@@ -141,8 +275,26 @@
           >
             Classic Tetris game. Stack blocks and clear lines!
           </div>
-        </a>
-        <a class="game-entry" href="games/tetris-tspin/index.html">
+          <div class="game-actions">
+            <a
+              href="games/tetris/index.html"
+              class="action primary"
+              data-en="Play"
+              data-zh-Hant="開始"
+            >
+              Play
+            </a>
+            <a
+              href="games/tetris/intro.html"
+              class="action secondary icon-only"
+              aria-label="Intro"
+            >
+              <span aria-hidden="true">ℹ️</span>
+              <span class="sr-only">Intro</span>
+            </a>
+          </div>
+        </div>
+        <div class="game-entry action-card">
           <div
             class="game-title"
             data-en="Tetris (T-Spin)"
@@ -157,7 +309,25 @@
           >
             Advanced Tetris with T-Spin detection logic.
           </div>
-        </a>
+          <div class="game-actions">
+            <a
+              href="games/tetris-tspin/index.html"
+              class="action primary"
+              data-en="Play"
+              data-zh-Hant="開始"
+            >
+              Play
+            </a>
+            <a
+              href="games/tetris-tspin/intro.html"
+              class="action secondary icon-only"
+              aria-label="Intro"
+            >
+              <span aria-hidden="true">ℹ️</span>
+              <span class="sr-only">Intro</span>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
     <script type="module">

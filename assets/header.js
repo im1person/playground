@@ -12,7 +12,15 @@ export function createHeader(homePath = "index.html") {
       <option value="en">English</option>   
       <option value="zh-Hant">繁體中文</option>
     </select>
-    <button id="themeToggle" class="theme-toggle"></button>
+    <button
+      id="localeToggleBtn"
+      class="locale-toggle-btn"
+      aria-label="Change language"
+      title="Change language"
+    >
+      🌐
+    </button>
+    <button id="themeToggle" class="theme-toggle theme-icon-only"></button>
   `;
   return header;
 }
