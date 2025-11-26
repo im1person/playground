@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Playing Cards" data-zh-Hant="紙牌模擬">Playing Cards</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header id="siteHeader" class="site-header"></header>
+
+    <main class="card-simulation-container">
+      <div class="simulation-heading">
+        <h1 data-en="Playing Cards" data-zh-Hant="紙牌模擬">Playing Cards</h1>
+        <p
+          class="subtitle"
+          data-en="Interactive playing card deck simulation"
+          data-zh-Hant="互動式紙牌模擬"
+        >
+          Interactive playing card deck simulation
+        </p>
+      </div>
+
+      <section class="game-area">
+        <!-- Deck Display Area -->
+        <div class="deck-section">
+          <div class="deck-container">
+            <div id="deckDisplay" class="deck-pile" aria-label="Deck of cards">
+              <!-- Deck will be rendered here -->
+            </div>
+            <div class="deck-info">
+              <span id="deckCount" data-en="Cards: 52" data-zh-Hant="剩餘: 52">
+                Cards: 52
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+          <div class="control-group">
+            <label for="dealCount" data-en="Deal:" data-zh-Hant="發牌數:">
+              Deal:
+            </label>
+            <input
+              type="number"
+              id="dealCount"
+              min="1"
+              max="52"
+              value="5"
+              aria-label="Number of cards to deal"
+            />
+          </div>
+
+          <div class="button-group">
+            <button
+              id="shuffleBtn"
+              class="action-btn"
+              data-en="Shuffle"
+              data-zh-Hant="洗牌"
+            >
+              Shuffle
+            </button>
+            <button
+              id="dealBtn"
+              class="action-btn primary"
+              data-en="Deal"
+              data-zh-Hant="發牌"
+            >
+              Deal
+            </button>
+            <button
+              id="resetBtn"
+              class="action-btn"
+              data-en="Reset"
+              data-zh-Hant="重置"
+            >
+              Reset
+            </button>
+            <button
+              id="layoutModeBtn"
+              class="action-btn"
+              data-en="Normal Mode"
+              data-zh-Hant="正常模式"
+              data-normal-en="Normal Mode"
+              data-hand-en="Spread Mode"
+              data-arc-en="Arc Mode"
+              title="Toggle layout mode"
+            >
+              Normal Mode
+            </button>
+          </div>
+        </div>
+
+        <!-- Dealt Cards Area -->
+        <div class="cards-section">
+          <h2 data-en="Dealt Cards" data-zh-Hant="已發的牌">Dealt Cards</h2>
+          <div id="dealtCards" class="cards-display" aria-label="Dealt cards">
+            <!-- Dealt cards will be rendered here -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="card-engine.js"></script>
+    <script type="module" src="card-ui.js"></script>
+    <script type="module" src="game.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>
