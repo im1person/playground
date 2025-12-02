@@ -26,7 +26,11 @@
 
       <section class="game-surface">
         <div class="cube-container">
-          <div id="cube-canvas-container"></div>
+          <div id="cube-canvas-container" style="position: relative">
+            <div id="view-indicator" class="view-indicator">
+              <div class="view-label" id="viewLabel">Front View</div>
+            </div>
+          </div>
 
           <div class="controls-container">
             <div class="status-panel">
@@ -268,26 +272,14 @@
           document.body.classList.remove("easter-egg-mode"); // Exit Easter Egg
           cube.reset();
           // We need to reset 3D cube too.
-          // Simplest way: Re-create it or implement reset in RubiksCube3D.
-          // RubiksCube3D doesn't have reset.
-          // Let's hack: remove all cubies and recreate.
-          cube3D.scene.remove(...cube3D.cubies);
-          cube3D.cubies = []; // clear ref
-          // We need to remove mesh children.
-          // Actually, createCube() adds to scene.
-          // We should clear scene properly.
-          while (cube3D.scene.children.length > 0) {
-            cube3D.scene.remove(cube3D.scene.children[0]);
+          // Remove only cubies, preserve lights
+          if (!cube3D.scene.children.includes(cube3D.dirLight3)) {
+            cube3D.scene.add(cube3D.dirLight3);
           }
-          // Re-add lights
-          const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-          cube3D.scene.add(ambientLight);
-          const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-          dirLight.position.set(10, 20, 10);
-          cube3D.scene.add(dirLight);
-          const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
-          dirLight2.position.set(-10, -10, -10);
-          cube3D.scene.add(dirLight2);
+          cube3D.cubies.forEach((cubie) => {
+            cube3D.scene.remove(cubie);
+          });
+          cube3D.cubies = [];
 
           cube3D.createCube();
 
@@ -377,6 +369,8 @@
           currentStep = 0;
           playbackControls.style.display = "flex";
           updatePlaybackUI();
+          // Auto-play by default after Solve / Fake Solve
+          play();
         };
 
         const stopPlayback = () => {
@@ -471,9 +465,10 @@
           }
         };
 
-        // Easter Egg: "tne" -> All White
+        // Easter Egg: All White
         let keyBuffer = [];
         const secretCode = ["t", "n", "e"];
+        const goldCode = ["n", "t", "r"]; // Gold mode
 
         document.addEventListener("keydown", (e) => {
           // Only track if not typing in an input (though we have none)
@@ -481,18 +476,25 @@
             return;
 
           keyBuffer.push(e.key.toLowerCase());
-          if (keyBuffer.length > secretCode.length) {
+          if (keyBuffer.length > 3) {
+            // Max length of codes
             keyBuffer.shift();
           }
 
-          // Check match
-          if (JSON.stringify(keyBuffer) === JSON.stringify(secretCode)) {
-            // Trigger Easter Egg
-            triggerEasterEgg();
+          const bufferStr = JSON.stringify(keyBuffer);
+
+          // Check (White)
+          if (bufferStr === JSON.stringify(secretCode)) {
+            triggerEasterEgg("W");
+          }
+          // Check (Gold)
+          else if (bufferStr === JSON.stringify(goldCode)) {
+            triggerEasterEgg("Gold");
           }
         });
 
-        // Alternative mobile trigger: 5 rapid taps on title
+        // Alternative mobile triggers
+        // 5 rapid taps on title -> White mode
         const mainTitle = document.querySelector(".shell-heading h1");
         let titleTapCount = 0;
         let titleTapTimer = null;
@@ -511,20 +513,48 @@
             if (titleTapCount >= 5) {
               clearTimeout(titleTapTimer);
               titleTapCount = 0;
-              triggerEasterEgg();
+              triggerEasterEgg("W");
             }
           });
         }
 
-        const triggerEasterEgg = () => {
+        // 7 rapid taps on subtitle -> Gold mode
+        const subTitle = document.querySelector(".shell-heading .subtitle");
+        let subTapCount = 0;
+        let subTapTimer = null;
+
+        if (subTitle) {
+          subTitle.addEventListener("click", (e) => {
+            e.preventDefault();
+            subTapCount++;
+
+            if (subTapCount === 1) {
+              subTapTimer = setTimeout(() => {
+                subTapCount = 0;
+              }, 3000);
+            }
+
+            if (subTapCount >= 7) {
+              clearTimeout(subTapTimer);
+              subTapCount = 0;
+              triggerEasterEgg("Gold");
+            }
+          });
+        }
+
+        const triggerEasterEgg = (colorMode) => {
           if (cube3D.isAnimating) return;
 
           // statusEl.textContent = "Special Mode"; // Low profile
 
-          cube.setAllFaces("W");
+          cube.setAllFaces(colorMode);
 
           // Update 3D
           cube3D.applyEngineColors();
+
+          // Max speed for Easter Egg mode
+          speed = 100;
+          speedSlider.value = 100;
 
           // Clear buffer
           keyBuffer = [];
