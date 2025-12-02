@@ -34,17 +34,22 @@ class RubiksCube3D {
     this.controls.dampingFactor = 0.05;
     this.controls.enablePan = false;
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    this.scene.add(ambientLight);
+    // Lighting - Store references for reset
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    this.scene.add(this.ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    dirLight.position.set(10, 20, 10);
-    this.scene.add(dirLight);
+    this.dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    this.dirLight.position.set(10, 20, 10);
+    this.scene.add(this.dirLight);
 
-    const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
-    dirLight2.position.set(-10, -10, -10);
-    this.scene.add(dirLight2);
+    this.dirLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
+    this.dirLight2.position.set(-10, -10, -10);
+    this.scene.add(this.dirLight2);
+
+    // Add Camera Light (Headlamp) - always lights up what we look at
+    this.cameraLight = new THREE.PointLight(0xffffff, 0.8);
+    this.camera.add(this.cameraLight);
+    this.scene.add(this.camera); // Add camera to scene so its children are updated
 
     // Colors map (W, O, G, R, B, Y)
     // U, L, F, R, B, D
@@ -56,9 +61,103 @@ class RubiksCube3D {
       B: 0x0000ff,
       Y: 0xffff00,
       X: 0x222222, // Internal black
+      Gold: 0xffd700, // Gold mode
     };
 
+    this.goldMaterial = new THREE.MeshPhongMaterial({
+      color: 0xcc9900, // Deep Gold base to match logo shadow areas
+      emissive: 0x110500, // Very subtle warm shadow
+      specular: 0xffffee, // Pale gold/white highlights like the illustration
+      shininess: 40, // Broader highlights
+      flatShading: false,
+    });
+
+    this.createGizmo();
+
     window.addEventListener("resize", () => this.onWindowResize(), false);
+  }
+
+  createGizmo() {
+    // Setup separate scene for Gizmo
+    this.sceneGizmo = new THREE.Scene();
+    // No background, transparent
+
+    // Camera for Gizmo (Orthographic usually better for axis helper)
+    // But Perspective matches rotation better if FOV is same.
+    // Standard gizmos use Orthographic.
+    // Let's use Perspective with fixed distance.
+    this.cameraGizmo = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+    this.cameraGizmo.position.set(0, 0, 3); // Fixed distance
+
+    // Create Axes
+    // We can use AxesHelper but it's thin lines.
+    // Let's build a nice one with Arrows.
+
+    const axesGroup = new THREE.Group();
+    const origin = new THREE.Vector3(0, 0, 0);
+    const len = 1;
+    const headLen = 0.3;
+    const headWidth = 0.15;
+
+    // X Axis (Red)
+    const arrowX = new THREE.ArrowHelper(
+      new THREE.Vector3(1, 0, 0),
+      origin,
+      len,
+      0xff0000,
+      headLen,
+      headWidth
+    );
+    axesGroup.add(arrowX);
+
+    // Y Axis (Green)
+    const arrowY = new THREE.ArrowHelper(
+      new THREE.Vector3(0, 1, 0),
+      origin,
+      len,
+      0x00ff00,
+      headLen,
+      headWidth
+    );
+    axesGroup.add(arrowY);
+
+    // Z Axis (Blue)
+    const arrowZ = new THREE.ArrowHelper(
+      new THREE.Vector3(0, 0, 1),
+      origin,
+      len,
+      0x0000ff,
+      headLen,
+      headWidth
+    );
+    axesGroup.add(arrowZ);
+
+    // Add labels (Sprites)
+    const createLabel = (text, pos, colorStr) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext("2d");
+      ctx.font = "Bold 48px Arial";
+      ctx.fillStyle = colorStr;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, 32, 32);
+
+      const tex = new THREE.CanvasTexture(canvas);
+      const spriteMat = new THREE.SpriteMaterial({ map: tex });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.position.copy(pos);
+      sprite.scale.set(0.5, 0.5, 0.5);
+      return sprite;
+    };
+
+    axesGroup.add(createLabel("X", new THREE.Vector3(1.2, 0, 0), "#ff0000"));
+    axesGroup.add(createLabel("Y", new THREE.Vector3(0, 1.2, 0), "#00ff00"));
+    axesGroup.add(createLabel("Z", new THREE.Vector3(0, 0, 1.2), "#0000ff"));
+
+    this.sceneGizmo.add(axesGroup);
+    this.gizmoParams = { size: 100, padding: 10 }; // px
   }
 
   createCube() {
@@ -154,8 +253,71 @@ class RubiksCube3D {
   animate() {
     requestAnimationFrame(() => this.animate());
     this.controls.update();
+
+    // 1. Render Main Scene
+    const width = this.container.clientWidth;
+    const height = this.container.clientHeight;
+
+    this.renderer.setViewport(0, 0, width, height);
+    this.renderer.setScissor(0, 0, width, height);
+    this.renderer.setScissorTest(true);
+
+    // Main render clears the screen (default behavior)
     this.renderer.render(this.scene, this.camera);
-    // Update TWEEN if used, or custom animation loop
+
+    // 2. Render Gizmo (Overlay)
+    // Disable autoClear so we don't wipe the corner background
+    this.renderer.autoClear = false;
+    this.renderer.clearDepth(); // Clear depth so gizmo draws ON TOP of cube
+
+    // Update gizmo camera rotation
+    this.cameraGizmo.position
+      .copy(this.camera.position)
+      .normalize()
+      .multiplyScalar(3);
+    this.cameraGizmo.lookAt(0, 0, 0);
+
+    const size = this.gizmoParams.size;
+    const pad = this.gizmoParams.padding;
+
+    // Bottom Right corner
+    this.renderer.setViewport(width - size - pad, pad, size, size);
+    this.renderer.setScissor(width - size - pad, pad, size, size);
+    this.renderer.setScissorTest(true);
+
+    this.renderer.render(this.sceneGizmo, this.cameraGizmo);
+
+    // Restore settings
+    this.renderer.setScissorTest(false);
+    this.renderer.autoClear = true;
+
+    this.updateViewIndicator();
+  }
+
+  updateViewIndicator() {
+    const viewLabel = document.getElementById("viewLabel");
+    if (!viewLabel) return;
+
+    // Get camera position relative to target (0,0,0)
+    // This determines which face we are "looking at" roughly.
+    const pos = this.camera.position;
+    const absX = Math.abs(pos.x);
+    const absY = Math.abs(pos.y);
+    const absZ = Math.abs(pos.z);
+
+    let viewName = "";
+    // Determine primary axis
+    if (absY > absX && absY > absZ) {
+      viewName = pos.y > 0 ? "Top View" : "Bottom View";
+    } else if (absZ > absX && absZ > absY) {
+      viewName = pos.z > 0 ? "Front View" : "Back View";
+    } else {
+      viewName = pos.x > 0 ? "Right View" : "Left View";
+    }
+
+    viewLabel.textContent = viewName;
+
+    // Removed 2D axis helper text update as per request
   }
 
   // Move Logic
@@ -323,6 +485,7 @@ class RubiksCube3D {
       // Helper to get color from engine
       const getColor = (faceIdx, cellIdx) => {
         const colorChar = this.engine.state[faceIdx][cellIdx];
+        if (colorChar === "Gold") return "Gold";
         return this.colors[colorChar] || this.colors["X"];
       };
 
@@ -336,6 +499,22 @@ class RubiksCube3D {
       // U0,U1,U2 touches B? Yes (rotateL logic: U0->B8).
       // So U row 0 is Back (z=-1). U row 2 is Front (z=1).
       // x=-1 (Left) is col 0/3/6. x=1 (Right) is col 2/5/8.
+
+      // Helper to apply material
+      const applyMat = (matIdx, colorVal) => {
+        if (colorVal === "Gold") {
+          mats[matIdx] = this.goldMaterial;
+        } else {
+          // Reset to Lambert if it was replaced, or just update color
+          if (mats[matIdx] === this.goldMaterial) {
+            mats[matIdx] = new THREE.MeshLambertMaterial({ color: colorVal });
+          } else {
+            mats[matIdx].color.setHex(colorVal);
+          }
+        }
+        // Note: Replacing material in array might not update mesh automatically if three.js caches geometry groups?
+        // Mesh handles material array changes usually.
+      };
 
       // Update Right face (index 0)
       if (x === 1) {
@@ -366,7 +545,7 @@ class RubiksCube3D {
           else idx = 8;
         }
 
-        if (idx !== -1) mats[0].color.setHex(getColor(3, idx));
+        if (idx !== -1) applyMat(0, getColor(3, idx));
       }
 
       // Update Left face (index 1)
@@ -390,7 +569,7 @@ class RubiksCube3D {
           else idx = 8;
         }
 
-        if (idx !== -1) mats[1].color.setHex(getColor(1, idx));
+        if (idx !== -1) applyMat(1, getColor(1, idx));
       }
 
       // Update Top face (index 2) -> U (0)
@@ -413,7 +592,7 @@ class RubiksCube3D {
           else idx = 8;
         }
 
-        if (idx !== -1) mats[2].color.setHex(getColor(0, idx));
+        if (idx !== -1) applyMat(2, getColor(0, idx));
       }
 
       // Update Bottom face (index 3) -> D (5)
@@ -436,7 +615,7 @@ class RubiksCube3D {
           else idx = 8;
         }
 
-        if (idx !== -1) mats[3].color.setHex(getColor(5, idx));
+        if (idx !== -1) applyMat(3, getColor(5, idx));
       }
 
       // Update Front face (index 4) -> F (2)
@@ -457,7 +636,7 @@ class RubiksCube3D {
           else idx = 8;
         }
 
-        if (idx !== -1) mats[4].color.setHex(getColor(2, idx));
+        if (idx !== -1) applyMat(4, getColor(2, idx));
       }
 
       // Update Back face (index 5) -> B (4)
@@ -479,7 +658,7 @@ class RubiksCube3D {
           else idx = 8;
         }
 
-        if (idx !== -1) mats[5].color.setHex(getColor(4, idx));
+        if (idx !== -1) applyMat(5, getColor(4, idx));
       }
     });
   }
