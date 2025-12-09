@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Piano</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f0f0f0;
+        color: #0f172a;
+        min-height: 100vh;
+        padding: 20px 16px 40px;
+      }
+      body.dark {
+        background: #181c1f;
+        color: #e5e7eb;
+      }
+      .page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 10px 0 32px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 12px 0 6px;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 1.75rem;
+        letter-spacing: -0.02em;
+      }
+      .piano-section {
+        width: 100%;
+        margin-top: 10px;
+        padding: 18px 18px 24px;
+        border-radius: 18px;
+        border: 2px solid #e5e7eb;
+        background: #fff;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+      }
+      body.dark .piano-section {
+        background: #111827;
+        border-color: #1f2937;
+      }
+      .piano-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .piano-header h2 {
+        margin: 0 0 6px;
+        font-size: 1.35rem;
+      }
+      .piano-subtitle {
+        margin: 0;
+        color: #475569;
+      }
+      body.dark .piano-subtitle {
+        color: #cbd5e1;
+      }
+      .piano-layout-pill {
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid #1d4ed8;
+        color: #1d4ed8;
+        background: rgba(59, 130, 246, 0.08);
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      body.dark .piano-layout-pill {
+        border-color: #93c5fd;
+        color: #93c5fd;
+        background: rgba(147, 197, 253, 0.1);
+      }
+      .piano-controls {
+        margin-top: 12px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .piano-instruction {
+        font-size: 0.98rem;
+        color: #1f2937;
+      }
+      body.dark .piano-instruction {
+        color: #e5e7eb;
+      }
+      .midi-controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .midi-controls button,
+      .midi-controls label {
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid #1d4ed8;
+        background: #1d4ed8;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s, box-shadow 0.15s, opacity 0.15s;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+      }
+      .midi-controls label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .midi-controls input[type="file"] {
+        display: none;
+      }
+      .midi-controls button.secondary {
+        background: transparent;
+        color: #1d4ed8;
+        border-color: #1d4ed8;
+        box-shadow: none;
+      }
+      body.dark .midi-controls button,
+      body.dark .midi-controls label {
+        background: #93c5fd;
+        color: #0b1220;
+        border-color: #93c5fd;
+        box-shadow: 0 4px 12px rgba(147, 197, 253, 0.25);
+      }
+      body.dark .midi-controls button.secondary {
+        background: transparent;
+        color: #93c5fd;
+        border-color: #93c5fd;
+      }
+      .midi-controls button:disabled,
+      .midi-controls label:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .piano-visual {
+        position: relative;
+        margin-top: 16px;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+        border: 1px solid #e5e7eb;
+        padding: 14px 12px;
+      }
+      body.dark .piano-visual {
+        background: linear-gradient(180deg, #1f2937 0%, #0f172a 100%);
+        border-color: #1f2937;
+      }
+      .piano {
+        position: relative;
+        height: 210px;
+        user-select: none;
+      }
+      .white-keys {
+        display: grid;
+        grid-template-columns: repeat(var(--white-count), 1fr);
+        height: 100%;
+        gap: 2px;
+      }
+      .piano-key {
+        border: 1px solid #d1d5db;
+        border-radius: 0 0 8px 8px;
+        background: #fff;
+        color: #111827;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding: 10px 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.03s ease, box-shadow 0.08s ease,
+          background 0.08s ease, border-color 0.08s ease;
+        touch-action: none;
+      }
+      .piano-key.white {
+        height: 100%;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+      }
+      .piano-key.white:active,
+      .piano-key.white.active {
+        transform: translateY(2px);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12) inset;
+        background: #e5efff;
+        border-color: #93c5fd;
+      }
+      .black-keys {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .piano-key.black {
+        position: absolute;
+        width: calc(100% / var(--white-count) * 0.65);
+        height: 62%;
+        left: var(--offset, 0%);
+        top: 0;
+        z-index: 2;
+        background: linear-gradient(180deg, #111827 0%, #1f2937 100%);
+        color: #e5e7eb;
+        border: 1px solid #0f172a;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.35);
+        pointer-events: auto;
+      }
+      .piano-key.black:active,
+      .piano-key.black.active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+        background: linear-gradient(180deg, #1f2937 0%, #0b1220 100%);
+      }
+      .piano-key span {
+        font-size: 0.8rem;
+        opacity: 0.75;
+        pointer-events: none;
+      }
+      .piano-labels {
+        margin-top: 8px;
+        font-size: 0.95rem;
+        color: #475569;
+      }
+      body.dark .piano-labels {
+        color: #cbd5e1;
+      }
+      .midi-status {
+        margin-top: 12px;
+        display: grid;
+        gap: 6px;
+      }
+      .midi-status-line {
+        color: #1f2937;
+        font-size: 0.95rem;
+      }
+      body.dark .midi-status-line {
+        color: #e5e7eb;
+      }
+      .progress-outer {
+        width: 100%;
+        height: 8px;
+        background: #e5e7eb;
+        border-radius: 999px;
+        overflow: hidden;
+      }
+      body.dark .progress-outer {
+        background: #1f2937;
+      }
+      .progress-inner {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #1d4ed8, #60a5fa);
+        border-radius: inherit;
+        transition: width 80ms linear;
+      }
+      .piano-hint {
+        font-size: 0.9rem;
+        color: #6b7280;
+        margin-top: 2px;
+      }
+      body.dark .piano-hint {
+        color: #94a3b8;
+      }
+      @media (max-width: 720px) {
+        .piano {
+          height: 180px;
+        }
+        .piano-key span {
+          font-size: 0.75rem;
+        }
+        header {
+          align-items: flex-start;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>🎹 Piano</h1>
+      </header>
+      <section class="piano-section">
+        <div class="piano-header">
+          <div>
+            <h2>Play with keys or MIDI</h2>
+            <p class="piano-subtitle">
+              Auto layout: compact on mobile, extended on desktop. Load a MIDI
+              file to play and visualize.
+            </p>
+          </div>
+          <div class="piano-layout-pill" id="layoutLabel">Layout: —</div>
+        </div>
+        <div class="piano-controls">
+          <div class="piano-instruction">
+            Keyboard: z–m row for lower whites, s/d/g/h/j for sharps; q–u row
+            for upper octave.
+          </div>
+          <div class="midi-controls">
+            <label for="midiFile" id="midiFileLabel"
+              >📂 Load MIDI<input type="file" id="midiFile" accept=".mid,.midi"
+            /></label>
+            <button id="playMidi" disabled>Play MIDI</button>
+            <button id="stopMidi" class="secondary" disabled>Stop</button>
+          </div>
+        </div>
+        <div class="piano-visual">
+          <div
+            class="piano"
+            id="pianoKeys"
+            data-layout="extended"
+            aria-label="Interactive piano"
+          >
+            <div class="white-keys" id="whiteKeys"></div>
+            <div class="black-keys" id="blackKeys"></div>
+          </div>
+        </div>
+        <div class="piano-labels">
+          <span id="layoutDescriptor">Auto-detected layout ready.</span>
+        </div>
+        <div class="midi-status">
+          <div class="midi-status-line" id="midiStatus">No MIDI loaded.</div>
+          <div class="progress-outer" aria-hidden="true">
+            <div class="progress-inner" id="midiProgress"></div>
+          </div>
+          <div class="piano-hint">
+            Tip: playback uses placeholder sine samples; swap the files in
+            <code>piano-samples</code> for richer tone.
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+
+      const PIANO_NOTES = [
+        "C4",
+        "C#4",
+        "D4",
+        "D#4",
+        "E4",
+        "F4",
+        "F#4",
+        "G4",
+        "G#4",
+        "A4",
+        "A#4",
+        "B4",
+        "C5",
+        "C#5",
+        "D5",
+        "D#5",
+        "E5",
+        "F5",
+        "F#5",
+        "G5",
+        "G#5",
+        "A5",
+        "A#5",
+        "B5",
+        "C6",
+      ];
+      const COMPACT_NOTES = PIANO_NOTES.slice(0, 13);
+      const KEYBOARD_MAP = {
+        z: "C4",
+        s: "C#4",
+        x: "D4",
+        d: "D#4",
+        c: "E4",
+        v: "F4",
+        g: "F#4",
+        b: "G4",
+        h: "G#4",
+        n: "A4",
+        j: "A#4",
+        m: "B4",
+        ",": "C5",
+        q: "C5",
+        2: "C#5",
+        w: "D5",
+        3: "D#5",
+        e: "E5",
+        r: "F5",
+        5: "F#5",
+        t: "G5",
+        6: "G#5",
+        y: "A5",
+        7: "A#5",
+        u: "B5",
+        i: "C6",
+      };
+
+      const layoutLabel = document.getElementById("layoutLabel");
+      const layoutDescriptor = document.getElementById("layoutDescriptor");
+      const pianoEl = document.getElementById("pianoKeys");
+      const whiteKeysEl = document.getElementById("whiteKeys");
+      const blackKeysEl = document.getElementById("blackKeys");
+      const midiFileInput = document.getElementById("midiFile");
+      const midiStatus = document.getElementById("midiStatus");
+      const midiProgress = document.getElementById("midiProgress");
+      const playMidiBtn = document.getElementById("playMidi");
+      const stopMidiBtn = document.getElementById("stopMidi");
+      const SAMPLE_ROOT = "./piano-samples";
+
+      let currentLayout = null;
+      let activeKeys = new Map();
+      let midiEvents = [];
+      let midiDuration = 0;
+      let midiProgressHandle = null;
+      let midiStart = 0;
+      let midiStopRequested = false;
+      const pointerNotes = new Map();
+
+      const noteToMidi = (note) => {
+        const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+        const sharp = note.includes("#") ? 1 : 0;
+        const octave = parseInt(note.slice(-1), 10);
+        return base[note[0]] + sharp + (octave + 1) * 12;
+      };
+
+      const midiToNoteName = (midi) => {
+        const names = [
+          "C",
+          "C#",
+          "D",
+          "D#",
+          "E",
+          "F",
+          "F#",
+          "G",
+          "G#",
+          "A",
+          "A#",
+          "B",
+        ];
+        const octave = Math.floor(midi / 12) - 1;
+        return `${names[midi % 12]}${octave}`;
+      };
+
+      const computeLayout = () =>
+        window.innerWidth < 760 ? "compact" : "extended";
+
+      const renderKeys = (layout) => {
+        const notes = layout === "compact" ? COMPACT_NOTES : PIANO_NOTES;
+        pianoEl.dataset.layout = layout;
+        pianoEl.style.setProperty(
+          "--white-count",
+          notes.filter((n) => !n.includes("#")).length
+        );
+        whiteKeysEl.innerHTML = "";
+        blackKeysEl.innerHTML = "";
+
+        const whites = [];
+        notes.forEach((note) => {
+          if (!note.includes("#")) whites.push(note);
+        });
+
+        whites.forEach((note) => {
+          const btn = document.createElement("button");
+          btn.className = "piano-key white";
+          btn.dataset.note = note;
+          btn.innerHTML = `<span>${note}</span>`;
+          whiteKeysEl.appendChild(btn);
+        });
+
+        const stepPercent = 100 / whites.length;
+        notes.forEach((note, idx) => {
+          if (!note.includes("#")) return;
+          let prevWhite = null;
+          for (let i = idx - 1; i >= 0; i -= 1) {
+            if (!notes[i].includes("#")) {
+              prevWhite = notes[i];
+              break;
+            }
+          }
+          if (!prevWhite) return;
+          const whiteIndex = whites.indexOf(prevWhite);
+          const left = (whiteIndex + 1) * stepPercent - stepPercent * 0.35;
+          const btn = document.createElement("button");
+          btn.className = "piano-key black";
+          btn.dataset.note = note;
+          btn.style.setProperty("--offset", `${left}%`);
+          btn.innerHTML = `<span>${note}</span>`;
+          blackKeysEl.appendChild(btn);
+        });
+      };
+
+      class SamplePlayer {
+        constructor(noteList, root) {
+          this.noteList = noteList;
+          this.root = root;
+          this.context = null;
+          this.buffers = {};
+          this.loading = null;
+          this.voices = new Map();
+          this.noteMidis = Object.fromEntries(
+            noteList.map((n) => [n, noteToMidi(n)])
+          );
+        }
+
+        async ensureContext() {
+          if (!this.context) {
+            this.context = new AudioContext();
+          }
+          if (this.context.state === "suspended") {
+            await this.context.resume();
+          }
+          return this.context;
+        }
+
+        async load() {
+          if (this.loading) return this.loading;
+          const ctx = await this.ensureContext();
+          this.loading = Promise.all(
+            this.noteList.map(async (note) => {
+              const res = await fetch(
+                `${this.root}/${encodeURIComponent(note)}.wav`
+              );
+              const arr = await res.arrayBuffer();
+              const buf = await ctx.decodeAudioData(arr);
+              this.buffers[note] = buf;
+            })
+          );
+          return this.loading;
+        }
+
+        getNearestSample(midi) {
+          let nearest = this.noteList[0];
+          let best = Infinity;
+          for (const note of this.noteList) {
+            const diff = Math.abs(midi - this.noteMidis[note]);
+            if (diff < best) {
+              best = diff;
+              nearest = note;
+            }
+          }
+          return nearest;
+        }
+
+        async playMidi(midi, velocity = 100, when = 0) {
+          await this.load();
+          const ctx = await this.ensureContext();
+          const baseNote = this.getNearestSample(midi);
+          const buffer = this.buffers[baseNote];
+          if (!buffer) return null;
+          const source = ctx.createBufferSource();
+          source.buffer = buffer;
+          const rate = Math.pow(2, (midi - this.noteMidis[baseNote]) / 12);
+          source.playbackRate.value = rate;
+          const gain = ctx.createGain();
+          gain.gain.value = Math.max(0.1, velocity / 127);
+          source.connect(gain).connect(ctx.destination);
+          source.start(when);
+          const key = `${midi}-${Math.random().toString(36).slice(2)}`;
+          const voices = this.voices.get(midi) || [];
+          voices.push({ key, source, gain });
+          this.voices.set(midi, voices);
+          source.onended = () => {
+            const list = this.voices.get(midi) || [];
+            const next = list.filter((v) => v.key !== key);
+            this.voices.set(midi, next);
+          };
+          return { key, source, gain };
+        }
+
+        async stopMidi(midi, when = 0) {
+          const ctx = await this.ensureContext();
+          const list = this.voices.get(midi) || [];
+          if (!list.length) return;
+          const voice = list.shift();
+          this.voices.set(midi, list);
+          const t = when || ctx.currentTime;
+          voice.gain.gain.setTargetAtTime(0.0001, t, 0.03);
+          voice.source.stop(t + 0.1);
+        }
+
+        async stopAll() {
+          const ctx = await this.ensureContext();
+          this.voices.forEach((list) => {
+            list.forEach((voice) => {
+              voice.gain.gain.cancelScheduledValues(ctx.currentTime);
+              voice.gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.03);
+              voice.source.stop(ctx.currentTime + 0.05);
+            });
+          });
+          this.voices.clear();
+        }
+      }
+
+      const player = new SamplePlayer(PIANO_NOTES, SAMPLE_ROOT);
+
+      const setLayout = () => {
+        const layout = computeLayout();
+        if (layout === currentLayout) return;
+        currentLayout = layout;
+        layoutLabel.textContent =
+          layout === "compact"
+            ? "Layout: compact (1 octave)"
+            : "Layout: extended (2 octaves)";
+        layoutDescriptor.textContent =
+          layout === "compact"
+            ? "Compact layout active for mobile view."
+            : "Extended layout active for wider screens.";
+        renderKeys(layout);
+        bindKeyInteractions();
+      };
+
+      const setKeyActive = (note, isActive) => {
+        const key = pianoEl.querySelector(`[data-note="${note}"]`);
+        if (!key) return;
+        if (isActive) {
+          key.classList.add("active");
+          activeKeys.set(note, true);
+        } else {
+          key.classList.remove("active");
+          activeKeys.delete(note);
+        }
+      };
+
+      const playNote = async (note, velocity = 110, autoRelease = true) => {
+        const midi = noteToMidi(note);
+        await player.ensureContext();
+        setKeyActive(note, true);
+        await player.playMidi(midi, velocity);
+        if (autoRelease) {
+          window.setTimeout(() => setKeyActive(note, false), 320);
+        }
+      };
+
+      const handlePointerDown = (event) => {
+        const target = event.target.closest(".piano-key");
+        if (!target) return;
+        event.preventDefault();
+        const note = target.dataset.note;
+        playNote(note, 110, false);
+      };
+
+      const triggerPointerNote = (event) => {
+        const target = event.target.closest(".piano-key");
+        const id = event.pointerId;
+        const previous = pointerNotes.get(id);
+        if (!target) {
+          if (previous) setKeyActive(previous, false);
+          pointerNotes.delete(id);
+          return;
+        }
+        const note = target.dataset.note;
+        if (previous !== note) {
+          if (previous) setKeyActive(previous, false);
+          pointerNotes.set(id, note);
+          playNote(note, 110, false);
+        }
+        setKeyActive(note, true);
+      };
+
+      const handlePointerMove = (event) => {
+        // For mouse drags require button pressed; touch moves always allowed (buttons is 0).
+        if (event.pointerType === "mouse" && event.buttons === 0) return;
+        triggerPointerNote(event);
+      };
+
+      const handlePointerUp = (event) => {
+        const previous = pointerNotes.get(event.pointerId);
+        if (previous) setKeyActive(previous, false);
+        pointerNotes.delete(event.pointerId);
+      };
+
+      const handleKeyDown = (event) => {
+        const note = KEYBOARD_MAP[event.key.toLowerCase()];
+        if (!note || activeKeys.has(`kbd-${event.key}`)) return;
+        activeKeys.set(`kbd-${event.key}`, true);
+        playNote(note);
+      };
+
+      const handleKeyUp = (event) => {
+        const key = `kbd-${event.key.toLowerCase()}`;
+        if (!activeKeys.has(key)) return;
+        activeKeys.delete(key);
+      };
+
+      function bindKeyInteractions() {
+        pianoEl.removeEventListener("pointerdown", handlePointerDown);
+        pianoEl.addEventListener("pointerdown", (e) => {
+          handlePointerDown(e);
+          triggerPointerNote(e);
+        });
+        pianoEl.removeEventListener("pointermove", handlePointerMove);
+        pianoEl.addEventListener("pointermove", handlePointerMove);
+        pianoEl.removeEventListener("pointerup", handlePointerUp);
+        pianoEl.addEventListener("pointerup", handlePointerUp);
+        pianoEl.removeEventListener("pointercancel", handlePointerUp);
+        pianoEl.addEventListener("pointercancel", handlePointerUp);
+        window.removeEventListener("keydown", handleKeyDown);
+        window.removeEventListener("keyup", handleKeyUp);
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("keyup", handleKeyUp);
+      }
+
+      const readVarLen = (dv, cursor) => {
+        let value = 0;
+        while (true) {
+          const b = dv.getUint8(cursor.offset);
+          cursor.offset += 1;
+          value = (value << 7) | (b & 0x7f);
+          if (!(b & 0x80)) break;
+        }
+        return value;
+      };
+
+      const parseMidiFile = (arrayBuffer) => {
+        const dv = new DataView(arrayBuffer);
+        const cursor = { offset: 0 };
+        const readStr = (len) => {
+          let out = "";
+          for (let i = 0; i < len; i += 1)
+            out += String.fromCharCode(dv.getUint8(cursor.offset + i));
+          cursor.offset += len;
+          return out;
+        };
+        const header = readStr(4);
+        if (header !== "MThd") throw new Error("Invalid MIDI: missing MThd");
+        const headerLength = dv.getUint32(cursor.offset);
+        cursor.offset += 4;
+        const _format = dv.getUint16(cursor.offset);
+        cursor.offset += 2;
+        const tracksCount = dv.getUint16(cursor.offset);
+        cursor.offset += 2;
+        const division = dv.getUint16(cursor.offset);
+        cursor.offset += 2;
+        cursor.offset += headerLength - 6;
+        const ticksPerQuarter = division;
+
+        const events = [];
+        for (let t = 0; t < tracksCount; t += 1) {
+          const chunkType = readStr(4);
+          const length = dv.getUint32(cursor.offset);
+          cursor.offset += 4;
+          if (chunkType !== "MTrk") {
+            cursor.offset += length;
+            continue;
+          }
+          const end = cursor.offset + length;
+          let absTick = 0;
+          let runningStatus = null;
+          while (cursor.offset < end) {
+            const delta = readVarLen(dv, cursor);
+            absTick += delta;
+            let status = dv.getUint8(cursor.offset);
+            if (status & 0x80) {
+              cursor.offset += 1;
+              runningStatus = status;
+            } else {
+              status = runningStatus;
+            }
+            if (status === undefined || status === null) break;
+            if (status === 0xff) {
+              const type = dv.getUint8(cursor.offset);
+              cursor.offset += 1;
+              const len = readVarLen(dv, cursor);
+              if (type === 0x51 && len === 3) {
+                const tempo =
+                  (dv.getUint8(cursor.offset) << 16) |
+                  (dv.getUint8(cursor.offset + 1) << 8) |
+                  dv.getUint8(cursor.offset + 2);
+                events.push({ tick: absTick, type: "tempo", tempo });
+              }
+              cursor.offset += len;
+            } else if ((status & 0xf0) === 0x90) {
+              const note = dv.getUint8(cursor.offset);
+              const vel = dv.getUint8(cursor.offset + 1);
+              cursor.offset += 2;
+              if (vel > 0) {
+                events.push({
+                  tick: absTick,
+                  type: "noteOn",
+                  note,
+                  velocity: vel,
+                });
+              } else {
+                events.push({ tick: absTick, type: "noteOff", note });
+              }
+            } else if ((status & 0xf0) === 0x80) {
+              const note = dv.getUint8(cursor.offset);
+              cursor.offset += 2;
+              events.push({ tick: absTick, type: "noteOff", note });
+            } else {
+              const dataLen =
+                (status & 0xf0) === 0xc0 || (status & 0xf0) === 0xd0 ? 1 : 2;
+              cursor.offset += dataLen;
+            }
+          }
+          cursor.offset = end;
+        }
+
+        events.sort((a, b) => a.tick - b.tick);
+        const tempoEvents = events.filter((e) => e.type === "tempo");
+        const ticksToMs = (tick) => {
+          let lastTick = 0;
+          let elapsedMs = 0;
+          let currentTempo = 500000;
+          for (const ev of tempoEvents) {
+            if (ev.tick > tick) break;
+            const delta = ev.tick - lastTick;
+            elapsedMs += (delta * currentTempo) / 1000 / ticksPerQuarter;
+            lastTick = ev.tick;
+            currentTempo = ev.tempo;
+          }
+          const remaining = tick - lastTick;
+          elapsedMs += (remaining * currentTempo) / 1000 / ticksPerQuarter;
+          return elapsedMs;
+        };
+
+        const timed = events
+          .filter((e) => e.type === "noteOn" || e.type === "noteOff")
+          .map((ev) => ({
+            ...ev,
+            timeMs: ticksToMs(ev.tick),
+            noteName: midiToNoteName(ev.note),
+          }));
+
+        const duration = timed.length
+          ? Math.max(...timed.map((e) => e.timeMs))
+          : 0;
+        return { events: timed, durationMs: duration };
+      };
+
+      const clearActiveKeys = () => {
+        pianoEl
+          .querySelectorAll(".piano-key.active")
+          .forEach((el) => el.classList.remove("active"));
+        activeKeys.clear();
+      };
+
+      const stopMidiPlayback = async () => {
+        midiStopRequested = true;
+        playMidiBtn.disabled = midiEvents.length === 0;
+        stopMidiBtn.disabled = true;
+        if (midiProgressHandle) cancelAnimationFrame(midiProgressHandle);
+        midiProgressHandle = null;
+        midiProgress.style.width = "0%";
+        midiStatus.textContent = midiEvents.length
+          ? "Playback stopped."
+          : "No MIDI loaded.";
+        await player.stopAll();
+        clearActiveKeys();
+      };
+
+      const startMidiPlayback = async () => {
+        if (!midiEvents.length) return;
+        midiStopRequested = false;
+        await player.load();
+        const ctx = await player.ensureContext();
+        const startAt = ctx.currentTime + 0.1;
+        const startNow = performance.now() + 100;
+        midiStart = startNow;
+        playMidiBtn.disabled = true;
+        stopMidiBtn.disabled = false;
+        midiStatus.textContent = "Playing MIDI...";
+
+        for (const ev of midiEvents) {
+          const when = startAt + ev.timeMs / 1000;
+          if (ev.type === "noteOn") {
+            player.playMidi(ev.note, ev.velocity, when);
+            window.setTimeout(() => {
+              if (!midiStopRequested) setKeyActive(ev.noteName, true);
+            }, ev.timeMs);
+          } else {
+            player.stopMidi(ev.note, when);
+            window.setTimeout(() => {
+              if (!midiStopRequested) setKeyActive(ev.noteName, false);
+            }, ev.timeMs);
+          }
+        }
+
+        const updateProgress = () => {
+          const elapsed = performance.now() - midiStart;
+          const pct = Math.min(100, (elapsed / midiDuration) * 100);
+          midiProgress.style.width = `${pct}%`;
+          if (midiStopRequested || elapsed >= midiDuration + 200) {
+            midiProgress.style.width = "0%";
+            midiStatus.textContent = "Playback finished.";
+            playMidiBtn.disabled = false;
+            stopMidiBtn.disabled = true;
+            clearActiveKeys();
+            return;
+          }
+          midiProgressHandle = requestAnimationFrame(updateProgress);
+        };
+        midiProgressHandle = requestAnimationFrame(updateProgress);
+      };
+
+      midiFileInput.addEventListener("change", async (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        try {
+          const buf = await file.arrayBuffer();
+          const parsed = parseMidiFile(buf);
+          midiEvents = parsed.events;
+          midiDuration = parsed.durationMs;
+          midiStatus.textContent = `Loaded ${file.name} (${
+            midiEvents.length
+          } note events, ~${Math.round(midiDuration / 1000)}s).`;
+          playMidiBtn.disabled = midiEvents.length === 0;
+          stopMidiBtn.disabled = true;
+        } catch (err) {
+          console.error(err);
+          midiStatus.textContent = "Failed to read MIDI file.";
+          playMidiBtn.disabled = true;
+        }
+      });
+
+      playMidiBtn.addEventListener("click", () => {
+        if (!midiEvents.length) return;
+        midiProgress.style.width = "0%";
+        startMidiPlayback();
+      });
+      stopMidiBtn.addEventListener("click", () => stopMidiPlayback());
+
+      window.addEventListener("resize", setLayout);
+      setLayout();
+    </script>
+  </body>
+</html>

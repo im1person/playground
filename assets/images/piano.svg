@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#333"/>
+  <g transform="translate(50, 40)">
+    <rect x="0" y="0" width="300" height="180" fill="white" stroke="black" stroke-width="2"/>
+    <line x1="42" y1="0" x2="42" y2="180" stroke="black" stroke-width="2"/>
+    <line x1="84" y1="0" x2="84" y2="180" stroke="black" stroke-width="2"/>
+    <line x1="126" y1="0" x2="126" y2="180" stroke="black" stroke-width="2"/>
+    <line x1="168" y1="0" x2="168" y2="180" stroke="black" stroke-width="2"/>
+    <line x1="210" y1="0" x2="210" y2="180" stroke="black" stroke-width="2"/>
+    <line x1="252" y1="0" x2="252" y2="180" stroke="black" stroke-width="2"/>
+    
+    <rect x="28" y="0" width="28" height="110" fill="black"/>
+    <rect x="70" y="0" width="28" height="110" fill="black"/>
+    <rect x="154" y="0" width="28" height="110" fill="black"/>
+    <rect x="196" y="0" width="28" height="110" fill="black"/>
+    <rect x="238" y="0" width="28" height="110" fill="black"/>
+  </g>
+</svg>

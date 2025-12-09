@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#eceff1"/>
+  <path d="M150 200 L250 200 L240 180 L160 180 Z" fill="#333" stroke="black" stroke-width="4"/>
+  <path d="M160 180 C 160 180, 150 140, 150 120 C 150 80, 170 40, 200 40 C 220 40, 230 50, 240 60 L 220 70 L 240 90 L 230 110 L 230 140 L 240 180" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="190" cy="70" r="5" fill="black"/>
+</svg>
