@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1 data-en="Chess" data-zh-hant="西洋棋">Chess</h1>
+      <div class="controls">
+        <label>
+          Mode:
+          <select id="modeSelect">
+            <option value="two-player">Two Players</option>
+            <option value="ai">Vs AI</option>
+            <option value="puzzle">Puzzle</option>
+            <option value="analysis">Analysis</option>
+          </select>
+        </label>
+        <label>
+          Difficulty:
+          <select id="difficulty">
+            <option value="1">Easy</option>
+            <option value="2" selected>Medium</option>
+            <option value="3">Hard</option>
+          </select>
+        </label>
+        <button id="newGame" data-en="New" data-zh-hant="新局">New</button>
+        <button id="undo" data-en="Undo" data-zh-hant="悔棋">Undo</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="board-container">
+        <div id="board" class="board" aria-label="Chess board"></div>
+      </div>
+      <aside class="side-panel">
+        <div class="status" id="status">Ready</div>
+        <h3>Moves</h3>
+        <ol id="moveList"></ol>
+      </aside>
+    </main>
+  </div>
+
+  <script src="chess-engine.js"></script>
+  <script src="puzzle-data.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
+

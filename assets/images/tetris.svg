@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#222"/>
+  <g stroke="black" stroke-width="2">
+    <path d="M140 100 h40 v40 h-40 z M180 100 h40 v40 h-40 z M220 100 h40 v40 h-40 z M180 60 h40 v40 h-40 z" fill="#9c27b0"/>
+    <path d="M50 180 h40 v40 h-40 z M90 180 h40 v40 h-40 z M130 180 h40 v40 h-40 z M130 140 h40 v40 h-40 z" fill="#ff9800"/>
+    <path d="M250 140 h40 v40 h-40 z M290 140 h40 v40 h-40 z M290 180 h40 v40 h-40 z M330 180 h40 v40 h-40 z" fill="#f44336"/>
+  </g>
+</svg>

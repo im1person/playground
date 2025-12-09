@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#e8eaf6"/>
+  <g transform="translate(100, 60)" stroke="#3949ab" stroke-width="12" fill="none" stroke-linecap="round">
+    <rect x="0" y="20" width="100" height="60" rx="30" />
+    <rect x="70" y="20" width="100" height="60" rx="30" />
+  </g>
+  <text x="200" y="200" font-family="monospace" font-size="40" text-anchor="middle" fill="#3949ab" stroke="none">https://</text>
+</svg>

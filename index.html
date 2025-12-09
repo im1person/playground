@@ -24,12 +24,13 @@
         flex-direction: column;
         align-items: center;
         margin-top: 40px;
+        padding-bottom: 60px;
       }
       .game-list {
         display: grid;
         gap: 30px;
         justify-items: stretch;
-        margin: 30px auto 0;
+        margin: 20px auto 0;
         width: 100%;
         max-width: 1100px;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -44,7 +45,7 @@
         background: #fff;
         border-radius: 16px;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        padding: 30px 40px;
+        padding: 0;
         text-align: center;
         transition: transform 0.15s, box-shadow 0.15s;
         min-width: 220px;
@@ -52,9 +53,9 @@
         border: 2px solid #eee;
         display: flex;
         flex-direction: column;
-        gap: 14px;
         text-decoration: none;
         color: inherit;
+        overflow: hidden;
       }
       .game-entry:link,
       .game-entry:visited {
@@ -180,187 +181,289 @@
         margin: 0 auto 10px auto;
         padding-top: 18px;
       }
+      .section-title {
+        width: 100%;
+        max-width: 1100px;
+        margin: 40px auto 20px;
+        font-size: 3em;
+        text-align: center;
+        padding: 0 10px;
+        line-height: 1;
+      }
+      .game-entry {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        padding: 0;
+        text-align: center;
+        transition: transform 0.15s, box-shadow 0.15s;
+        min-width: 220px;
+        cursor: pointer;
+        border: 2px solid #eee;
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        color: inherit;
+        overflow: hidden;
+      }
+      .game-preview {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        background: #eee;
+        border-bottom: 2px solid #eee;
+      }
+      .game-content {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex: 1;
+        justify-content: center;
+      }
+      body.dark .game-preview {
+        border-bottom-color: #333;
+        opacity: 0.9;
+      }
     </style>
   </head>
   <body>
     <div class="hub-container">
       <h1 id="mainTitle">🎮 My Playground</h1>
+
+      <!-- Games Section -->
+      <div class="section-title">🎮</div>
       <div class="game-list">
-        <a class="game-entry" href="games/random-number-generator/index.html">
-          <div
-            class="game-title"
-            data-en="Random Number Generator"
-            data-zh-Hant="隨機數字生成器"
-          >
-            Random Number Generator
-          </div>
-          <div
-            class="game-desc"
-            data-en="Pick random numbers, exclude numbers, and more!"
-            data-zh-Hant="產生隨機號碼，支援排除功能等！"
-          >
-            Pick random numbers, exclude numbers, and more!
-          </div>
-        </a>
+        <!-- Sudoku -->
         <div class="game-entry sudoku-card action-card">
-          <div class="game-title" data-en="Sudoku" data-zh-Hant="數獨">
-            Sudoku
-          </div>
-          <div
-            class="game-desc"
-            data-en="Four-tier Sudoku with notes, hints, and auto-solve support."
-            data-zh-Hant="四種難度，支援筆記、提示與自動解。"
-          >
-            Four-tier Sudoku with notes, hints, and auto-solve support.
-          </div>
-          <div class="game-actions">
-            <a
-              href="games/sudoku/index.html"
-              class="action primary"
-              data-en="Play"
-              data-zh-Hant="開始"
+          <img
+            src="assets/images/sudoku.svg"
+            alt="Sudoku"
+            class="game-preview"
+          />
+          <div class="game-content">
+            <div
+              class="game-desc"
+              data-en="Four-tier Sudoku with notes, hints, and auto-solve support."
+              data-zh-Hant="四種難度，支援筆記、提示與自動解。"
             >
-              Play
-            </a>
-            <a
-              href="games/sudoku/intro.html"
-              class="action secondary icon-only"
-              aria-label="Intro"
-            >
-              <span aria-hidden="true">ℹ️</span>
-              <span class="sr-only">Intro</span>
-            </a>
+              Four-tier Sudoku with notes, hints, and auto-solve support.
+            </div>
+            <div class="game-actions">
+              <a
+                href="games/sudoku/index.html"
+                class="action primary"
+                data-en="Play"
+                data-zh-Hant="開始"
+              >
+                Play
+              </a>
+              <a
+                href="games/sudoku/intro.html"
+                class="action secondary icon-only"
+                aria-label="Intro"
+              >
+                <span aria-hidden="true">ℹ️</span>
+                <span class="sr-only">Intro</span>
+              </a>
+            </div>
           </div>
         </div>
+
+        <!-- Rubik's Cube -->
         <a class="game-entry" href="games/rubiks-cube/index.html">
-          <div
-            class="game-title"
-            data-en="Rubik's Cube"
-            data-zh-Hant="魔術方塊"
-          >
-            Rubik's Cube
-          </div>
-          <div
-            class="game-desc"
-            data-en="3D Rubik's Cube solver and simulator."
-            data-zh-Hant="3D 魔術方塊解題與模擬器。"
-          >
-            3D Rubik's Cube solver and simulator.
+          <img
+            src="assets/images/rubiks-cube.svg"
+            alt="Rubik's Cube"
+            class="game-preview"
+          />
+          <div class="game-content">
+            <div
+              class="game-desc"
+              data-en="3D Rubik's Cube solver and simulator."
+              data-zh-Hant="3D 魔術方塊解題與模擬器。"
+            >
+              3D Rubik's Cube solver and simulator.
+            </div>
           </div>
         </a>
+
+        <!-- Chess -->
+        <a class="game-entry" href="games/chess/index.html">
+          <img src="assets/images/chess.svg" alt="Chess" class="game-preview" />
+          <div class="game-content">
+            <div
+              class="game-desc"
+              data-en="Play vs friend or AI, with puzzles and analysis."
+              data-zh-Hant="雙人、AI、謎題與分析模式。"
+            >
+              Play vs friend or AI, with puzzles and analysis.
+            </div>
+          </div>
+        </a>
+
+        <!-- Falling Balls -->
         <a class="game-entry" href="games/falling-balls/index.html">
-          <div
-            class="game-title"
-            data-en="Falling Balls Game"
-            data-zh-Hant="彈跳球遊戲"
-          >
-            Falling Balls Game
-          </div>
-          <div
-            class="game-desc"
-            data-en="Pop falling balls for points. Fast, fun, and mobile-friendly!"
-            data-zh-Hant="點擊彈跳球得分，快速有趣並支援手機！"
-          >
-            Pop falling balls for points. Fast, fun, and mobile-friendly!
-          </div>
-        </a>
-        <a class="game-entry" href="games/url-parser/index.html">
-          <div
-            class="game-title"
-            data-en="URL Parser"
-            data-zh-Hant="URL 解析器"
-          >
-            URL Parser
-          </div>
-          <div
-            class="game-desc"
-            data-en="Parse and analyze URLs into their components."
-            data-zh-Hant="解析並分析 URL 的組成部分。"
-          >
-            Parse and analyze URLs into their components.
+          <img
+            src="assets/images/falling-balls.svg"
+            alt="Falling Balls"
+            class="game-preview"
+          />
+          <div class="game-content">
+            <div
+              class="game-desc"
+              data-en="Pop falling balls for points. Fast, fun, and mobile-friendly!"
+              data-zh-Hant="點擊彈跳球得分，快速有趣並支援手機！"
+            >
+              Pop falling balls for points. Fast, fun, and mobile-friendly!
+            </div>
           </div>
         </a>
+
+        <!-- Poker -->
         <a class="game-entry" href="games/poker/index.html">
-          <div
-            class="game-title"
-            data-en="Playing Cards"
-            data-zh-Hant="紙牌模擬"
-          >
-            Playing Cards
-          </div>
-          <div
-            class="game-desc"
-            data-en="Interactive playing card deck simulation. Shuffle, deal, and flip cards!"
-            data-zh-Hant="互動式紙牌模擬。洗牌、發牌、翻牌！"
-          >
-            Interactive playing card deck simulation. Shuffle, deal, and flip
-            cards!
+          <img
+            src="assets/images/poker.svg"
+            alt="Playing Cards"
+            class="game-preview"
+          />
+          <div class="game-content">
+            <div
+              class="game-desc"
+              data-en="Interactive playing card deck simulation. Shuffle, deal, and flip cards!"
+              data-zh-Hant="互動式紙牌模擬。洗牌、發牌、翻牌！"
+            >
+              Interactive playing card deck simulation. Shuffle, deal, and flip
+              cards!
+            </div>
           </div>
         </a>
+
+        <!-- Tetris -->
         <div class="game-entry action-card">
-          <div class="game-title" data-en="Tetris" data-zh-Hant="俄羅斯方塊">
-            Tetris
-          </div>
-          <div
-            class="game-desc"
-            data-en="Classic Tetris game. Stack blocks and clear lines!"
-            data-zh-Hant="經典俄羅斯方塊遊戲。堆疊方塊並消除行！"
-          >
-            Classic Tetris game. Stack blocks and clear lines!
-          </div>
-          <div class="game-actions">
-            <a
-              href="games/tetris/index.html"
-              class="action primary"
-              data-en="Play"
-              data-zh-Hant="開始"
+          <img
+            src="assets/images/tetris.svg"
+            alt="Tetris"
+            class="game-preview"
+          />
+          <div class="game-content">
+            <div
+              class="game-desc"
+              data-en="Classic Tetris game. Stack blocks and clear lines!"
+              data-zh-Hant="經典俄羅斯方塊遊戲。堆疊方塊並消除行！"
             >
-              Play
-            </a>
-            <a
-              href="games/tetris/intro.html"
-              class="action secondary icon-only"
-              aria-label="Intro"
-            >
-              <span aria-hidden="true">ℹ️</span>
-              <span class="sr-only">Intro</span>
-            </a>
+              Classic Tetris game. Stack blocks and clear lines!
+            </div>
+            <div class="game-actions">
+              <a
+                href="games/tetris/index.html"
+                class="action primary"
+                data-en="Play"
+                data-zh-Hant="開始"
+              >
+                Play
+              </a>
+              <a
+                href="games/tetris/intro.html"
+                class="action secondary icon-only"
+                aria-label="Intro"
+              >
+                <span aria-hidden="true">ℹ️</span>
+                <span class="sr-only">Intro</span>
+              </a>
+            </div>
           </div>
         </div>
+
+        <!-- Tetris T-Spin -->
         <div class="game-entry action-card">
-          <div
-            class="game-title"
-            data-en="Tetris (T-Spin)"
-            data-zh-Hant="俄羅斯方塊 (T-Spin)"
-          >
-            Tetris (T-Spin)
-          </div>
-          <div
-            class="game-desc"
-            data-en="Advanced Tetris with T-Spin detection logic."
-            data-zh-Hant="具有 T-Spin 偵測邏輯的進階俄羅斯方塊。"
-          >
-            Advanced Tetris with T-Spin detection logic.
-          </div>
-          <div class="game-actions">
-            <a
-              href="games/tetris-tspin/index.html"
-              class="action primary"
-              data-en="Play"
-              data-zh-Hant="開始"
+          <img
+            src="assets/images/tetris-tspin.svg"
+            alt="Tetris T-Spin"
+            class="game-preview"
+          />
+          <div class="game-content">
+            <div
+              class="game-desc"
+              data-en="Advanced Tetris with T-Spin detection logic."
+              data-zh-Hant="具有 T-Spin 偵測邏輯的進階俄羅斯方塊。"
             >
-              Play
-            </a>
-            <a
-              href="games/tetris-tspin/intro.html"
-              class="action secondary icon-only"
-              aria-label="Intro"
-            >
-              <span aria-hidden="true">ℹ️</span>
-              <span class="sr-only">Intro</span>
-            </a>
+              Advanced Tetris with T-Spin detection logic.
+            </div>
+            <div class="game-actions">
+              <a
+                href="games/tetris-tspin/index.html"
+                class="action primary"
+                data-en="Play"
+                data-zh-Hant="開始"
+              >
+                Play
+              </a>
+              <a
+                href="games/tetris-tspin/intro.html"
+                class="action secondary icon-only"
+                aria-label="Intro"
+              >
+                <span aria-hidden="true">ℹ️</span>
+                <span class="sr-only">Intro</span>
+              </a>
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- Tools Section -->
+      <div class="section-title">🛠️</div>
+      <div class="game-list">
+        <!-- Random Number Generator -->
+        <a class="game-entry" href="tools/random-number-generator/index.html">
+          <img
+            src="assets/images/rng.svg"
+            alt="Random Number Generator"
+            class="game-preview"
+          />
+          <div class="game-content">
+            <div
+              class="game-desc"
+              data-en="Pick random numbers, exclude numbers, and more!"
+              data-zh-Hant="產生隨機號碼，支援排除功能等！"
+            >
+              Pick random numbers, exclude numbers, and more!
+            </div>
+          </div>
+        </a>
+
+        <!-- Piano -->
+        <a class="game-entry" href="tools/piano/index.html">
+          <img src="assets/images/piano.svg" alt="Piano" class="game-preview" />
+          <div class="game-content">
+            <div
+              class="game-desc"
+              data-en="Responsive piano with keyboard controls and MIDI playback."
+              data-zh-Hant="響應式鋼琴，支援鍵盤操作與 MIDI 播放。"
+            >
+              Responsive piano with keyboard controls and MIDI playback.
+            </div>
+          </div>
+        </a>
+
+        <!-- URL Parser -->
+        <a class="game-entry" href="tools/url-parser/index.html">
+          <img
+            src="assets/images/url-parser.svg"
+            alt="URL Parser"
+            class="game-preview"
+          />
+          <div class="game-content">
+            <div
+              class="game-desc"
+              data-en="Parse and analyze URLs into their components."
+              data-zh-Hant="解析並分析 URL 的組成部分。"
+            >
+              Parse and analyze URLs into their components.
+            </div>
+          </div>
+        </a>
       </div>
     </div>
     <script type="module">

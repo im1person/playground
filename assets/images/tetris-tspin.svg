@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#333"/>
+  <g stroke="black" stroke-width="2">
+    <rect x="120" y="140" width="40" height="40" fill="#777"/>
+    <rect x="120" y="180" width="40" height="40" fill="#777"/>
+    <rect x="240" y="140" width="40" height="40" fill="#777"/>
+    <rect x="240" y="180" width="40" height="40" fill="#777"/>
+    <rect x="160" y="180" width="80" height="40" fill="#777"/>
+    <g transform="translate(160, 100) rotate(45, 60, 60)">
+       <path d="M0 40 h40 v40 h-40 z M40 40 h40 v40 h-40 z M80 40 h40 v40 h-40 z M40 0 h40 v40 h-40 z" fill="#9c27b0"/>
+    </g>
+  </g>
+</svg>
