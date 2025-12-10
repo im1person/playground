@@ -139,8 +139,24 @@
         color: #93c5fd;
         border-color: #93c5fd;
       }
+      .midi-controls select {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #1976d2;
+        background: #fff;
+        color: #1976d2;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      body.dark .midi-controls select {
+        background: #181c1f;
+        color: #90caf9;
+        border-color: #90caf9;
+      }
       .midi-controls button:disabled,
-      .midi-controls label:disabled {
+      .midi-controls label:disabled,
+      .midi-controls select:disabled {
         opacity: 0.5;
         cursor: not-allowed;
       }
@@ -302,8 +318,18 @@
             for upper octave.
           </div>
           <div class="midi-controls">
+            <select id="exampleSelect">
+              <option value="" disabled selected>📂 Load Example...</option>
+              <option value="midi-examples/twinkle.mid">Twinkle Star</option>
+              <option value="midi-examples/mary_lamb.mid">
+                Mary Had a Little Lamb
+              </option>
+              <option value="midi-examples/c_major_scale.mid">
+                C Major Scale
+              </option>
+            </select>
             <label for="midiFile" id="midiFileLabel"
-              >📂 Load MIDI<input type="file" id="midiFile" accept=".mid,.midi"
+              >Or Upload<input type="file" id="midiFile" accept=".mid,.midi"
             /></label>
             <button id="playMidi" disabled>Play MIDI</button>
             <button id="stopMidi" class="secondary" disabled>Stop</button>
@@ -329,8 +355,7 @@
             <div class="progress-inner" id="midiProgress"></div>
           </div>
           <div class="piano-hint">
-            Tip: playback uses placeholder sine samples; swap the files in
-            <code>piano-samples</code> for richer tone.
+            Tip: Uses synthetic piano-like tone (layered oscillators).
           </div>
         </div>
       </section>
@@ -408,11 +433,12 @@
       const whiteKeysEl = document.getElementById("whiteKeys");
       const blackKeysEl = document.getElementById("blackKeys");
       const midiFileInput = document.getElementById("midiFile");
+      const exampleSelect = document.getElementById("exampleSelect");
       const midiStatus = document.getElementById("midiStatus");
       const midiProgress = document.getElementById("midiProgress");
       const playMidiBtn = document.getElementById("playMidi");
       const stopMidiBtn = document.getElementById("stopMidi");
-      const SAMPLE_ROOT = "./piano-samples";
+      const SAMPLE_ROOT = "./piano-samples"; // Kept for reference or future use
 
       let currentLayout = null;
       let activeKeys = new Map();
@@ -497,17 +523,10 @@
         });
       };
 
-      class SamplePlayer {
-        constructor(noteList, root) {
-          this.noteList = noteList;
-          this.root = root;
+      class SynthPlayer {
+        constructor() {
           this.context = null;
-          this.buffers = {};
-          this.loading = null;
           this.voices = new Map();
-          this.noteMidis = Object.fromEntries(
-            noteList.map((n) => [n, noteToMidi(n)])
-          );
         }
 
         async ensureContext() {
@@ -521,85 +540,120 @@
         }
 
         async load() {
-          if (this.loading) return this.loading;
-          const ctx = await this.ensureContext();
-          this.loading = Promise.all(
-            this.noteList.map(async (note) => {
-              const res = await fetch(
-                `${this.root}/${encodeURIComponent(note)}.wav`
-              );
-              const arr = await res.arrayBuffer();
-              const buf = await ctx.decodeAudioData(arr);
-              this.buffers[note] = buf;
-            })
-          );
-          return this.loading;
+          // No-op for synth
+          return this.ensureContext();
         }
 
-        getNearestSample(midi) {
-          let nearest = this.noteList[0];
-          let best = Infinity;
-          for (const note of this.noteList) {
-            const diff = Math.abs(midi - this.noteMidis[note]);
-            if (diff < best) {
-              best = diff;
-              nearest = note;
-            }
-          }
-          return nearest;
+        midiToFreq(midi) {
+          return 440 * Math.pow(2, (midi - 69) / 12);
         }
 
         async playMidi(midi, velocity = 100, when = 0) {
-          await this.load();
           const ctx = await this.ensureContext();
-          const baseNote = this.getNearestSample(midi);
-          const buffer = this.buffers[baseNote];
-          if (!buffer) return null;
-          const source = ctx.createBufferSource();
-          source.buffer = buffer;
-          const rate = Math.pow(2, (midi - this.noteMidis[baseNote]) / 12);
-          source.playbackRate.value = rate;
+          const t = when || ctx.currentTime;
+          const freq = this.midiToFreq(midi);
+
+          // Create oscillators for a richer sound
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const osc3 = ctx.createOscillator();
+
           const gain = ctx.createGain();
-          gain.gain.value = Math.max(0.1, velocity / 127);
-          source.connect(gain).connect(ctx.destination);
-          source.start(when);
+          const masterGain = ctx.createGain();
+
+          // Osc 1: Triangle (body)
+          osc1.type = "triangle";
+          osc1.frequency.value = freq;
+
+          // Osc 2: Sine (fundamental)
+          osc2.type = "sine";
+          osc2.frequency.value = freq;
+
+          // Osc 3: Sawtooth (brightness, detuned slightly)
+          osc3.type = "sawtooth";
+          osc3.frequency.value = freq;
+          osc3.detune.value = 5; // Detune in cents
+
+          // Mix oscillators
+          const osc1Gain = ctx.createGain();
+          osc1Gain.gain.value = 0.5;
+          osc1.connect(osc1Gain).connect(gain);
+
+          const osc2Gain = ctx.createGain();
+          osc2Gain.gain.value = 0.4;
+          osc2.connect(osc2Gain).connect(gain);
+
+          const osc3Gain = ctx.createGain();
+          osc3Gain.gain.value = 0.1; // Subtle brightness
+          osc3.connect(osc3Gain).connect(gain);
+
+          // Velocity to gain
+          const maxGain = (velocity / 127) * 0.3;
+
+          // ADSR Envelope (Piano-like)
+          // Attack: very fast but not instant
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(maxGain, t + 0.015);
+
+          // Decay: to a lower sustain level over time
+          // Piano notes decay naturally even if held, but sustain helps
+          gain.gain.exponentialRampToValueAtTime(maxGain * 0.6, t + 1.5);
+
+          // Connect to master
+          gain.connect(masterGain);
+          masterGain.connect(ctx.destination);
+
+          osc1.start(t);
+          osc2.start(t);
+          osc3.start(t);
+
           const key = `${midi}-${Math.random().toString(36).slice(2)}`;
           const voices = this.voices.get(midi) || [];
-          voices.push({ key, source, gain });
+          // Store all oscillators to stop them later
+          voices.push({ key, oscs: [osc1, osc2, osc3], gain, masterGain });
           this.voices.set(midi, voices);
-          source.onended = () => {
-            const list = this.voices.get(midi) || [];
-            const next = list.filter((v) => v.key !== key);
-            this.voices.set(midi, next);
-          };
-          return { key, source, gain };
+
+          return { key, gain };
         }
 
         async stopMidi(midi, when = 0) {
           const ctx = await this.ensureContext();
           const list = this.voices.get(midi) || [];
           if (!list.length) return;
-          const voice = list.shift();
-          this.voices.set(midi, list);
+
           const t = when || ctx.currentTime;
-          voice.gain.gain.setTargetAtTime(0.0001, t, 0.03);
-          voice.source.stop(t + 0.1);
+
+          list.forEach((voice) => {
+            try {
+              // Quick release for key lift
+              voice.gain.gain.cancelScheduledValues(t);
+              voice.gain.gain.setValueAtTime(voice.gain.gain.value, t);
+              voice.gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+
+              voice.oscs.forEach((osc) => osc.stop(t + 0.25));
+            } catch (e) {
+              // ignore
+            }
+          });
+          this.voices.set(midi, []);
         }
 
         async stopAll() {
           const ctx = await this.ensureContext();
           this.voices.forEach((list) => {
             list.forEach((voice) => {
-              voice.gain.gain.cancelScheduledValues(ctx.currentTime);
-              voice.gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.03);
-              voice.source.stop(ctx.currentTime + 0.05);
+              try {
+                voice.gain.gain.cancelScheduledValues(ctx.currentTime);
+                voice.gain.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
+                voice.oscs.forEach((osc) => osc.stop(ctx.currentTime + 0.1));
+              } catch (e) {}
             });
           });
           this.voices.clear();
         }
       }
 
-      const player = new SamplePlayer(PIANO_NOTES, SAMPLE_ROOT);
+      const player = new SynthPlayer();
 
       const setLayout = () => {
         const layout = computeLayout();
@@ -629,14 +683,17 @@
         }
       };
 
-      const playNote = async (note, velocity = 110, autoRelease = true) => {
+      const startNote = async (note, velocity = 100) => {
         const midi = noteToMidi(note);
         await player.ensureContext();
         setKeyActive(note, true);
-        await player.playMidi(midi, velocity);
-        if (autoRelease) {
-          window.setTimeout(() => setKeyActive(note, false), 320);
-        }
+        player.playMidi(midi, velocity);
+      };
+
+      const stopNote = (note) => {
+        const midi = noteToMidi(note);
+        setKeyActive(note, false);
+        player.stopMidi(midi);
       };
 
       const handlePointerDown = (event) => {
@@ -644,25 +701,36 @@
         if (!target) return;
         event.preventDefault();
         const note = target.dataset.note;
-        playNote(note, 110, false);
+        startNote(note);
       };
 
       const triggerPointerNote = (event) => {
         const target = event.target.closest(".piano-key");
         const id = event.pointerId;
         const previous = pointerNotes.get(id);
+
         if (!target) {
-          if (previous) setKeyActive(previous, false);
-          pointerNotes.delete(id);
+          if (previous) {
+            stopNote(previous);
+            pointerNotes.delete(id);
+          }
           return;
         }
+
         const note = target.dataset.note;
         if (previous !== note) {
-          if (previous) setKeyActive(previous, false);
+          if (previous) {
+            stopNote(previous);
+          }
           pointerNotes.set(id, note);
-          playNote(note, 110, false);
+          startNote(note);
+        } else if (!previous) {
+          // Should ideally not happen if handled by pointerdown, but for robustness:
+          pointerNotes.set(id, note);
+          startNote(note);
         }
-        setKeyActive(note, true);
+        // Visuals are handled by startNote/stopNote now, but we might want to ensure it:
+        // setKeyActive(note, true); // startNote does this
       };
 
       const handlePointerMove = (event) => {
@@ -673,21 +741,26 @@
 
       const handlePointerUp = (event) => {
         const previous = pointerNotes.get(event.pointerId);
-        if (previous) setKeyActive(previous, false);
+        if (previous) {
+          stopNote(previous);
+        }
         pointerNotes.delete(event.pointerId);
       };
 
       const handleKeyDown = (event) => {
+        if (event.repeat) return;
         const note = KEYBOARD_MAP[event.key.toLowerCase()];
         if (!note || activeKeys.has(`kbd-${event.key}`)) return;
         activeKeys.set(`kbd-${event.key}`, true);
-        playNote(note);
+        startNote(note);
       };
 
       const handleKeyUp = (event) => {
+        const note = KEYBOARD_MAP[event.key.toLowerCase()];
         const key = `kbd-${event.key.toLowerCase()}`;
         if (!activeKeys.has(key)) return;
         activeKeys.delete(key);
+        if (note) stopNote(note);
       };
 
       function bindKeyInteractions() {
@@ -872,7 +945,21 @@
         for (const ev of midiEvents) {
           const when = startAt + ev.timeMs / 1000;
           if (ev.type === "noteOn") {
+            // Schedule note on
+            // For synth, we can't easily schedule the exact note object return for later stopping in this simple loop structure
+            // without managing a schedule list.
+            // SynthPlayer.playMidi returns immediately.
+            // We need to schedule the start call.
+
+            // Actually, AudioContext scheduling works best if we call start(when).
+            // But our player abstraction manages lists of voices.
+            // Let's modify the loop to use setTimeout for simplicity of visual sync,
+            // OR trust the player's internal scheduling if we built it that way.
+            // The previous implementation used setTimeout for visual and called playMidi(..., when).
+            // playMidi now calls osc.start(when). This is fine.
+
             player.playMidi(ev.note, ev.velocity, when);
+
             window.setTimeout(() => {
               if (!midiStopRequested) setKeyActive(ev.noteName, true);
             }, ev.timeMs);
@@ -906,20 +993,47 @@
         if (!file) return;
         try {
           const buf = await file.arrayBuffer();
-          const parsed = parseMidiFile(buf);
-          midiEvents = parsed.events;
-          midiDuration = parsed.durationMs;
-          midiStatus.textContent = `Loaded ${file.name} (${
-            midiEvents.length
-          } note events, ~${Math.round(midiDuration / 1000)}s).`;
-          playMidiBtn.disabled = midiEvents.length === 0;
-          stopMidiBtn.disabled = true;
+          loadMidiBuffer(buf, file.name);
+          exampleSelect.value = ""; // Reset select
         } catch (err) {
           console.error(err);
           midiStatus.textContent = "Failed to read MIDI file.";
           playMidiBtn.disabled = true;
         }
       });
+
+      exampleSelect.addEventListener("change", async (e) => {
+        const filename = e.target.value;
+        if (!filename) return;
+        try {
+          const res = await fetch(filename);
+          if (!res.ok) throw new Error("Example file not found");
+          const buf = await res.arrayBuffer();
+          const name = e.target.options[e.target.selectedIndex].text;
+          loadMidiBuffer(buf, name);
+          midiFileInput.value = ""; // Reset file input
+        } catch (err) {
+          console.error(err);
+          midiStatus.textContent = "Failed to load example MIDI.";
+        }
+      });
+
+      function loadMidiBuffer(buf, name) {
+        try {
+          const parsed = parseMidiFile(buf);
+          midiEvents = parsed.events;
+          midiDuration = parsed.durationMs;
+          midiStatus.textContent = `Loaded ${name} (${
+            midiEvents.length
+          } note events, ~${Math.round(midiDuration / 1000)}s).`;
+          playMidiBtn.disabled = midiEvents.length === 0;
+          stopMidiBtn.disabled = true;
+        } catch (err) {
+          console.error(err);
+          midiStatus.textContent = "Failed to parse MIDI data.";
+          playMidiBtn.disabled = true;
+        }
+      }
 
       playMidiBtn.addEventListener("click", () => {
         if (!midiEvents.length) return;
