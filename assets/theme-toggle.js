@@ -73,6 +73,9 @@ export function initThemeToggle({
     }
   });
 
+  // Listen to localechange event for same-window locale updates
+  document.addEventListener("localechange", updateBtnText);
+
   compactMedia.addEventListener("change", updateBtnText);
 
   // Initial setup

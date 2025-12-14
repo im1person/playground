@@ -33,6 +33,8 @@ export function initLocaleMenu({
         el.getAttribute("data-" + locale) || el.getAttribute("data-en");
     });
     updateToggleBtn(locale);
+    // Dispatch localechange event for other components to listen to
+    document.dispatchEvent(new CustomEvent("localechange", { detail: { locale } }));
     if (typeof onLocaleChange === "function") onLocaleChange(locale);
   }
 
