@@ -234,11 +234,21 @@ body.light-mode .sudoku-board {
   gap: 1px;
   font-size: 0.55rem;
   opacity: 0.7;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .cell-notes span {
   display: block;
   text-align: center;
+}
+
+body.light-mode .cell-notes {
+  color: rgba(15, 23, 42, 0.7);
+  opacity: 0.9;
+}
+
+body.light-mode .cell-notes span {
+  color: rgba(15, 23, 42, 0.8);
 }
 
 .cell.given {
@@ -341,6 +351,20 @@ body.light-mode .cell.conflict {
 
 .cell.note-visible .cell-notes {
   opacity: 1;
+}
+
+body.light-mode .cell.note-visible .cell-notes {
+  opacity: 1;
+  color: rgba(15, 23, 42, 0.95);
+}
+
+body.light-mode .cell.note-visible .cell-notes span {
+  color: rgba(15, 23, 42, 1);
+}
+
+/* Hide notes when cell has a value */
+.cell.has-value .cell-notes {
+  display: none;
 }
 
 .number-pad {
