@@ -151,6 +151,7 @@ const SudokuApp = (() => {
         const isConflict = value && state.solution[idx] !== value;
         cell.classList.toggle("conflict", Boolean(isConflict));
         cell.classList.toggle("given", state.givens.has(idx));
+        cell.classList.toggle("has-value", Boolean(value));
         cell.classList.toggle(
           "note-visible",
           value === 0 && state.notes[idx].size
