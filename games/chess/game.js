@@ -19,6 +19,11 @@ class ChessGame {
     this._bindUI();
     this.renderBoard();
     this.updateStatus();
+    
+    // Listen for locale changes to update status text
+    document.addEventListener("localechange", () => {
+      this.updateStatus();
+    });
   }
 
   _bindUI() {
@@ -142,18 +147,23 @@ class ChessGame {
   }
 
   updateStatus() {
+    const locale = document.documentElement.lang || "en";
+    const isZh = locale === "zh-Hant";
+    
     if (this.engine.isCheckmate()) {
-      this.statusEl.textContent = "Checkmate!";
+      this.statusEl.textContent = isZh ? "將死！" : "Checkmate!";
       return;
     }
     if (this.engine.isStalemate()) {
-      this.statusEl.textContent = "Stalemate.";
+      this.statusEl.textContent = isZh ? "和棋。" : "Stalemate.";
       return;
     }
     const turnText =
-      this.engine.turn === "w" ? "White to move" : "Black to move";
+      this.engine.turn === "w"
+        ? isZh ? "白方走棋" : "White to move"
+        : isZh ? "黑方走棋" : "Black to move";
     const inCheck = this.engine.isInCheck(this.engine.turn)
-      ? " (in check)"
+      ? isZh ? " (被將軍)" : " (in check)"
       : "";
     this.statusEl.textContent = `${turnText}${inCheck}`;
   }

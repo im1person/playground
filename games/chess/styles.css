@@ -7,6 +7,17 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
   background: #f5f5f5;
   color: #222;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark {
+  background: #181c1f;
+  color: #f0f0f0;
+}
+
+body.light-mode {
+  background: #f0f0f0;
+  color: #222;
 }
 
 .page {
@@ -25,6 +36,7 @@ header {
 
 header h1 {
   margin: 0;
+  color: inherit;
 }
 
 .controls {
@@ -34,6 +46,30 @@ header h1 {
   flex-wrap: wrap;
 }
 
+label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9em;
+  color: inherit;
+}
+
+select {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #222;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+body.dark select {
+  background: #23272a;
+  color: #f0f0f0;
+  border-color: #444;
+}
+
 button {
   padding: 8px 12px;
   border: 1px solid #ccc;
@@ -41,10 +77,21 @@ button {
   color: #222;
   border-radius: 6px;
   cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 button:hover {
   background: #eee;
+}
+
+body.dark button {
+  background: #23272a;
+  color: #f0f0f0;
+  border-color: #444;
+}
+
+body.dark button:hover {
+  background: #2c3135;
 }
 
 main {
@@ -105,6 +152,21 @@ main {
   pointer-events: none;
 }
 
+/* Make white pieces more visible in dark mode with dark outline */
+body.dark .square .piece {
+  /* Add dark text stroke for better visibility */
+  -webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.8);
+  text-stroke: 0.5px rgba(0, 0, 0, 0.8);
+  /* Add multiple dark shadows to create outline effect */
+  text-shadow: 
+    -1px -1px 0 rgba(0, 0, 0, 0.9),
+    1px -1px 0 rgba(0, 0, 0, 0.9),
+    -1px 1px 0 rgba(0, 0, 0, 0.9),
+    1px 1px 0 rgba(0, 0, 0, 0.9),
+    0 0 3px rgba(0, 0, 0, 0.8),
+    0 0 6px rgba(0, 0, 0, 0.6);
+}
+
 .side-panel {
   background: #fff;
   border: 1px solid #ddd;
@@ -113,9 +175,20 @@ main {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
+body.dark .side-panel {
+  background: #23272a;
+  border-color: #333;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
 .status {
   margin-bottom: 8px;
   font-weight: 600;
+  color: inherit;
+}
+
+h3 {
+  color: inherit;
 }
 
 #moveList {
@@ -124,6 +197,7 @@ main {
   padding-left: 0;
   max-height: 70vh;
   overflow-y: auto;
+  color: inherit;
 }
 
 @media (max-width: 900px) {

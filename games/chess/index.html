@@ -3,33 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chess</title>
+    <title data-en="Chess" data-zh-Hant="西洋棋">Chess</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="page">
       <header>
-        <h1 data-en="Chess" data-zh-hant="西洋棋">Chess</h1>
+        <h1 data-en="Chess" data-zh-Hant="西洋棋">Chess</h1>
         <div class="controls">
           <label>
-            Mode:
+            <span data-en="Mode:" data-zh-Hant="模式：">Mode:</span>
             <select id="modeSelect">
-              <option value="two-player">Two Players</option>
-              <option value="ai">Vs AI</option>
-              <option value="puzzle">Puzzle</option>
-              <option value="analysis">Analysis</option>
+              <option value="two-player" data-en="Two Players" data-zh-Hant="雙人對戰">Two Players</option>
+              <option value="ai" data-en="Vs AI" data-zh-Hant="對戰 AI">Vs AI</option>
+              <option value="puzzle" data-en="Puzzle" data-zh-Hant="謎題">Puzzle</option>
+              <option value="analysis" data-en="Analysis" data-zh-Hant="分析">Analysis</option>
             </select>
           </label>
           <label>
-            Difficulty:
+            <span data-en="Difficulty:" data-zh-Hant="難度：">Difficulty:</span>
             <select id="difficulty">
-              <option value="1">Easy</option>
-              <option value="2" selected>Medium</option>
-              <option value="3">Hard</option>
+              <option value="1" data-en="Easy" data-zh-Hant="簡單">Easy</option>
+              <option value="2" selected data-en="Medium" data-zh-Hant="中等">Medium</option>
+              <option value="3" data-en="Hard" data-zh-Hant="困難">Hard</option>
             </select>
           </label>
-          <button id="newGame" data-en="New" data-zh-hant="新局">New</button>
-          <button id="undo" data-en="Undo" data-zh-hant="悔棋">Undo</button>
+          <button id="newGame" data-en="New" data-zh-Hant="新局">New</button>
+          <button id="undo" data-en="Undo" data-zh-Hant="悔棋">Undo</button>
         </div>
       </header>
 
@@ -38,8 +39,8 @@
           <div id="board" class="board" aria-label="Chess board"></div>
         </div>
         <aside class="side-panel">
-          <div class="status" id="status">Ready</div>
-          <h3>Moves</h3>
+          <div class="status" id="status" data-en="Ready" data-zh-Hant="準備中">Ready</div>
+          <h3 data-en="Moves" data-zh-Hant="走棋記錄">Moves</h3>
           <ol id="moveList"></ol>
         </aside>
       </main>
@@ -48,5 +49,38 @@
     <script src="chess-engine.js"></script>
     <script src="puzzle-data.js"></script>
     <script src="game.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu({
+        onLocaleChange: (locale) => {
+          // Update select option texts
+          const modeSelect = document.getElementById("modeSelect");
+          if (modeSelect) {
+            modeSelect.querySelectorAll("option").forEach((option) => {
+              const zhText = option.getAttribute("data-zh-Hant");
+              const enText = option.getAttribute("data-en");
+              if (zhText && enText) {
+                option.textContent = locale === "zh-Hant" ? zhText : enText;
+              }
+            });
+          }
+          const difficultySelect = document.getElementById("difficulty");
+          if (difficultySelect) {
+            difficultySelect.querySelectorAll("option").forEach((option) => {
+              const zhText = option.getAttribute("data-zh-Hant");
+              const enText = option.getAttribute("data-en");
+              if (zhText && enText) {
+                option.textContent = locale === "zh-Hant" ? zhText : enText;
+              }
+            });
+          }
+        },
+      });
+    </script>
   </body>
 </html>
