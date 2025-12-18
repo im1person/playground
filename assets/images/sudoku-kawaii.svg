@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#f5f5dc"/>
+  <defs>
+    <filter id="kawaii-shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="2" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g transform="translate(100, 30)" stroke="#654321" stroke-width="6" fill="#fff" filter="url(#kawaii-shadow)">
+    <rect x="0" y="0" width="200" height="200" rx="12" />
+    <line x1="66" y1="0" x2="66" y2="200" stroke-width="5"/>
+    <line x1="133" y1="0" x2="133" y2="200" stroke-width="5"/>
+    <line x1="0" y1="66" x2="200" y2="66" stroke-width="5"/>
+    <line x1="0" y1="133" x2="200" y2="133" stroke-width="5"/>
+    <text x="33" y="110" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="50" font-weight="900" text-anchor="middle" dominant-baseline="middle" fill="#8b4513" stroke="#654321" stroke-width="1">5</text>
+    <text x="100" y="45" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="50" font-weight="900" text-anchor="middle" dominant-baseline="middle" fill="#b0e0e6" stroke="#654321" stroke-width="1">3</text>
+    <text x="166" y="176" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="50" font-weight="900" text-anchor="middle" dominant-baseline="middle" fill="#8b4513" stroke="#654321" stroke-width="1">9</text>
+  </g>
+</svg>
+
+

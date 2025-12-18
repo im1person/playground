@@ -15,17 +15,31 @@
           <label>
             <span data-en="Mode:" data-zh-Hant="模式：">Mode:</span>
             <select id="modeSelect">
-              <option value="two-player" data-en="Two Players" data-zh-Hant="雙人對戰">Two Players</option>
-              <option value="ai" data-en="Vs AI" data-zh-Hant="對戰 AI">Vs AI</option>
-              <option value="puzzle" data-en="Puzzle" data-zh-Hant="謎題">Puzzle</option>
-              <option value="analysis" data-en="Analysis" data-zh-Hant="分析">Analysis</option>
+              <option
+                value="two-player"
+                data-en="Two Players"
+                data-zh-Hant="雙人對戰"
+              >
+                Two Players
+              </option>
+              <option value="ai" data-en="Vs AI" data-zh-Hant="對戰 AI">
+                Vs AI
+              </option>
+              <option value="puzzle" data-en="Puzzle" data-zh-Hant="謎題">
+                Puzzle
+              </option>
+              <option value="analysis" data-en="Analysis" data-zh-Hant="分析">
+                Analysis
+              </option>
             </select>
           </label>
           <label>
             <span data-en="Difficulty:" data-zh-Hant="難度：">Difficulty:</span>
             <select id="difficulty">
               <option value="1" data-en="Easy" data-zh-Hant="簡單">Easy</option>
-              <option value="2" selected data-en="Medium" data-zh-Hant="中等">Medium</option>
+              <option value="2" selected data-en="Medium" data-zh-Hant="中等">
+                Medium
+              </option>
               <option value="3" data-en="Hard" data-zh-Hant="困難">Hard</option>
             </select>
           </label>
@@ -39,7 +53,9 @@
           <div id="board" class="board" aria-label="Chess board"></div>
         </div>
         <aside class="side-panel">
-          <div class="status" id="status" data-en="Ready" data-zh-Hant="準備中">Ready</div>
+          <div class="status" id="status" data-en="Ready" data-zh-Hant="準備中">
+            Ready
+          </div>
           <h3 data-en="Moves" data-zh-Hant="走棋記錄">Moves</h3>
           <ol id="moveList"></ol>
         </aside>
@@ -84,3 +100,4 @@
     </script>
   </body>
 </html>
+

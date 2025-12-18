@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#f5f5dc"/>
+  <defs>
+    <filter id="kawaii-shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="2" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Score board background -->
+  <rect x="50" y="40" width="300" height="180" rx="20" fill="#fff" stroke="#654321" stroke-width="5" filter="url(#kawaii-shadow)"/>
+  
+  <!-- Number tiles (1-13 representation) -->
+  <g transform="translate(70, 60)">
+    <!-- Row 1: Numbers 1-7 -->
+    <rect x="0" y="0" width="30" height="40" rx="8" fill="#b0e0e6" stroke="#654321" stroke-width="3"/>
+    <text x="15" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">1</text>
+    
+    <rect x="40" y="0" width="30" height="40" rx="8" fill="#ffb6c1" stroke="#654321" stroke-width="3"/>
+    <text x="55" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">2</text>
+    
+    <rect x="80" y="0" width="30" height="40" rx="8" fill="#98d8c8" stroke="#654321" stroke-width="3"/>
+    <text x="95" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">3</text>
+    
+    <rect x="120" y="0" width="30" height="40" rx="8" fill="#ffe4b5" stroke="#654321" stroke-width="3"/>
+    <text x="135" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">4</text>
+    
+    <rect x="160" y="0" width="30" height="40" rx="8" fill="#ffe4b5" stroke="#654321" stroke-width="3"/>
+    <text x="175" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">5</text>
+    
+    <rect x="200" y="0" width="30" height="40" rx="8" fill="#ffe4b5" stroke="#654321" stroke-width="3"/>
+    <text x="215" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">6</text>
+    
+    <rect x="240" y="0" width="30" height="40" rx="8" fill="#ffe4b5" stroke="#654321" stroke-width="3"/>
+    <text x="255" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">7</text>
+  </g>
+  
+  <!-- Row 2: Numbers 8-13 and Joker -->
+  <g transform="translate(70, 110)">
+    <rect x="0" y="0" width="30" height="40" rx="8" fill="#ffe4b5" stroke="#654321" stroke-width="3"/>
+    <text x="15" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">8</text>
+    
+    <rect x="40" y="0" width="30" height="40" rx="8" fill="#ffe4b5" stroke="#654321" stroke-width="3"/>
+    <text x="55" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">9</text>
+    
+    <rect x="80" y="0" width="30" height="40" rx="8" fill="#ffe4b5" stroke="#654321" stroke-width="3"/>
+    <text x="95" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">10</text>
+    
+    <rect x="120" y="0" width="30" height="40" rx="8" fill="#ffe4b5" stroke="#654321" stroke-width="3"/>
+    <text x="135" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">11</text>
+    
+    <rect x="160" y="0" width="30" height="40" rx="8" fill="#ffe4b5" stroke="#654321" stroke-width="3"/>
+    <text x="175" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">12</text>
+    
+    <rect x="200" y="0" width="30" height="40" rx="8" fill="#ffe4b5" stroke="#654321" stroke-width="3"/>
+    <text x="215" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">13</text>
+    
+    <!-- Joker tile (orange) -->
+    <rect x="240" y="0" width="30" height="40" rx="8" fill="#ffb347" stroke="#654321" stroke-width="3"/>
+    <text x="255" y="28" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="18" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="0.5">J</text>
+  </g>
+  
+  <!-- Score display -->
+  <rect x="70" y="160" width="260" height="40" rx="12" fill="#fff" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+  <text x="200" y="185" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="24" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="1">Score: 125</text>
+</svg>
+
+

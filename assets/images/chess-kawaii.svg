@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#f5f5dc"/>
+  <defs>
+    <filter id="kawaii-shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="2" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g filter="url(#kawaii-shadow)">
+    <path d="M150 200 L250 200 L240 180 L160 180 Z" fill="#d2b48c" stroke="#654321" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M160 180 C 160 180, 150 140, 150 120 C 150 80, 170 40, 200 40 C 220 40, 230 50, 240 60 L 220 70 L 240 90 L 230 110 L 230 140 L 240 180" fill="#ffe4b5" stroke="#654321" stroke-width="6" stroke-linejoin="round"/>
+    <circle cx="190" cy="70" r="8" fill="#8b4513" stroke="#654321" stroke-width="2"/>
+    <circle cx="195" cy="75" r="3" fill="#fff"/>
+  </g>
+</svg>
+
+

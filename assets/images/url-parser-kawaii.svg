@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#f5f5dc"/>
+  <defs>
+    <filter id="kawaii-shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="2" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g transform="translate(100, 60)" stroke="#654321" stroke-width="8" fill="none" stroke-linecap="round" filter="url(#kawaii-shadow)">
+    <rect x="0" y="20" width="100" height="60" rx="20" fill="#b0e0e6"/>
+    <rect x="70" y="20" width="100" height="60" rx="20" fill="#ffb347"/>
+  </g>
+  <text x="200" y="200" font-family="Comic Sans MS, Chalkboard SE, Comic Neue" font-size="36" font-weight="900" text-anchor="middle" fill="#8b4513" stroke="#654321" stroke-width="1">https://</text>
+</svg>
+
+

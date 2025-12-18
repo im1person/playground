@@ -495,3 +495,4 @@ class ChessEngine {
 }
 
 window.ChessEngine = ChessEngine;
+
