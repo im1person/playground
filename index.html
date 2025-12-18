@@ -7,6 +7,7 @@
       My Playground
     </title>
     <link rel="stylesheet" href="assets/style.css" />
+    <link rel="stylesheet" href="assets/kawaii-style.css" />
     <style>
       body {
         transition: background-color 0.3s, color 0.3s;
@@ -489,8 +490,10 @@
       import { initThemeToggle } from "./assets/theme-toggle.js";
       import { initLocaleMenu } from "./assets/locale-menu.js";
       import { initHeader } from "./assets/header.js";
+      import { initKawaiiStyleToggle } from "./assets/kawaii-style-toggle.js";
       initHeader("index.html");
       initThemeToggle();
+      initKawaiiStyleToggle();
       initLocaleMenu({
         onLocaleChange: (locale) => {
           document.getElementById("mainTitle").textContent =

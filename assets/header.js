@@ -21,6 +21,7 @@ export function createHeader(homePath = "index.html") {
       🌐
     </button>
     <button id="themeToggle" class="theme-toggle theme-icon-only"></button>
+    <button id="kawaiiStyleToggle" class="kawaii-style-toggle" aria-label="Toggle Kawaii Style" title="Toggle Kawaii Style">🎨</button>
   `;
   return header;
 }

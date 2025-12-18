@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#f5f5dc"/>
+  <defs>
+    <filter id="kawaii-shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="2" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)">
+    <path d="M140 100 h40 v40 h-40 z M180 100 h40 v40 h-40 z M220 100 h40 v40 h-40 z M180 60 h40 v40 h-40 z" fill="#ffb6c1" rx="6"/>
+    <path d="M50 180 h40 v40 h-40 z M90 180 h40 v40 h-40 z M130 180 h40 v40 h-40 z M130 140 h40 v40 h-40 z" fill="#ffb347" rx="6"/>
+    <path d="M250 140 h40 v40 h-40 z M290 140 h40 v40 h-40 z M290 180 h40 v40 h-40 z M330 180 h40 v40 h-40 z" fill="#b0e0e6" rx="6"/>
+  </g>
+  <g>
+    <rect x="140" y="100" width="40" height="40" rx="6" fill="#ffb6c1" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+    <rect x="180" y="100" width="40" height="40" rx="6" fill="#ffb6c1" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+    <rect x="220" y="100" width="40" height="40" rx="6" fill="#ffb6c1" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+    <rect x="180" y="60" width="40" height="40" rx="6" fill="#ffb6c1" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+    <rect x="50" y="180" width="40" height="40" rx="6" fill="#ffb347" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+    <rect x="90" y="180" width="40" height="40" rx="6" fill="#ffb347" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+    <rect x="130" y="180" width="40" height="40" rx="6" fill="#ffb347" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+    <rect x="130" y="140" width="40" height="40" rx="6" fill="#ffb347" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+    <rect x="250" y="140" width="40" height="40" rx="6" fill="#b0e0e6" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+    <rect x="290" y="140" width="40" height="40" rx="6" fill="#b0e0e6" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+    <rect x="290" y="180" width="40" height="40" rx="6" fill="#b0e0e6" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+    <rect x="330" y="180" width="40" height="40" rx="6" fill="#b0e0e6" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+  </g>
+</svg>
+
+

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#f5f5dc"/>
+  <defs>
+    <filter id="kawaii-shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="2" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)">
+    <rect x="120" y="140" width="40" height="40" rx="6" fill="#d2b48c"/>
+    <rect x="120" y="180" width="40" height="40" rx="6" fill="#d2b48c"/>
+    <rect x="240" y="140" width="40" height="40" rx="6" fill="#d2b48c"/>
+    <rect x="240" y="180" width="40" height="40" rx="6" fill="#d2b48c"/>
+    <rect x="160" y="180" width="80" height="40" rx="6" fill="#d2b48c"/>
+    <g transform="translate(160, 100) rotate(45, 60, 60)">
+      <rect x="0" y="40" width="40" height="40" rx="6" fill="#ffb6c1" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+      <rect x="40" y="40" width="40" height="40" rx="6" fill="#ffb6c1" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+      <rect x="80" y="40" width="40" height="40" rx="6" fill="#ffb6c1" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+      <rect x="40" y="0" width="40" height="40" rx="6" fill="#ffb6c1" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow)"/>
+    </g>
+  </g>
+</svg>
+
+

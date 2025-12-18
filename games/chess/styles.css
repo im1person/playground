@@ -158,13 +158,9 @@ body.dark .square .piece {
   -webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.8);
   text-stroke: 0.5px rgba(0, 0, 0, 0.8);
   /* Add multiple dark shadows to create outline effect */
-  text-shadow: 
-    -1px -1px 0 rgba(0, 0, 0, 0.9),
-    1px -1px 0 rgba(0, 0, 0, 0.9),
-    -1px 1px 0 rgba(0, 0, 0, 0.9),
-    1px 1px 0 rgba(0, 0, 0, 0.9),
-    0 0 3px rgba(0, 0, 0, 0.8),
-    0 0 6px rgba(0, 0, 0, 0.6);
+  text-shadow: -1px -1px 0 rgba(0, 0, 0, 0.9), 1px -1px 0 rgba(0, 0, 0, 0.9),
+    -1px 1px 0 rgba(0, 0, 0, 0.9), 1px 1px 0 rgba(0, 0, 0, 0.9),
+    0 0 3px rgba(0, 0, 0, 0.8), 0 0 6px rgba(0, 0, 0, 0.6);
 }
 
 .side-panel {
@@ -208,3 +204,4 @@ h3 {
     width: 100%;
   }
 }
+
