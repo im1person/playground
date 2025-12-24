@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Gift List Manager" data-zh-Hant="禮物清單管理">
+      Gift List Manager
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="🎁 Gift List Manager" data-zh-Hant="🎁 禮物清單管理">
+        🎁 Gift List Manager
+      </h1>
+
+      <div class="section">
+        <h2 data-en="Add Gift" data-zh-Hant="新增禮物">Add Gift</h2>
+        <div class="input-group">
+          <input
+            type="text"
+            id="recipientInput"
+            placeholder="Recipient name"
+            data-placeholder-en="Recipient name"
+            data-placeholder-zh-Hant="收禮者姓名"
+          />
+          <input
+            type="text"
+            id="giftInput"
+            placeholder="Gift idea"
+            data-placeholder-en="Gift idea"
+            data-placeholder-zh-Hant="禮物想法"
+          />
+          <input
+            type="number"
+            id="budgetInput"
+            placeholder="Budget"
+            data-placeholder-en="Budget"
+            data-placeholder-zh-Hant="預算"
+            min="0"
+            step="0.01"
+          />
+          <button id="addBtn" data-en="Add" data-zh-Hant="新增">Add</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2 data-en="Gift List" data-zh-Hant="禮物清單">Gift List</h2>
+          <div class="stats">
+            <span class="stat-item">
+              <span class="stat-label" data-en="Total:" data-zh-Hant="總計：">Total:</span>
+              <span class="stat-value" id="totalBudget">$0.00</span>
+            </span>
+            <span class="stat-item">
+              <span class="stat-label" data-en="Purchased:" data-zh-Hant="已購買：">Purchased:</span>
+              <span class="stat-value" id="purchasedCount">0</span>
+            </span>
+          </div>
+        </div>
+        <div id="giftList" class="gift-list"></div>
+      </div>
+
+      <div class="section">
+        <div class="action-buttons">
+          <button id="exportBtn" class="action-btn export-btn" data-en="Export List" data-zh-Hant="匯出清單">
+            Export List
+          </button>
+          <button id="clearBtn" class="action-btn clear-btn" data-en="Clear All" data-zh-Hant="清除全部">
+            Clear All
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="manager.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>
+

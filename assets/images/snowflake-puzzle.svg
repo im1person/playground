@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#1a237e"/>
+  <!-- Snowflakes -->
+  <text x="100" y="80" font-family="Arial" font-size="40" fill="white" text-anchor="middle">❄</text>
+  <text x="200" y="80" font-family="Arial" font-size="40" fill="white" text-anchor="middle">❅</text>
+  <text x="300" y="80" font-family="Arial" font-size="40" fill="white" text-anchor="middle">❆</text>
+  <text x="100" y="160" font-family="Arial" font-size="40" fill="white" text-anchor="middle">❄</text>
+  <text x="200" y="160" font-family="Arial" font-size="40" fill="white" text-anchor="middle">❅</text>
+  <text x="300" y="160" font-family="Arial" font-size="40" fill="white" text-anchor="middle">❆</text>
+  <!-- Highlight on one pair -->
+  <circle cx="100" cy="80" r="30" fill="none" stroke="#ffd700" stroke-width="3" opacity="0.7"/>
+  <circle cx="100" cy="160" r="30" fill="none" stroke="#ffd700" stroke-width="3" opacity="0.7"/>
+</svg>
+

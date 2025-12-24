@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Secret Santa Generator" data-zh-Hant="秘密聖誕老人生成器">
+      Secret Santa Generator
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="🎅 Secret Santa Generator" data-zh-Hant="🎅 秘密聖誕老人生成器">
+        🎅 Secret Santa Generator
+      </h1>
+
+      <div class="section">
+        <h2 data-en="Add Participants" data-zh-Hant="新增參與者">Add Participants</h2>
+        <div class="input-group">
+          <input
+            type="text"
+            id="participantInput"
+            placeholder="Enter name"
+            data-placeholder-en="Enter name"
+            data-placeholder-zh-Hant="輸入姓名"
+          />
+          <button id="addBtn" data-en="Add" data-zh-Hant="新增">Add</button>
+        </div>
+        <div id="participantsList" class="participants-list"></div>
+      </div>
+
+      <div class="section">
+        <h2 data-en="Exclusions" data-zh-Hant="排除規則">Exclusions</h2>
+        <p class="help-text" data-en="Select pairs who should NOT be assigned to each other:" data-zh-Hant="選擇不應該互相配對的組合：">
+          Select pairs who should NOT be assigned to each other:
+        </p>
+        <div id="exclusionsList" class="exclusions-list"></div>
+      </div>
+
+      <div class="section">
+        <button id="generateBtn" class="generate-btn" data-en="Generate Secret Santa" data-zh-Hant="生成秘密聖誕老人">
+          Generate Secret Santa
+        </button>
+      </div>
+
+      <div id="resultsSection" class="section results-section hidden">
+        <h2 data-en="Results" data-zh-Hant="結果">Results</h2>
+        <div id="resultsList" class="results-list"></div>
+        <button id="copyBtn" class="copy-btn" data-en="Copy Results" data-zh-Hant="複製結果">
+          Copy Results
+        </button>
+        <button id="resetBtn" class="reset-btn" data-en="Reset" data-zh-Hant="重置">
+          Reset
+        </button>
+      </div>
+    </div>
+
+    <script src="santa.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>
+

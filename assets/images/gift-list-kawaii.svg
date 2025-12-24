@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#f5f5dc"/>
+  <defs>
+    <filter id="kawaii-shadow-gift">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="2" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Gift boxes -->
+  <g transform="translate(100, 80)" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow-gift)">
+    <!-- Gift 1 -->
+    <rect x="0" y="0" width="80" height="80" rx="10" fill="#fff"/>
+    <rect x="0" y="35" width="80" height="12" fill="#8bb16f" stroke="#654321" stroke-width="3"/>
+    <rect x="35" y="0" width="12" height="80" fill="#8bb16f" stroke="#654321" stroke-width="3"/>
+    <circle cx="40" cy="0" r="15" fill="#ff9800" stroke="#654321" stroke-width="3"/>
+  </g>
+  <g transform="translate(220, 100)" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow-gift)">
+    <!-- Gift 2 -->
+    <rect x="0" y="0" width="80" height="80" rx="10" fill="#fff"/>
+    <rect x="0" y="35" width="80" height="12" fill="#4b7185" stroke="#654321" stroke-width="3"/>
+    <rect x="35" y="0" width="12" height="80" fill="#4b7185" stroke="#654321" stroke-width="3"/>
+    <circle cx="40" cy="0" r="15" fill="#ff9800" stroke="#654321" stroke-width="3"/>
+  </g>
+  <!-- List icon -->
+  <rect x="50" y="50" width="6" height="160" fill="#654321" stroke="#654321" stroke-width="2" filter="url(#kawaii-shadow-gift)"/>
+  <line x1="70" y1="70" x2="300" y2="70" stroke="#654321" stroke-width="4" stroke-linecap="round" filter="url(#kawaii-shadow-gift)"/>
+  <line x1="70" y1="120" x2="300" y2="120" stroke="#654321" stroke-width="4" stroke-linecap="round" filter="url(#kawaii-shadow-gift)"/>
+  <line x1="70" y1="170" x2="300" y2="170" stroke="#654321" stroke-width="4" stroke-linecap="round" filter="url(#kawaii-shadow-gift)"/>
+</svg>
+
