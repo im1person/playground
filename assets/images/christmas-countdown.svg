@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#c62828"/>
+  <!-- Clock face -->
+  <circle cx="200" cy="130" r="80" fill="white" stroke="black" stroke-width="3"/>
+  <!-- Clock numbers -->
+  <text x="200" y="70" font-family="Arial" font-size="20" fill="black" text-anchor="middle" font-weight="bold">12</text>
+  <text x="200" y="200" font-family="Arial" font-size="20" fill="black" text-anchor="middle" font-weight="bold">6</text>
+  <text x="120" y="135" font-family="Arial" font-size="20" fill="black" text-anchor="middle" font-weight="bold">9</text>
+  <text x="280" y="135" font-family="Arial" font-size="20" fill="black" text-anchor="middle" font-weight="bold">3</text>
+  <!-- Clock hands pointing to 12 -->
+  <line x1="200" y1="130" x2="200" y2="90" stroke="#d32f2f" stroke-width="4" stroke-linecap="round"/>
+  <line x1="200" y1="130" x2="200" y2="70" stroke="#d32f2f" stroke-width="3" stroke-linecap="round"/>
+  <!-- Center dot -->
+  <circle cx="200" cy="130" r="5" fill="#d32f2f"/>
+  <!-- Snowflakes -->
+  <text x="100" y="50" font-family="Arial" font-size="30" fill="white">❄</text>
+  <text x="300" y="50" font-family="Arial" font-size="30" fill="white">❄</text>
+  <text x="100" y="220" font-family="Arial" font-size="30" fill="white">❄</text>
+  <text x="300" y="220" font-family="Arial" font-size="30" fill="white">❄</text>
+</svg>
+

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Snowflake Puzzle" data-zh-Hant="雪花拼圖">
+      Snowflake Puzzle
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="❄️ Snowflake Puzzle" data-zh-Hant="❄️ 雪花拼圖">
+        ❄️ Snowflake Puzzle
+      </h1>
+
+      <div class="game-info">
+        <div class="score-section">
+          <div class="score-item">
+            <span class="score-label" data-en="Score:" data-zh-Hant="分數：">Score:</span>
+            <span class="score-value" id="score">0</span>
+          </div>
+          <div class="score-item">
+            <span class="score-label" data-en="Matches:" data-zh-Hant="配對：">Matches:</span>
+            <span class="score-value" id="matches">0</span>
+          </div>
+          <div class="score-item">
+            <span class="score-label" data-en="Level:" data-zh-Hant="等級：">Level:</span>
+            <span class="score-value" id="level">1</span>
+          </div>
+        </div>
+        <button id="startBtn" class="start-btn" data-en="Start Game" data-zh-Hant="開始遊戲">
+          Start Game
+        </button>
+      </div>
+
+      <div class="game-area">
+        <canvas id="gameCanvas"></canvas>
+        <div id="gameOver" class="game-over hidden">
+          <h2 data-en="Game Over!" data-zh-Hant="遊戲結束！">Game Over!</h2>
+          <p id="finalScore"></p>
+          <button id="restartBtn" class="restart-btn" data-en="Play Again" data-zh-Hant="再玩一次">
+            Play Again
+          </button>
+        </div>
+      </div>
+
+      <div class="instructions">
+        <p data-en="Match snowflakes by clicking on pairs with the same pattern. Clear the board to advance!" data-zh-Hant="點擊相同圖案的雪花配對。清除所有雪花即可升級！">
+          Match snowflakes by clicking on pairs with the same pattern. Clear the board to advance!
+        </p>
+      </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>
+

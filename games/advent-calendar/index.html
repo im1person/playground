@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Advent Calendar" data-zh-Hant="聖誕倒數月曆">
+      Advent Calendar
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="🎄 Advent Calendar" data-zh-Hant="🎄 聖誕倒數月曆">
+        🎄 Advent Calendar
+      </h1>
+
+      <div class="calendar-info">
+        <p class="info-text" data-en="Click on a door to open it! Each day reveals a surprise." data-zh-Hant="點擊門來開啟！每天都有驚喜。">
+          Click on a door to open it! Each day reveals a surprise.
+        </p>
+        <div class="date-display">
+          <span data-en="Today:" data-zh-Hant="今天：">Today:</span>
+          <span id="todayDate"></span>
+        </div>
+      </div>
+
+      <div class="calendar-grid" id="calendarGrid"></div>
+
+      <div id="surpriseModal" class="modal hidden">
+        <div class="modal-content">
+          <button class="modal-close" data-en="Close" data-zh-Hant="關閉">×</button>
+          <h2 id="modalTitle" data-en="Day" data-zh-Hant="第">Day</h2>
+          <div id="modalContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="calendar.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>
+

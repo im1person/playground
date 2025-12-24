@@ -21,6 +21,12 @@ const IMAGE_MAP = {
   "rubiks-cube.svg": "rubiks-cube-kawaii.svg",
   "url-parser.svg": "url-parser-kawaii.svg",
   "magic-bridge-scorer.svg": "magic-bridge-scorer-kawaii.svg",
+  "secret-santa.svg": "secret-santa-kawaii.svg",
+  "christmas-countdown.svg": "christmas-countdown-kawaii.svg",
+  "christmas-tree.svg": "christmas-tree-kawaii.svg",
+  "advent-calendar.svg": "advent-calendar-kawaii.svg",
+  "gift-list.svg": "gift-list-kawaii.svg",
+  "snowflake-puzzle.svg": "snowflake-puzzle-kawaii.svg",
 };
 
 /**

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Christmas Countdown Timer" data-zh-Hant="聖誕節倒數計時器">
+      Christmas Countdown Timer
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="🎄 Christmas Countdown" data-zh-Hant="🎄 聖誕節倒數">
+        🎄 Christmas Countdown
+      </h1>
+
+      <div class="countdown-section">
+        <div class="countdown-display">
+          <div class="time-unit">
+            <div class="time-value" id="days">0</div>
+            <div class="time-label" data-en="Days" data-zh-Hant="天">Days</div>
+          </div>
+          <div class="time-separator">:</div>
+          <div class="time-unit">
+            <div class="time-value" id="hours">0</div>
+            <div class="time-label" data-en="Hours" data-zh-Hant="小時">Hours</div>
+          </div>
+          <div class="time-separator">:</div>
+          <div class="time-unit">
+            <div class="time-value" id="minutes">0</div>
+            <div class="time-label" data-en="Minutes" data-zh-Hant="分鐘">Minutes</div>
+          </div>
+          <div class="time-separator">:</div>
+          <div class="time-unit">
+            <div class="time-value" id="seconds">0</div>
+            <div class="time-label" data-en="Seconds" data-zh-Hant="秒">Seconds</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 data-en="Settings" data-zh-Hant="設定">Settings</h2>
+        <div class="setting-group">
+          <label for="targetDate" data-en="Target Date:" data-zh-Hant="目標日期：">Target Date:</label>
+          <input type="date" id="targetDate" />
+        </div>
+        <div class="setting-group">
+          <label for="targetTime" data-en="Target Time:" data-zh-Hant="目標時間：">Target Time:</label>
+          <input type="time" id="targetTime" />
+        </div>
+        <div class="setting-group">
+          <label for="timezone" data-en="Timezone:" data-zh-Hant="時區：">Timezone:</label>
+          <select id="timezone">
+            <option value="auto" data-en="Auto (Browser)" data-zh-Hant="自動（瀏覽器）">Auto (Browser)</option>
+          </select>
+        </div>
+        <button id="updateBtn" class="update-btn" data-en="Update Countdown" data-zh-Hant="更新倒數">
+          Update Countdown
+        </button>
+      </div>
+
+      <div class="section">
+        <h2 data-en="Quick Presets" data-zh-Hant="快速設定">Quick Presets</h2>
+        <div class="presets">
+          <button class="preset-btn" data-preset="christmas" data-en="🎅 Christmas Day" data-zh-Hant="🎅 聖誕節">
+            🎅 Christmas Day
+          </button>
+          <button class="preset-btn" data-preset="newyear" data-en="🎆 New Year's Eve" data-zh-Hant="🎆 跨年夜">
+            🎆 New Year's Eve
+          </button>
+          <button class="preset-btn" data-preset="custom" data-en="Custom" data-zh-Hant="自訂">
+            Custom
+          </button>
+        </div>
+      </div>
+
+      <div id="messageSection" class="section message-section hidden">
+        <h2 id="messageTitle" data-en="🎉 It's Time!" data-zh-Hant="🎉 時間到了！">🎉 It's Time!</h2>
+        <p id="messageText" data-en="The countdown has reached zero!" data-zh-Hant="倒數計時已歸零！">
+          The countdown has reached zero!
+        </p>
+      </div>
+    </div>
+
+    <script src="countdown.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>
+
