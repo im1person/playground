@@ -1,615 +1,524 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title id="mainTitleTag" data-en="My Playground" data-zh-Hant="我的遊樂場">
-      My Playground
-    </title>
-    <link rel="stylesheet" href="assets/style.css" />
-    <link rel="stylesheet" href="assets/kawaii-style.css" />
-    <style>
-      body {
-        transition: background-color 0.3s, color 0.3s;
-      }
-      body.light-mode {
-        background: #f0f0f0;
-        color: #222;
-      }
-      body.dark {
-        background: #181c1f;
-        color: #f0f0f0;
-      }
-      .hub-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-top: 40px;
-        padding-bottom: 60px;
-      }
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="mainTitleTag" data-en="My Playground" data-zh-Hant="我的遊樂場">
+    My Playground
+  </title>
+  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="stylesheet" href="assets/kawaii-style.css" />
+  <style>
+    body {
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    body.light-mode {
+      background: #f0f0f0;
+      color: #222;
+    }
+
+    body.dark {
+      background: #181c1f;
+      color: #f0f0f0;
+    }
+
+    .hub-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 40px;
+      padding-bottom: 60px;
+    }
+
+    .game-list {
+      display: grid;
+      gap: 30px;
+      justify-items: stretch;
+      margin: 20px auto 0;
+      width: 100%;
+      max-width: 1100px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    @media (max-width: 640px) {
       .game-list {
-        display: grid;
-        gap: 30px;
-        justify-items: stretch;
-        margin: 20px auto 0;
-        width: 100%;
-        max-width: 1100px;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
       }
-      @media (max-width: 640px) {
-        .game-list {
-          grid-template-columns: minmax(0, 1fr);
-          gap: 20px;
-        }
-      }
-      .game-entry {
-        background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        padding: 0;
-        text-align: center;
-        transition: transform 0.15s, box-shadow 0.15s;
-        min-width: 220px;
-        cursor: pointer;
-        border: 2px solid #eee;
-        display: flex;
-        flex-direction: column;
-        text-decoration: none;
-        color: inherit;
-        overflow: hidden;
-      }
-      .game-entry:link,
-      .game-entry:visited {
-        color: inherit;
-        text-decoration: none;
-      }
-      body.dark .game-entry {
-        background: #23272a;
-        color: #f0f0f0;
-        border-color: #333;
-      }
-      .game-entry:hover {
-        transform: translateY(-6px) scale(1.04);
-        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
-        border-color: #b3e5fc;
-      }
-      .game-entry.sudoku-card,
-      .game-entry.action-card {
-        cursor: default;
-        gap: 16px;
-      }
-      .game-actions {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-        flex-wrap: wrap;
-        width: 100%;
-      }
-      .game-actions .action {
-        padding: 10px 18px;
-        border-radius: 999px;
-        text-decoration: none;
-        font-weight: 600;
-        border: 2px solid #1976d2;
-        color: #1976d2;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 90px;
-        transition: color 0.2s, background 0.2s, border-color 0.2s,
-          box-shadow 0.2s;
-        box-shadow: 0 2px 6px rgba(25, 118, 210, 0.15);
-      }
-      .game-actions .action:link,
-      .game-actions .action:visited {
-        color: #1976d2;
-      }
-      body.dark .game-actions .action {
-        border-color: #90caf9;
-        color: #90caf9;
-        box-shadow: 0 2px 6px rgba(144, 202, 249, 0.25);
-      }
-      body.dark .game-actions .action:link,
-      body.dark .game-actions .action:visited {
-        color: #90caf9;
-      }
-      .game-actions .action.primary {
-        background: #1976d2;
-        color: #fff;
-      }
-      body.dark .game-actions .action.primary {
-        background: #90caf9;
-        color: #111;
-      }
-      .game-actions .action.primary:hover,
-      .game-actions .action.primary:focus-visible {
-        box-shadow: 0 4px 12px rgba(25, 118, 210, 0.35);
-      }
-      body.dark .game-actions .action.primary:hover,
-      body.dark .game-actions .action.primary:focus-visible {
-        box-shadow: 0 4px 12px rgba(144, 202, 249, 0.45);
-      }
-      .game-actions .action.secondary {
-        background: transparent;
-      }
-      .game-actions .action.secondary:hover,
-      .game-actions .action.secondary:focus-visible {
-        background: rgba(25, 118, 210, 0.08);
-      }
-      body.dark .game-actions .action.secondary:hover,
-      body.dark .game-actions .action.secondary:focus-visible {
-        background: rgba(144, 202, 249, 0.15);
-      }
-      .game-actions .action.icon-only {
-        padding: 0;
-        border: none;
-        box-shadow: none;
-        background: transparent;
-        font-size: 1.4em;
-        min-width: 0;
-      }
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        border: 0;
-        white-space: nowrap;
-      }
-      .game-title {
-        font-size: 1.3em;
-        font-weight: bold;
-        margin-bottom: 10px;
-        color: #1976d2;
-      }
-      body.dark .game-title {
-        color: #90caf9;
-      }
-      .game-desc {
-        color: #444;
-        font-size: 1em;
-      }
-      body.dark .game-desc {
-        color: #bbb;
-      }
-      .top-bar {
-        gap: 16px;
-        width: 100%;
-        max-width: 700px;
-        margin: 0 auto 10px auto;
-        padding-top: 18px;
-      }
-      .section-title {
-        width: 100%;
-        max-width: 1100px;
-        margin: 40px auto 20px;
-        font-size: 3em;
-        text-align: center;
-        padding: 0 10px;
-        line-height: 1;
-      }
-      .game-entry {
-        background: #fff;
-        border-radius: 16px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        padding: 0;
-        text-align: center;
-        transition: transform 0.15s, box-shadow 0.15s;
-        min-width: 220px;
-        cursor: pointer;
-        border: 2px solid #eee;
-        display: flex;
-        flex-direction: column;
-        text-decoration: none;
-        color: inherit;
-        overflow: hidden;
-      }
-      .game-preview {
-        width: 100%;
-        height: 160px;
-        object-fit: cover;
-        background: #eee;
-        border-bottom: 2px solid #eee;
-      }
-      .game-content {
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        flex: 1;
-        justify-content: center;
-      }
-      body.dark .game-preview {
-        border-bottom-color: #333;
-        opacity: 0.9;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="hub-container">
-      <h1 id="mainTitle">🎮 My Playground</h1>
+    }
 
-      <!-- Games Section -->
-      <div class="section-title">🎮</div>
-      <div class="game-list">
-        <!-- Sudoku -->
-        <div class="game-entry sudoku-card action-card">
-          <img
-            src="assets/images/sudoku.svg"
-            alt="Sudoku"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Four-tier Sudoku with notes, hints, and auto-solve support."
-              data-zh-Hant="四種難度，支援筆記、提示與自動解。"
-            >
-              Four-tier Sudoku with notes, hints, and auto-solve support.
-            </div>
-            <div class="game-actions">
-              <a
-                href="games/sudoku/index.html"
-                class="action primary"
-                data-en="Play"
-                data-zh-Hant="開始"
-              >
-                Play
-              </a>
-              <a
-                href="games/sudoku/intro.html"
-                class="action secondary icon-only"
-                aria-label="Intro"
-              >
-                <span aria-hidden="true">ℹ️</span>
-                <span class="sr-only">Intro</span>
-              </a>
-            </div>
+    .game-entry {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      padding: 0;
+      text-align: center;
+      transition: transform 0.15s, box-shadow 0.15s;
+      min-width: 220px;
+      cursor: pointer;
+      border: 2px solid #eee;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
+    }
+
+    .game-entry:link,
+    .game-entry:visited {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    body.dark .game-entry {
+      background: #23272a;
+      color: #f0f0f0;
+      border-color: #333;
+    }
+
+    .game-entry:hover {
+      transform: translateY(-6px) scale(1.04);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+      border-color: #b3e5fc;
+    }
+
+    .game-entry.sudoku-card,
+    .game-entry.action-card {
+      cursor: default;
+      gap: 16px;
+    }
+
+    .game-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .game-actions .action {
+      padding: 10px 18px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 600;
+      border: 2px solid #1976d2;
+      color: #1976d2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 90px;
+      transition: color 0.2s, background 0.2s, border-color 0.2s,
+        box-shadow 0.2s;
+      box-shadow: 0 2px 6px rgba(25, 118, 210, 0.15);
+    }
+
+    .game-actions .action:link,
+    .game-actions .action:visited {
+      color: #1976d2;
+    }
+
+    body.dark .game-actions .action {
+      border-color: #90caf9;
+      color: #90caf9;
+      box-shadow: 0 2px 6px rgba(144, 202, 249, 0.25);
+    }
+
+    body.dark .game-actions .action:link,
+    body.dark .game-actions .action:visited {
+      color: #90caf9;
+    }
+
+    .game-actions .action.primary {
+      background: #1976d2;
+      color: #fff;
+    }
+
+    body.dark .game-actions .action.primary {
+      background: #90caf9;
+      color: #111;
+    }
+
+    .game-actions .action.primary:hover,
+    .game-actions .action.primary:focus-visible {
+      box-shadow: 0 4px 12px rgba(25, 118, 210, 0.35);
+    }
+
+    body.dark .game-actions .action.primary:hover,
+    body.dark .game-actions .action.primary:focus-visible {
+      box-shadow: 0 4px 12px rgba(144, 202, 249, 0.45);
+    }
+
+    .game-actions .action.secondary {
+      background: transparent;
+    }
+
+    .game-actions .action.secondary:hover,
+    .game-actions .action.secondary:focus-visible {
+      background: rgba(25, 118, 210, 0.08);
+    }
+
+    body.dark .game-actions .action.secondary:hover,
+    body.dark .game-actions .action.secondary:focus-visible {
+      background: rgba(144, 202, 249, 0.15);
+    }
+
+    .game-actions .action.icon-only {
+      padding: 0;
+      border: none;
+      box-shadow: none;
+      background: transparent;
+      font-size: 1.4em;
+      min-width: 0;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+      white-space: nowrap;
+    }
+
+    .game-title {
+      font-size: 1.3em;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #1976d2;
+    }
+
+    body.dark .game-title {
+      color: #90caf9;
+    }
+
+    .game-desc {
+      color: #444;
+      font-size: 1em;
+    }
+
+    body.dark .game-desc {
+      color: #bbb;
+    }
+
+    .top-bar {
+      gap: 16px;
+      width: 100%;
+      max-width: 700px;
+      margin: 0 auto 10px auto;
+      padding-top: 18px;
+    }
+
+    .section-title {
+      width: 100%;
+      max-width: 1100px;
+      margin: 40px auto 20px;
+      font-size: 3em;
+      text-align: center;
+      padding: 0 10px;
+      line-height: 1;
+    }
+
+    .game-entry {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      padding: 0;
+      text-align: center;
+      transition: transform 0.15s, box-shadow 0.15s;
+      min-width: 220px;
+      cursor: pointer;
+      border: 2px solid #eee;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
+    }
+
+    .game-preview {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      background: #eee;
+      border-bottom: 2px solid #eee;
+    }
+
+    .game-content {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1;
+      justify-content: center;
+    }
+
+    body.dark .game-preview {
+      border-bottom-color: #333;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="hub-container">
+    <h1 id="mainTitle">🎮 My Playground</h1>
+
+    <!-- Games Section -->
+    <div class="section-title">🎮</div>
+    <div class="game-list">
+      <!-- Sudoku -->
+      <div class="game-entry sudoku-card action-card">
+        <img src="assets/images/sudoku.svg" alt="Sudoku" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Four-tier Sudoku with notes, hints, and auto-solve support."
+            data-zh-Hant="四種難度，支援筆記、提示與自動解。">
+            Four-tier Sudoku with notes, hints, and auto-solve support.
+          </div>
+          <div class="game-actions">
+            <a href="games/sudoku/index.html" class="action primary" data-en="Play" data-zh-Hant="開始">
+              Play
+            </a>
+            <a href="games/sudoku/intro.html" class="action secondary icon-only" aria-label="Intro">
+              <span aria-hidden="true">ℹ️</span>
+              <span class="sr-only">Intro</span>
+            </a>
           </div>
         </div>
-
-        <!-- Rubik's Cube -->
-        <a class="game-entry" href="games/rubiks-cube/index.html">
-          <img
-            src="assets/images/rubiks-cube.svg"
-            alt="Rubik's Cube"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="3D Rubik's Cube solver and simulator."
-              data-zh-Hant="3D 魔術方塊解題與模擬器。"
-            >
-              3D Rubik's Cube solver and simulator.
-            </div>
-          </div>
-        </a>
-
-        <!-- Chess -->
-        <a class="game-entry" href="games/chess/index.html">
-          <img src="assets/images/chess.svg" alt="Chess" class="game-preview" />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Play vs friend or AI, with puzzles and analysis."
-              data-zh-Hant="雙人、AI、謎題與分析模式。"
-            >
-              Play vs friend or AI, with puzzles and analysis.
-            </div>
-          </div>
-        </a>
-
-        <!-- Falling Balls -->
-        <a class="game-entry" href="games/falling-balls/index.html">
-          <img
-            src="assets/images/falling-balls.svg"
-            alt="Falling Balls"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Pop falling balls for points. Fast, fun, and mobile-friendly!"
-              data-zh-Hant="點擊彈跳球得分，快速有趣並支援手機！"
-            >
-              Pop falling balls for points. Fast, fun, and mobile-friendly!
-            </div>
-          </div>
-        </a>
-
-        <!-- Poker -->
-        <a class="game-entry" href="games/poker/index.html">
-          <img
-            src="assets/images/poker.svg"
-            alt="Playing Cards"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Interactive playing card deck simulation. Shuffle, deal, and flip cards!"
-              data-zh-Hant="互動式紙牌模擬。洗牌、發牌、翻牌！"
-            >
-              Interactive playing card deck simulation. Shuffle, deal, and flip
-              cards!
-            </div>
-          </div>
-        </a>
-
-        <!-- Tetris -->
-        <div class="game-entry action-card">
-          <img
-            src="assets/images/tetris.svg"
-            alt="Tetris"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Classic Tetris game. Stack blocks and clear lines!"
-              data-zh-Hant="經典俄羅斯方塊遊戲。堆疊方塊並消除行！"
-            >
-              Classic Tetris game. Stack blocks and clear lines!
-            </div>
-            <div class="game-actions">
-              <a
-                href="games/tetris/index.html"
-                class="action primary"
-                data-en="Play"
-                data-zh-Hant="開始"
-              >
-                Play
-              </a>
-              <a
-                href="games/tetris/intro.html"
-                class="action secondary icon-only"
-                aria-label="Intro"
-              >
-                <span aria-hidden="true">ℹ️</span>
-                <span class="sr-only">Intro</span>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tetris T-Spin -->
-        <div class="game-entry action-card">
-          <img
-            src="assets/images/tetris-tspin.svg"
-            alt="Tetris T-Spin"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Advanced Tetris with T-Spin detection logic."
-              data-zh-Hant="具有 T-Spin 偵測邏輯的進階俄羅斯方塊。"
-            >
-              Advanced Tetris with T-Spin detection logic.
-            </div>
-            <div class="game-actions">
-              <a
-                href="games/tetris-tspin/index.html"
-                class="action primary"
-                data-en="Play"
-                data-zh-Hant="開始"
-              >
-                Play
-              </a>
-              <a
-                href="games/tetris-tspin/intro.html"
-                class="action secondary icon-only"
-                aria-label="Intro"
-              >
-                <span aria-hidden="true">ℹ️</span>
-                <span class="sr-only">Intro</span>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Christmas Tree Decorator -->
-        <a class="game-entry" href="games/christmas-tree/index.html">
-          <img
-            src="assets/images/christmas-tree.svg"
-            alt="Christmas Tree Decorator"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Decorate a Christmas tree with drag-and-drop ornaments!"
-              data-zh-Hant="用拖放裝飾品來裝飾聖誕樹！"
-            >
-              Decorate a Christmas tree with drag-and-drop ornaments!
-            </div>
-          </div>
-        </a>
-
-        <!-- Advent Calendar -->
-        <a class="game-entry" href="games/advent-calendar/index.html">
-          <img
-            src="assets/images/advent-calendar.svg"
-            alt="Advent Calendar"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Interactive Advent calendar with daily surprises and facts!"
-              data-zh-Hant="互動式聖誕倒數月曆，每天都有驚喜和知識！"
-            >
-              Interactive Advent calendar with daily surprises and facts!
-            </div>
-          </div>
-        </a>
-
-        <!-- Snowflake Puzzle -->
-        <a class="game-entry" href="games/snowflake-puzzle/index.html">
-          <img
-            src="assets/images/snowflake-puzzle.svg"
-            alt="Snowflake Puzzle"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Match snowflake pairs in this memory puzzle game!"
-              data-zh-Hant="在這個記憶拼圖遊戲中配對雪花！"
-            >
-              Match snowflake pairs in this memory puzzle game!
-            </div>
-          </div>
-        </a>
       </div>
 
-      <!-- Tools Section -->
-      <div class="section-title">🛠️</div>
-      <div class="game-list">
-        <!-- Random Number Generator -->
-        <a class="game-entry" href="tools/random-number-generator/index.html">
-          <img
-            src="assets/images/rng.svg"
-            alt="Random Number Generator"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Pick random numbers, exclude numbers, and more!"
-              data-zh-Hant="產生隨機號碼，支援排除功能等！"
-            >
-              Pick random numbers, exclude numbers, and more!
-            </div>
+      <!-- Rubik's Cube -->
+      <a class="game-entry" href="games/rubiks-cube/index.html">
+        <img src="assets/images/rubiks-cube.svg" alt="Rubik's Cube" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="3D Rubik's Cube solver and simulator." data-zh-Hant="3D 魔術方塊解題與模擬器。">
+            3D Rubik's Cube solver and simulator.
           </div>
-        </a>
+        </div>
+      </a>
 
-        <!-- Secret Santa Generator -->
-        <a class="game-entry" href="tools/secret-santa/index.html">
-          <img
-            src="assets/images/secret-santa.svg"
-            alt="Secret Santa Generator"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Generate Secret Santa assignments with exclusion rules!"
-              data-zh-Hant="生成秘密聖誕老人配對，支援排除規則！"
-            >
-              Generate Secret Santa assignments with exclusion rules!
-            </div>
+      <!-- Chess -->
+      <a class="game-entry" href="games/chess/index.html">
+        <img src="assets/images/chess.svg" alt="Chess" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Play vs friend or AI, with puzzles and analysis."
+            data-zh-Hant="雙人、AI、謎題與分析模式。">
+            Play vs friend or AI, with puzzles and analysis.
           </div>
-        </a>
+        </div>
+      </a>
 
-        <!-- Christmas Countdown Timer -->
-        <a class="game-entry" href="tools/christmas-countdown/index.html">
-          <img
-            src="assets/images/christmas-countdown.svg"
-            alt="Christmas Countdown Timer"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Countdown timer to Christmas or any date with timezone support!"
-              data-zh-Hant="聖誕節或任何日期的倒數計時器，支援時區！"
-            >
-              Countdown timer to Christmas or any date with timezone support!
-            </div>
+      <!-- Falling Balls -->
+      <a class="game-entry" href="games/falling-balls/index.html">
+        <img src="assets/images/falling-balls.svg" alt="Falling Balls" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Pop falling balls for points. Fast, fun, and mobile-friendly!"
+            data-zh-Hant="點擊彈跳球得分，快速有趣並支援手機！">
+            Pop falling balls for points. Fast, fun, and mobile-friendly!
           </div>
-        </a>
+        </div>
+      </a>
 
-        <!-- Gift List Manager -->
-        <a class="game-entry" href="tools/gift-list-manager/index.html">
-          <img
-            src="assets/images/gift-list.svg"
-            alt="Gift List Manager"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Track gifts, recipients, and budget for your Christmas shopping!"
-              data-zh-Hant="追蹤禮物、收禮者和預算，管理你的聖誕購物！"
-            >
-              Track gifts, recipients, and budget for your Christmas shopping!
-            </div>
+      <!-- Poker -->
+      <a class="game-entry" href="games/poker/index.html">
+        <img src="assets/images/poker.svg" alt="Playing Cards" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Interactive playing card deck simulation. Shuffle, deal, and flip cards!"
+            data-zh-Hant="互動式紙牌模擬。洗牌、發牌、翻牌！">
+            Interactive playing card deck simulation. Shuffle, deal, and flip
+            cards!
           </div>
-        </a>
+        </div>
+      </a>
 
-        <!-- Piano -->
-        <a class="game-entry" href="tools/piano/index.html">
-          <img src="assets/images/piano.svg" alt="Piano" class="game-preview" />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Responsive piano with keyboard controls and MIDI playback."
-              data-zh-Hant="響應式鋼琴，支援鍵盤操作與 MIDI 播放。"
-            >
-              Responsive piano with keyboard controls and MIDI playback.
-            </div>
+      <!-- Tetris -->
+      <div class="game-entry action-card">
+        <img src="assets/images/tetris.svg" alt="Tetris" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Classic Tetris game. Stack blocks and clear lines!"
+            data-zh-Hant="經典俄羅斯方塊遊戲。堆疊方塊並消除行！">
+            Classic Tetris game. Stack blocks and clear lines!
           </div>
-        </a>
-
-        <!-- URL Parser -->
-        <a class="game-entry" href="tools/url-parser/index.html">
-          <img
-            src="assets/images/url-parser.svg"
-            alt="URL Parser"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Parse and analyze URLs into their components."
-              data-zh-Hant="解析並分析 URL 的組成部分。"
-            >
-              Parse and analyze URLs into their components.
-            </div>
+          <div class="game-actions">
+            <a href="games/tetris/index.html" class="action primary" data-en="Play" data-zh-Hant="開始">
+              Play
+            </a>
+            <a href="games/tetris/intro.html" class="action secondary icon-only" aria-label="Intro">
+              <span aria-hidden="true">ℹ️</span>
+              <span class="sr-only">Intro</span>
+            </a>
           </div>
-        </a>
-
-        <!-- Magic Bridge Scorer -->
-        <a class="game-entry" href="tools/magic-bridge-scorer/index.html">
-          <img
-            src="assets/images/magic-bridge-scorer.svg"
-            alt="Magic Bridge Scorer"
-            class="game-preview"
-          />
-          <div class="game-content">
-            <div
-              class="game-desc"
-              data-en="Score calculator for tile-based number games with multiple save slots."
-              data-zh-Hant="數字牌遊戲計分工具，支援多個保存槽位。"
-            >
-              Score calculator for tile-based number games with multiple save
-              slots.
-            </div>
-          </div>
-        </a>
+        </div>
       </div>
+
+      <!-- Tetris T-Spin -->
+      <div class="game-entry action-card">
+        <img src="assets/images/tetris-tspin.svg" alt="Tetris T-Spin" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Advanced Tetris with T-Spin detection logic."
+            data-zh-Hant="具有 T-Spin 偵測邏輯的進階俄羅斯方塊。">
+            Advanced Tetris with T-Spin detection logic.
+          </div>
+          <div class="game-actions">
+            <a href="games/tetris-tspin/index.html" class="action primary" data-en="Play" data-zh-Hant="開始">
+              Play
+            </a>
+            <a href="games/tetris-tspin/intro.html" class="action secondary icon-only" aria-label="Intro">
+              <span aria-hidden="true">ℹ️</span>
+              <span class="sr-only">Intro</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Christmas Tree Decorator -->
+      <a class="game-entry" href="games/christmas-tree/index.html">
+        <img src="assets/images/christmas-tree.svg" alt="Christmas Tree Decorator" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Decorate a Christmas tree with drag-and-drop ornaments!"
+            data-zh-Hant="用拖放裝飾品來裝飾聖誕樹！">
+            Decorate a Christmas tree with drag-and-drop ornaments!
+          </div>
+        </div>
+      </a>
+
+      <!-- Advent Calendar -->
+      <a class="game-entry" href="games/advent-calendar/index.html">
+        <img src="assets/images/advent-calendar.svg" alt="Advent Calendar" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Interactive Advent calendar with daily surprises and facts!"
+            data-zh-Hant="互動式聖誕倒數月曆，每天都有驚喜和知識！">
+            Interactive Advent calendar with daily surprises and facts!
+          </div>
+        </div>
+      </a>
+
+      <!-- Snowflake Puzzle -->
+      <a class="game-entry" href="games/snowflake-puzzle/index.html">
+        <img src="assets/images/snowflake-puzzle.svg" alt="Snowflake Puzzle" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Match snowflake pairs in this memory puzzle game!"
+            data-zh-Hant="在這個記憶拼圖遊戲中配對雪花！">
+            Match snowflake pairs in this memory puzzle game!
+          </div>
+        </div>
+      </a>
     </div>
-    <script type="module">
-      import { initThemeToggle } from "./assets/theme-toggle.js";
-      import { initLocaleMenu } from "./assets/locale-menu.js";
-      import { initHeader } from "./assets/header.js";
-      import { initKawaiiStyleToggle } from "./assets/kawaii-style-toggle.js";
-      initHeader("index.html");
-      initThemeToggle();
-      initKawaiiStyleToggle();
-      initLocaleMenu({
-        onLocaleChange: (locale) => {
-          document.getElementById("mainTitle").textContent =
-            locale === "zh-Hant" ? "🎮 我的遊樂場" : "🎮 My Playground";
-          document.getElementById("mainTitleTag").textContent =
-            locale === "zh-Hant" ? "我的遊樂場" : "My Playground";
-        },
-      });
-    </script>
-  </body>
+
+    <!-- Tools Section -->
+    <div class="section-title">🛠️</div>
+    <div class="game-list">
+      <!-- Random Number Generator -->
+      <a class="game-entry" href="tools/random-number-generator/index.html">
+        <img src="assets/images/rng.svg" alt="Random Number Generator" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Pick random numbers, exclude numbers, and more!"
+            data-zh-Hant="產生隨機號碼，支援排除功能等！">
+            Pick random numbers, exclude numbers, and more!
+          </div>
+        </div>
+      </a>
+
+      <!-- Secret Santa Generator -->
+      <a class="game-entry" href="tools/secret-santa/index.html">
+        <img src="assets/images/secret-santa.svg" alt="Secret Santa Generator" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Generate Secret Santa assignments with exclusion rules!"
+            data-zh-Hant="生成秘密聖誕老人配對，支援排除規則！">
+            Generate Secret Santa assignments with exclusion rules!
+          </div>
+        </div>
+      </a>
+
+      <!-- Christmas Countdown Timer -->
+      <a class="game-entry" href="tools/christmas-countdown/index.html">
+        <img src="assets/images/christmas-countdown.svg" alt="Christmas Countdown Timer" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Countdown timer to Christmas or any date with timezone support!"
+            data-zh-Hant="聖誕節或任何日期的倒數計時器，支援時區！">
+            Countdown timer to Christmas or any date with timezone support!
+          </div>
+        </div>
+      </a>
+
+      <!-- Gift List Manager -->
+      <a class="game-entry" href="tools/gift-list-manager/index.html">
+        <img src="assets/images/gift-list.svg" alt="Gift List Manager" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Track gifts, recipients, and budget for your Christmas shopping!"
+            data-zh-Hant="追蹤禮物、收禮者和預算，管理你的聖誕購物！">
+            Track gifts, recipients, and budget for your Christmas shopping!
+          </div>
+        </div>
+      </a>
+
+      <!-- Travel Expense Tracker -->
+      <a class="game-entry" href="tools/travel-expense-tracker/index.html">
+        <img src="assets/images/travel-tracker.svg" alt="Travel Expense Tracker" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Offline-first travel expense tracker. Budget, currencies, and charts."
+            data-zh-Hant="離線優先的旅遊記帳工具。管理預算、匯率與圖表分析。">
+            Offline-first travel expense tracker. Budget, currencies, and charts.
+          </div>
+        </div>
+      </a>
+
+      <!-- Piano -->
+      <a class="game-entry" href="tools/piano/index.html">
+        <img src="assets/images/piano.svg" alt="Piano" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Responsive piano with keyboard controls and MIDI playback."
+            data-zh-Hant="響應式鋼琴，支援鍵盤操作與 MIDI 播放。">
+            Responsive piano with keyboard controls and MIDI playback.
+          </div>
+        </div>
+      </a>
+
+      <!-- URL Parser -->
+      <a class="game-entry" href="tools/url-parser/index.html">
+        <img src="assets/images/url-parser.svg" alt="URL Parser" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Parse and analyze URLs into their components."
+            data-zh-Hant="解析並分析 URL 的組成部分。">
+            Parse and analyze URLs into their components.
+          </div>
+        </div>
+      </a>
+
+      <!-- Magic Bridge Scorer -->
+      <a class="game-entry" href="tools/magic-bridge-scorer/index.html">
+        <img src="assets/images/magic-bridge-scorer.svg" alt="Magic Bridge Scorer" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Score calculator for tile-based number games with multiple save slots."
+            data-zh-Hant="數字牌遊戲計分工具，支援多個保存槽位。">
+            Score calculator for tile-based number games with multiple save
+            slots.
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+  <script type="module">
+    import { initThemeToggle } from "./assets/theme-toggle.js";
+    import { initLocaleMenu } from "./assets/locale-menu.js";
+    import { initHeader } from "./assets/header.js";
+    import { initKawaiiStyleToggle } from "./assets/kawaii-style-toggle.js";
+    initHeader("index.html");
+    initThemeToggle();
+    initKawaiiStyleToggle();
+    initLocaleMenu({
+      onLocaleChange: (locale) => {
+        document.getElementById("mainTitle").textContent =
+          locale === "zh-Hant" ? "🎮 我的遊樂場" : "🎮 My Playground";
+        document.getElementById("mainTitleTag").textContent =
+          locale === "zh-Hant" ? "我的遊樂場" : "My Playground";
+      },
+    });
+  </script>
+</body>
+
 </html>
