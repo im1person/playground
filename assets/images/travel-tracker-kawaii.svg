@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#4a7a58"/> <!-- Green background from image -->
+  
+  <defs>
+    <filter id="kawaii-shadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="3" dy="3" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g transform="translate(200, 130)" filter="url(#kawaii-shadow)">
+      
+      <!-- Shadow beneath -->
+      <ellipse cx="0" cy="90" rx="80" ry="15" fill="#a8d5e2"/>
+
+      <!-- Suitcase Body -->
+      <g transform="translate(0, 0)">
+        <!-- Handle -->
+        <path d="M-30 -80 L-30 -100 Q-30 -115 0 -115 Q30 -115 30 -100 L30 -80" fill="none" stroke="#b0bec5" stroke-width="8" stroke-linecap="round"/>
+        <rect x="-35" y="-80" width="70" height="10" rx="5" fill="#455a64"/>
+
+        <!-- Main Case -->
+        <rect x="-70" y="-70" width="140" height="150" rx="25" fill="#ffcdd2" stroke="#5d4037" stroke-width="4"/>
+        
+        <!-- Corner Guards -->
+        <path d="M-70 -45 L-70 -70 L-45 -70 Q-55 -55 -70 -45 Z" fill="#b2dfdb" stroke="#5d4037" stroke-width="2"/>
+        <path d="M70 -45 L70 -70 L45 -70 Q55 -55 70 -45 Z" fill="#b2dfdb" stroke="#5d4037" stroke-width="2"/>
+        <path d="M-70 45 L-70 70 L-45 70 Q-55 55 -70 45 Z" fill="#b2dfdb" stroke="#5d4037" stroke-width="2"/>
+        <path d="M70 45 L70 70 L45 70 Q55 55 70 45 Z" fill="#b2dfdb" stroke="#5d4037" stroke-width="2"/>
+
+        <!-- Face -->
+        <circle cx="-25" cy="-5" r="5" fill="#3e2723"/>
+        <circle cx="25" cy="-5" r="5" fill="#3e2723"/>
+        <!-- Cheeks -->
+        <ellipse cx="-35" cy="5" rx="6" ry="3" fill="#ff8a80" opacity="0.6"/>
+        <ellipse cx="35" cy="5" rx="6" ry="3" fill="#ff8a80" opacity="0.6"/>
+        <!-- Mouth -->
+        <path d="M-10 0 Q0 15 10 0 Z" fill="#3e2723"/>
+
+        <!-- Sticker: Plane -->
+        <g transform="translate(-40, -40) rotate(-15)">
+            <rect x="-12" y="-8" width="24" height="16" rx="2" fill="#fff" stroke="none"/>
+            <path d="M-10 2 L-2 -5 L5 -5 L2 2 Z" fill="#90caf9"/>
+            <path d="M-12 0 L8 0 Q10 0 10 5 Q10 10 8 10 L-12 10 Q-14 10 -14 5 Q-14 0 -12 0 Z" fill="#e1f5fe"/>
+        </g>
+      </g>
+
+      <!-- Calculator (Left Hand) -->
+      <g transform="translate(-90, 10) rotate(-10)">
+         <rect x="0" y="0" width="50" height="70" rx="8" fill="#bbdefb" stroke="#3e2723" stroke-width="3"/>
+         <rect x="5" y="5" width="40" height="20" rx="2" fill="#c8e6c9"/>
+         <!-- Buttons -->
+         <circle cx="12" cy="35" r="3" fill="#e1bee7"/> <circle cx="25" cy="35" r="3" fill="#e1bee7"/> <circle cx="38" cy="35" r="3" fill="#e1bee7"/>
+         <circle cx="12" cy="45" r="3" fill="#e1bee7"/> <circle cx="25" cy="45" r="3" fill="#e1bee7"/> <circle cx="38" cy="45" r="3" fill="#e1bee7"/>
+         <circle cx="12" cy="55" r="3" fill="#e1bee7"/> <circle cx="25" cy="55" r="3" fill="#e1bee7"/> <circle cx="38" cy="55" r="3" fill="#ffcc80"/>
+         <!-- Hand holding -->
+         <circle cx="50" cy="35" r="8" fill="#ffcdd2" stroke="#5d4037" stroke-width="2"/>
+      </g>
+
+      <!-- Globe (Right Hand) -->
+      <g transform="translate(80, 20)">
+         <circle cx="0" cy="0" r="25" fill="#4fc3f7" stroke="#3e2723" stroke-width="3"/>
+         <path d="M-10 -15 Q0 -5 -10 10 Q-20 20 -10 25" fill="none" stroke="#81c784" stroke-width="8" stroke-linecap="round"/>
+         <path d="M10 -5 Q20 5 10 15" fill="none" stroke="#81c784" stroke-width="6" stroke-linecap="round"/>
+         <!-- Stand -->
+         <path d="M0 25 L0 35 M-10 35 L10 35" stroke="#ffb74d" stroke-width="3"/>
+         <!-- Hand holding -->
+         <circle cx="-25" cy="0" r="8" fill="#ffcdd2" stroke="#5d4037" stroke-width="2"/>
+      </g>
+
+      <!-- Money (Right Side) -->
+      <g transform="translate(140, 50)">
+          <!-- Bill -->
+          <g transform="rotate(10)">
+            <rect x="-30" y="-15" width="60" height="30" rx="2" fill="#c8e6c9" stroke="#388e3c" stroke-width="2"/>
+            <circle cx="0" cy="0" r="6" fill="#a5d6a7"/>
+          </g>
+          <!-- Coins -->
+          <g transform="translate(-10, 15)">
+              <ellipse cx="0" cy="0" rx="12" ry="5" fill="#fdd835" stroke="#f9a825" stroke-width="2"/>
+              <ellipse cx="0" cy="-5" rx="12" ry="5" fill="#fdd835" stroke="#f9a825" stroke-width="2"/>
+              <ellipse cx="0" cy="-10" rx="12" ry="5" fill="#fdd835" stroke="#f9a825" stroke-width="2"/>
+          </g>
+      </g>
+
+      <!-- Sparkles -->
+      <path d="M120 -20 L125 -30 L130 -20 L125 -10 Z" fill="#fff9c4"/>
+      <path d="M-130 0 L-135 -10 L-140 0 L-135 10 Z" fill="#fff9c4"/>
+
+  </g>
+</svg>

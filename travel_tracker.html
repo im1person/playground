@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Expense Tracker</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Inter:wght@400;600;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #f3f4f6;
+            /* gray-100 */
+        }
+
+        .bottom-nav-item.active {
+            color: #2563eb;
+            /* blue-600 */
+        }
+
+        /* Hide scrollbar for clean UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#475569',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-50 text-slate-800 pb-20">
+
+    <!-- Header / Top Bar -->
+    <header class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50 p-4 border-b border-gray-100">
+        <div class="flex justify-between items-center max-w-md mx-auto">
+            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+                Travel Tracker</h1>
+            <div class="flex gap-2">
+                <button id="btn-export-header" class="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition"
+                    onclick="showExportModal()">
+                    <i data-lucide="download" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-md mx-auto pt-20 px-4 min-h-screen relative">
+
+        <!-- View: Dashboard -->
+        <div id="view-dashboard" class="space-y-6 animate-fade-in">
+            <!-- Summary Card -->
+            <div
+                class="bg-white rounded-2xl p-5 shadow-lg shadow-blue-500/5 border border-blue-50 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-10 -mt-10 opacity-50 z-0">
+                </div>
+                <div class="relative z-10">
+                    <div class="text-sm text-gray-500 mb-1 font-medium">總支出 (Total Expenses)</div>
+                    <div class="text-3xl font-bold text-slate-800" id="total-expense-display">$0</div>
+
+                    <div class="mt-4">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                            <span>預算 (Budget)</span>
+                            <span id="budget-progress-text">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                            <div id="budget-progress-bar"
+                                class="bg-blue-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%">
+                            </div>
+                        </div>
+                        <div class="mt-1 text-right text-xs font-medium text-gray-400">
+                            剩餘: <span id="budget-remaining" class="text-gray-600">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                <h3 class="text-sm font-semibold text-gray-700 mb-4">支出分析 (Analytics)</h3>
+                <div class="relative h-48 w-full flex justify-center">
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Transactions Preview -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-sm font-semibold text-gray-700">最近紀錄 (Recent)</h3>
+                    <button onclick="switchTab('list')" class="text-xs text-blue-600 font-medium">查看全部</button>
+                </div>
+                <div id="recent-list" class="space-y-3">
+                    <!-- Items will be injected here -->
+                    <div class="text-center text-gray-400 py-4 text-sm">暫無紀錄</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="shareSummary()"
+                    class="flex items-center justify-center gap-2 bg-indigo-50 text-indigo-600 py-3 rounded-xl font-medium hover:bg-indigo-100 transition">
+                    <i data-lucide="share-2" class="w-4 h-4"></i> 分享摘要
+                </button>
+                <button onclick="showExportModal()"
+                    class="flex items-center justify-center gap-2 bg-teal-50 text-teal-600 py-3 rounded-xl font-medium hover:bg-teal-100 transition">
+                    <i data-lucide="save" class="w-4 h-4"></i> 備份資料
+                </button>
+            </div>
+        </div>
+
+        <!-- View: List -->
+        <div id="view-list" class="hidden space-y-4 pb-24">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">支出列表 (Expenses)</h2>
+            <div id="full-list" class="space-y-3">
+                <!-- Items injected here -->
+            </div>
+        </div>
+
+        <!-- View: Settings -->
+        <div id="view-settings" class="hidden space-y-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">設定 (Settings)</h2>
+
+            <!-- Base Currency Setting -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <label class="block text-sm font-medium text-gray-700 mb-2">本幣 (Home Currency)</label>
+                <input type="text" id="setting-home-currency"
+                    class="w-full p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                    value="HKD">
+            </div>
+
+            <!-- Budget Setting -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                <label class="block text-sm font-medium text-gray-700 mb-2">總預算 (Total Budget)</label>
+                <input type="number" id="setting-budget"
+                    class="w-full p-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                    value="0">
+            </div>
+
+            <!-- Data Management -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 space-y-3">
+                <h3 class="font-medium text-gray-800">資料管理 (Data)</h3>
+                <button onclick="exportJSON()"
+                    class="w-full text-left flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition">
+                    <div class="bg-blue-100 p-2 rounded-lg text-blue-600"><i data-lucide="file-json"
+                            class="w-5 h-5"></i></div>
+                    <div>
+                        <div class="text-sm font-medium">匯出 JSON</div>
+                        <div class="text-xs text-gray-500">完整備份</div>
+                    </div>
+                </button>
+                <button onclick="exportCSV()"
+                    class="w-full text-left flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition">
+                    <div class="bg-green-100 p-2 rounded-lg text-green-600"><i data-lucide="file-spreadsheet"
+                            class="w-5 h-5"></i></div>
+                    <div>
+                        <div class="text-sm font-medium">匯出 CSV</div>
+                        <div class="text-xs text-gray-500">Excel 表格</div>
+                    </div>
+                </button>
+                <div class="relative">
+                    <input type="file" id="import-file" accept=".json" class="hidden" onchange="importJSON(this)">
+                    <button onclick="document.getElementById('import-file').click()"
+                        class="w-full text-left flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition">
+                        <div class="bg-orange-100 p-2 rounded-lg text-orange-600"><i data-lucide="upload"
+                                class="w-5 h-5"></i></div>
+                        <div>
+                            <div class="text-sm font-medium">匯入 JSON</div>
+                            <div class="text-xs text-gray-500">復原資料</div>
+                        </div>
+                    </button>
+                </div>
+                <button onclick="clearAllData()"
+                    class="w-full text-left flex items-center gap-3 p-2 hover:bg-red-50 rounded-lg transition group">
+                    <div class="bg-red-100 p-2 rounded-lg text-red-600 group-hover:bg-red-200"><i data-lucide="trash-2"
+                            class="w-5 h-5"></i></div>
+                    <div>
+                        <div class="text-sm font-medium text-red-600">清除所有資料</div>
+                        <div class="text-xs text-red-400">無法復原</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Floating Action Button for Add -->
+    <button onclick="openAddModal()"
+        class="fixed bottom-24 right-4 bg-blue-600 text-white p-4 rounded-full shadow-lg shadow-blue-600/30 hover:bg-blue-700 hover:scale-105 transition active:scale-95 z-40">
+        <i data-lucide="plus" class="w-6 h-6"></i>
+    </button>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-100 pb-safe z-50">
+        <div class="flex justify-around items-center max-w-md mx-auto h-16">
+            <button onclick="switchTab('dashboard')"
+                class="bottom-nav-item active flex flex-col items-center gap-1 w-full text-gray-400 hover:text-blue-500 transition"
+                data-target="view-dashboard">
+                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">總覽</span>
+            </button>
+            <button onclick="switchTab('list')"
+                class="bottom-nav-item flex flex-col items-center gap-1 w-full text-gray-400 hover:text-blue-500 transition"
+                data-target="view-list">
+                <i data-lucide="list" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">列表</span>
+            </button>
+            <button onclick="switchTab('settings')"
+                class="bottom-nav-item flex flex-col items-center gap-1 w-full text-gray-400 hover:text-blue-500 transition"
+                data-target="view-settings">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+                <span class="text-[10px] font-medium">設定</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Add/Edit Expense Modal -->
+    <div id="modal-form"
+        class="fixed inset-0 bg-black/50 z-[60] hidden flex items-end sm:items-center justify-center backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-md h-[90vh] sm:h-auto sm:rounded-2xl rounded-t-2xl flex flex-col transform translate-y-full transition-transform duration-300"
+            id="modal-content">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-2xl">
+                <h3 class="font-bold text-gray-800" id="modal-title">新增支出</h3>
+                <button onclick="closeModal()" class="p-2 bg-white rounded-full text-gray-500 hover:bg-gray-100"><i
+                        data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="overflow-y-auto p-4 space-y-4 flex-1">
+                <form id="expense-form" onsubmit="handleFormSubmit(event)">
+                    <input type="hidden" id="entry-id">
+
+                    <!-- Category Selection -->
+                    <div class="grid grid-cols-3 gap-2 mb-4">
+                        <button type="button"
+                            class="cat-btn p-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 flex flex-col items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition active"
+                            onclick="selectCategory('general')" data-cat="general">
+                            <i data-lucide="shopping-bag" class="w-5 h-5"></i> 一般
+                        </button>
+                        <button type="button"
+                            class="cat-btn p-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 flex flex-col items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition"
+                            onclick="selectCategory('accommodation')" data-cat="accommodation">
+                            <i data-lucide="hotel" class="w-5 h-5"></i> 住宿
+                        </button>
+                        <button type="button"
+                            class="cat-btn p-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 flex flex-col items-center gap-2 hover:bg-blue-50 hover:border-blue-200 transition"
+                            onclick="selectCategory('transport')" data-cat="transport">
+                            <i data-lucide="plane" class="w-5 h-5"></i> 交通
+                        </button>
+                    </div>
+
+                    <!-- Common Fields -->
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-semibold text-gray-500 uppercase">標題 (Title)</label>
+                            <input type="text" id="inp-title" required
+                                class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="例如: 晚餐, 伴手禮...">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-semibold text-gray-500 uppercase">金額 (Amount)</label>
+                                <input type="number" id="inp-amount" required step="0.01"
+                                    class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="0.00">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-gray-500 uppercase">幣別 (Currency)</label>
+                                <input type="text" id="inp-currency"
+                                    class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value="TWD">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-semibold text-gray-500 uppercase">匯率 (Rate)</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" id="inp-rate" step="0.0001"
+                                    class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                                    value="1">
+                                <span class="text-xs text-gray-400 whitespace-nowrap">1 外幣 = ? 本幣</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Accommodation Fields -->
+                    <div id="fields-accommodation" class="hidden space-y-3 mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex items-center gap-2 text-indigo-600 mb-2">
+                            <i data-lucide="hotel" class="w-4 h-4"></i> <span class="text-sm font-bold">住宿詳情</span>
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-gray-500 uppercase">地址 (Address)</label>
+                            <input type="text" id="inp-address"
+                                class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-semibold text-gray-500 uppercase">入住 (Check-in)</label>
+                                <input type="date" id="inp-checkin"
+                                    class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-gray-500 uppercase">晚數 (Nights)</label>
+                                <input type="number" id="inp-nights"
+                                    class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transport/Flight Fields -->
+                    <div id="fields-transport" class="hidden space-y-3 mt-4 pt-4 border-t border-gray-100">
+                        <div class="flex items-center gap-2 text-teal-600 mb-2">
+                            <i data-lucide="plane" class="w-4 h-4"></i> <span class="text-sm font-bold">航班/交通詳情</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-xs font-semibold text-gray-500 uppercase">航班號 (Flight No)</label>
+                                <input type="text" id="inp-flight-no"
+                                    class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-gray-500 uppercase">航空公司 (Airline)</label>
+                                <input type="text" id="inp-airline"
+                                    class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-gray-500 uppercase">時間 (Departure Time)</label>
+                            <input type="datetime-local" id="inp-departure"
+                                class="w-full mt-1 p-3 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="pt-6">
+                        <button type="submit"
+                            class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 active:scale-[0.98] transition">儲存
+                            (Save)</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Core Application Logic ---
+
+        // State
+        let store = {
+            settings: {
+                budget: 0,
+                homeCurrency: 'TWD',
+                theme: 'light'
+            },
+            expenses: []
+        };
+
+        // DOM Elements
+        const totalExpenseDisplay = document.getElementById('total-expense-display');
+        const budgetProgressText = document.getElementById('budget-progress-text');
+        const budgetRemaining = document.getElementById('budget-remaining');
+        const budgetProgressBar = document.getElementById('budget-progress-bar');
+        const recentList = document.getElementById('recent-list');
+        const fullList = document.getElementById('full-list');
+        const modalForm = document.getElementById('modal-form');
+        const modalContent = document.getElementById('modal-content');
+        let expenseChart = null;
+
+        // Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            lucide.createIcons();
+            initChart();
+            renderDashboard();
+
+            // Settings Listeners
+            document.getElementById('setting-budget').addEventListener('change', (e) => {
+                store.settings.budget = parseFloat(e.target.value) || 0;
+                saveData();
+                renderDashboard();
+            });
+            document.getElementById('setting-home-currency').addEventListener('change', (e) => {
+                store.settings.homeCurrency = e.target.value;
+                saveData();
+                renderDashboard(); // Re-render to update currency labels
+            });
+        });
+
+        // --- Data Persistence ---
+        function saveData() {
+            localStorage.setItem('travelTrackerBooking', JSON.stringify(store));
+        }
+
+        function loadData() {
+            const data = localStorage.getItem('travelTrackerBooking');
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    store = { ...store, ...parsed }; // Merge to ensure structure
+                } catch (e) {
+                    console.error('Data corrupted, resetting');
+                }
+            }
+            // Init settings inputs
+            document.getElementById('setting-budget').value = store.settings.budget;
+            document.getElementById('setting-home-currency').value = store.settings.homeCurrency;
+        }
+
+        // --- UI Rendering ---
+        function renderDashboard() {
+            const total = store.expenses.reduce((sum, item) => {
+                const amount = parseFloat(item.amount);
+                const rate = parseFloat(item.rate) || 1;
+                return sum + (amount * rate);
+            }, 0);
+
+            const budget = store.settings.budget;
+            const remaining = budget - total;
+            const currency = store.settings.homeCurrency;
+
+            // Update Summary
+            totalExpenseDisplay.textContent = formatCurrency(total, currency);
+            budgetRemaining.textContent = formatCurrency(remaining, currency);
+
+            // Progress Bar
+            let percentage = 0;
+            if (budget > 0) {
+                percentage = Math.min((total / budget) * 100, 100);
+            }
+            budgetProgressBar.style.width = percentage + '%';
+            budgetProgressText.textContent = Math.round(percentage) + '%';
+
+            // Color Logic
+            if (percentage < 50) budgetProgressBar.className = 'bg-blue-500 h-2.5 rounded-full transition-all duration-500';
+            else if (percentage < 80) budgetProgressBar.className = 'bg-yellow-500 h-2.5 rounded-full transition-all duration-500';
+            else budgetProgressBar.className = 'bg-red-500 h-2.5 rounded-full transition-all duration-500';
+
+            // Lists
+            renderLists(currency);
+            updateChart();
+        }
+
+        function renderLists(currencyCode) {
+            const sorted = [...store.expenses].reverse(); // Newest first
+            const recent = sorted.slice(0, 3);
+
+            // Render Recent
+            recentList.innerHTML = recent.length ? '' : '<div class="text-center text-gray-400 py-4 text-sm">暫無紀錄</div>';
+            recent.forEach(item => recentList.appendChild(createItemElement(item, currencyCode)));
+
+            // Render Full List
+            fullList.innerHTML = sorted.length ? '' : '<div class="text-center text-gray-400 py-10 text-sm">點擊 + 新增第一筆支出</div>';
+            sorted.forEach(item => fullList.appendChild(createItemElement(item, currencyCode)));
+
+            lucide.createIcons();
+        }
+
+        function createItemElement(item, homeCurrency) {
+            const div = document.createElement('div');
+            div.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center';
+
+            const nativeAmount = parseFloat(item.amount);
+            const rate = parseFloat(item.rate) || 1;
+            const homeAmount = nativeAmount * rate;
+
+            // Icon based on category
+            let iconName = 'shopping-bag';
+            let iconColor = 'bg-gray-100 text-gray-600';
+            if (item.category === 'accommodation') { iconName = 'hotel'; iconColor = 'bg-indigo-100 text-indigo-600'; }
+            if (item.category === 'transport') { iconName = 'plane'; iconColor = 'bg-teal-100 text-teal-600'; }
+
+            // Subtitle detail
+            let detailHtml = '';
+            if (item.category === 'accommodation' && item.checkin) {
+                const checkinDate = new Date(item.checkin);
+                const nights = parseInt(item.nights) || 1;
+                const checkoutDate = new Date(checkinDate);
+                checkoutDate.setDate(checkinDate.getDate() + nights);
+
+                const avgPrice = nativeAmount / nights;
+
+                detailHtml = `
+                    <div class="text-[10px] text-gray-400 mt-1 flex flex-col gap-0.5">
+                        <div class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> ${item.address || '無地址'}</div>
+                        <div>退房: ${checkoutDate.toLocaleDateString()} (${nights}晚, 均價: ${formatCurrency(avgPrice, item.currency)})</div>
+                    </div>`;
+            } else if (item.category === 'transport') {
+                detailHtml = `<div class="text-[10px] text-gray-400 mt-1 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${item.departure ? new Date(item.departure).toLocaleString() : ''} ${item.flightNo || ''}</div>`;
+            }
+
+            div.innerHTML = `
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="${iconColor} p-2 rounded-lg shrink-0">
+                        <i data-lucide="${iconName}" class="w-5 h-5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="font-bold text-gray-800 truncate">${item.title}</div>
+                        <div class="text-xs text-gray-500">${formatCurrency(nativeAmount, item.currency)} ${item.currency !== homeCurrency ? '(@ ' + item.rate + ')' : ''}</div>
+                        ${detailHtml}
+                    </div>
+                </div>
+                <div class="text-right shrink-0">
+                    <div class="font-bold text-gray-800">${formatCurrency(homeAmount, homeCurrency)}</div>
+                    <div class="flex gap-2 justify-end mt-2">
+                         <button onclick="shareItem('${item.id}')" class="text-gray-400 hover:text-blue-500"><i data-lucide="share-2" class="w-4 h-4"></i></button>
+                         <button onclick="deleteItem('${item.id}')" class="text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function formatCurrency(num, curr) {
+            return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: curr }).format(num);
+        }
+
+        // --- Chart ---
+        function initChart() {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            expenseChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: ['#2563eb', '#6366f1', '#14b8a6', '#f59e0b', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 6 } }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        function updateChart() {
+            if (!expenseChart) return;
+
+            // Group by category for now, or maybe custom tags later
+            // Let's group by the 3 main categories
+            const categories = { 'general': 0, 'accommodation': 0, 'transport': 0 };
+
+            store.expenses.forEach(item => {
+                const amount = parseFloat(item.amount) * (parseFloat(item.rate) || 1);
+                categories[item.category] = (categories[item.category] || 0) + amount;
+            });
+
+            // If we have custom logic for mapping categories names:
+            const labels = { 'general': '一般', 'accommodation': '住宿', 'transport': '交通' };
+
+            expenseChart.data.labels = Object.keys(categories).map(k => labels[k]);
+            expenseChart.data.datasets[0].data = Object.values(categories);
+            expenseChart.update();
+        }
+
+        // --- Forms & Interaction ---
+        function openAddModal(id = null) {
+            document.getElementById('expense-form').reset();
+            document.getElementById('entry-id').value = '';
+            document.getElementById('inp-currency').value = store.settings.homeCurrency;
+
+            // Set default date for checkin
+            document.getElementById('inp-checkin').valueAsDate = new Date();
+
+            selectCategory('general');
+
+            modalForm.classList.remove('hidden');
+            // Trigger animation
+            setTimeout(() => {
+                modalForm.classList.remove('opacity-0');
+                modalContent.classList.remove('translate-y-full');
+            }, 10);
+        }
+
+        function closeModal() {
+            modalForm.classList.add('opacity-0');
+            modalContent.classList.add('translate-y-full');
+            setTimeout(() => {
+                modalForm.classList.add('hidden');
+            }, 300);
+        }
+
+        let currentCategory = 'general';
+        function selectCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                if (btn.dataset.cat === cat) {
+                    btn.classList.add('bg-blue-50', 'border-blue-200', 'text-black');
+                } else {
+                    btn.classList.remove('bg-blue-50', 'border-blue-200', 'text-black');
+                }
+            });
+
+            // Toggle Fields
+            document.getElementById('fields-accommodation').classList.add('hidden');
+            document.getElementById('fields-transport').classList.add('hidden');
+
+            if (cat === 'accommodation') document.getElementById('fields-accommodation').classList.remove('hidden');
+            else if (cat === 'transport') document.getElementById('fields-transport').classList.remove('hidden');
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const form = e.target;
+
+            const newItem = {
+                id: document.getElementById('entry-id').value || Date.now().toString(),
+                category: currentCategory,
+                title: document.getElementById('inp-title').value,
+                amount: document.getElementById('inp-amount').value,
+                currency: document.getElementById('inp-currency').value,
+                rate: document.getElementById('inp-rate').value,
+                date: new Date().toISOString(),
+                // Extra fields
+                address: document.getElementById('inp-address').value,
+                checkin: document.getElementById('inp-checkin').value,
+                nights: document.getElementById('inp-nights').value,
+                flightNo: document.getElementById('inp-flight-no').value,
+                airline: document.getElementById('inp-airline').value,
+                departure: document.getElementById('inp-departure').value
+            };
+
+            store.expenses.push(newItem);
+            saveData();
+            renderDashboard();
+            closeModal();
+        }
+
+        function deleteItem(id) {
+            if (!confirm('確定刪除?')) return;
+            store.expenses = store.expenses.filter(i => i.id !== id);
+            saveData();
+            renderDashboard();
+        }
+
+        // --- View Switching ---
+        function switchTab(viewName) {
+            // Update Nav
+            document.querySelectorAll('.bottom-nav-item').forEach(el => {
+                if (el.getAttribute('onclick').includes(viewName)) el.classList.add('active', 'text-blue-600');
+                else el.classList.remove('active', 'text-blue-600');
+            });
+
+            // Update Views
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-list').classList.add('hidden');
+            document.getElementById('view-settings').classList.add('hidden');
+
+            document.getElementById('view-' + viewName).classList.remove('hidden');
+        }
+
+        // --- Export / Import ---
+        function exportJSON() {
+            const dataStr = JSON.stringify(store, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'travel_backup_' + new Date().toISOString().slice(0, 10) + '.json';
+            a.click();
+        }
+
+        function exportCSV() {
+            const headers = ['Date', 'Category', 'Title', 'Amount', 'Currency', 'Rate', 'Total(Home)', 'Note'];
+            const rows = store.expenses.map(e => [
+                new Date(e.date).toLocaleDateString(),
+                e.category,
+                e.title,
+                e.amount,
+                e.currency,
+                e.rate,
+                (e.amount * e.rate).toFixed(2),
+                e.category === 'accommodation' ? `Checkin:${e.checkin}, Nights:${e.nights}` : (e.flightNo || '')
+            ]);
+
+            let csvContent = "data:text/csv;charset=utf-8," + paramsToCSV([headers, ...rows]);
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "travel_expenses.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+
+        function paramsToCSV(rows) {
+            return rows.map(r => r.join(",")).join("\n");
+        }
+
+        function importJSON(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.expenses && Array.isArray(data.expenses)) {
+                        store = data;
+                        saveData();
+                        renderDashboard();
+                        alert('匯入成功!');
+                    } else {
+                        alert('格式錯誤: 找不到 expenses 陣列');
+                    }
+                } catch (err) {
+                    alert('無效的 JSON 檔案');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAllData() {
+            if (confirm('警告: 將會刪除所有資料且無法復原! 一般建議先匯出備份。確定要執行?')) {
+                localStorage.removeItem('travelTrackerBooking');
+                store.expenses = [];
+                store.settings.budget = 0;
+                saveData();
+                location.reload();
+            }
+        }
+
+        // --- Sharing ---
+        async function shareSummary() {
+            const total = store.expenses.reduce((s, i) => s + (i.amount * i.rate), 0);
+            const remaining = store.settings.budget - total;
+            const topCategory = expenseChart.data.labels[0]; // Simplified logiv
+
+            const text = `✈️ 旅遊記帳報告 \n💰 總支出: $${total.toFixed(0)}\n📉 剩餘預算: $${remaining.toFixed(0)}\n📊 最大開銷: ${topCategory || '無'}`;
+
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: '旅遊記帳摘要',
+                        text: text
+                    });
+                } catch (err) {
+                    console.log('Share canceled');
+                }
+            } else {
+                navigator.clipboard.writeText(text);
+                alert('已複製摘要到剪貼簿!');
+            }
+        }
+
+        async function shareItem(id) {
+            const item = store.expenses.find(x => x.id === id);
+            if (!item) return;
+
+            let details = '';
+            if (item.category === 'accommodation') details = `📍 地址: ${item.address}\n📅 入住: ${item.checkin}`;
+            if (item.category === 'transport') details = `✈️ 航班: ${item.airline} ${item.flightNo}\n🕒 時間: ${item.departure}`;
+
+            const text = `📌 ${item.title}\n💰 金額: ${item.currency} ${item.amount}\n${details}`;
+
+            if (navigator.share) {
+                await navigator.share({ title: item.title, text: text });
+            } else {
+                navigator.clipboard.writeText(text);
+                alert('已複製詳情到剪貼簿!');
+            }
+        }
+
+        function showExportModal() {
+            switchTab('settings');
+        }
+
+    </script>
+</body>
+
+</html>

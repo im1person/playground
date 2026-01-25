@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#e8eaf6"/>
+  
+  <g transform="translate(0, 0)">
+      
+      <!-- Suitcase (Center) -->
+      <g transform="translate(130, 40)">
+        <!-- Handle -->
+        <path d="M40 0 L100 0 L100 20 L40 20 Z" fill="#37474f"/>
+        <path d="M50 0 L50 -20 Q50 -30 60 -30 L80 -30 Q90 -30 90 -20 L90 0" fill="none" stroke="#546e7a" stroke-width="6"/>
+
+        <!-- Body -->
+        <rect x="0" y="20" width="140" height="170" rx="8" fill="#5c6bc0"/>
+        
+        <!-- Details -->
+        <rect x="0" y="40" width="140" height="130" fill="#3949ab"/> <!-- Front Panel -->
+        <rect x="10" y="40" width="120" height="130" fill="#5c6bc0"/> <!-- Inner texture -->
+        
+        <!-- Zipper/Lines -->
+        <line x1="70" y1="20" x2="70" y2="190" stroke="#283593" stroke-width="2"/>
+        
+        <!-- Wheels -->
+        <rect x="20" y="190" width="20" height="15" fill="#37474f"/>
+        <rect x="100" y="190" width="20" height="15" fill="#37474f"/>
+      </g>
+
+      <!-- Calculator (Left) -->
+      <g transform="translate(60, 100) rotate(-10)">
+         <rect x="0" y="0" width="60" height="90" rx="4" fill="#cfd8dc" stroke="#455a64" stroke-width="2"/>
+         <!-- Screen -->
+         <rect x="10" y="10" width="40" height="20" fill="#90a4ae"/>
+         <!-- Buttons -->
+         <g fill="#78909c">
+             <rect x="10" y="40" width="8" height="8"/> <rect x="25" y="40" width="8" height="8"/> <rect x="40" y="40" width="8" height="8"/>
+             <rect x="10" y="55" width="8" height="8"/> <rect x="25" y="55" width="8" height="8"/> <rect x="40" y="55" width="8" height="8"/>
+             <rect x="10" y="70" width="8" height="8"/> <rect x="25" y="70" width="8" height="8"/> <rect x="40" y="70" width="8" height="8" fill="#fbc02d"/>
+         </g>
+      </g>
+
+      <!-- Globe (Right) -->
+      <g transform="translate(300, 130)">
+         <!-- Globe sphere -->
+         <circle cx="0" cy="0" r="35" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+         <!-- Continents (Abstract) -->
+         <path d="M-10 -20 Q10 -10 20 0 T10 20" fill="none" stroke="#81c784" stroke-width="12" stroke-linecap="round"/>
+         <path d="M-25 0 Q-15 10 -25 20" fill="none" stroke="#81c784" stroke-width="6" stroke-linecap="round"/>
+         
+         <!-- Stand -->
+         <path d="M0 37 L0 50 M-20 50 L20 50" stroke="#f57f17" stroke-width="4" stroke-linecap="round"/>
+         <path d="M-40 0 A 40 40 0 0 0 40 0" fill="none" stroke="#f57f17" stroke-width="3"/>
+      </g>
+
+      <!-- Coins (Bottom Right) -->
+       <g transform="translate(340, 200)">
+          <circle cx="0" cy="0" r="15" fill="#fdd835" stroke="#fbc02d" stroke-width="2"/>
+          <text x="0" y="5" text-anchor="middle" font-family="sans-serif" font-weight="bold" font-size="14" fill="#fff">$</text>
+      </g>
+  </g>
+</svg>
