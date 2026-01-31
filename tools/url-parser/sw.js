@@ -1,4 +1,4 @@
-const CACHE_NAME = 'url-parser-v1';
+const CACHE_NAME = 'url-parser-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -39,12 +39,25 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - offline-first (Cache then Network)
+// Fetch event - Stale-While-Revalidate strategy
+// 1. Check cache for immediate response
+// 2. Always fetch from network in background to update cache for next time
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request).catch(() => {
-        // Handle potential errors (e.g., when offline and not in cache)
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.match(event.request).then((cachedResponse) => {
+        const fetchPromise = fetch(event.request).then((networkResponse) => {
+          // If valid response, update cache
+          if (networkResponse && networkResponse.status === 200) {
+            cache.put(event.request, networkResponse.clone());
+          }
+          return networkResponse;
+        }).catch(() => {
+          // Silent fail for network fetch
+        });
+
+        // Return cached response instantly, or wait for network if not in cache
+        return cachedResponse || fetchPromise;
       });
     })
   );
