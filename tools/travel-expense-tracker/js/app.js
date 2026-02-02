@@ -1,4 +1,15 @@
 // Main App Controller (Global)
+import { store } from './store.js';
+import { initDashboard, renderDashboard } from './dashboard.js';
+import { 
+    renderFullList, 
+    renderTripList, 
+    selectCategory, 
+    closeModal, 
+    openAddModal, 
+    togglePaymentFields 
+} from './ui.js';
+import { switchTab, formatCurrency, getTripDate, setCurrency } from './utils.js';
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -50,7 +61,13 @@ function renderAll() {
     if (trip.settings.startDate && trip.settings.endDate && trip.settings.filterDateRange) {
         const s = trip.settings.startDate;
         const e = trip.settings.endDate;
-        displayExpenses = trip.expenses.filter(i => i.date.split('T')[0] >= s && i.date.split('T')[0] <= e);
+        displayExpenses = trip.expenses.filter(i => {
+           // Use utility to handle timezone matching if needed, 
+           // here raw split is used in original code, but we should be consistent.
+           // Original was i.date.split('T')[0].
+           // Let's stick to original logic for consistency unless we use utils.
+           return i.date.split('T')[0] >= s && i.date.split('T')[0] <= e;
+        });
     }
 
     renderFullList(displayExpenses, trip.settings.homeCurrency);
@@ -121,7 +138,6 @@ function updateSettingsUI(settings) {
         'setting-budget-slider': Math.min(s.budget, 100000),
         'setting-home-currency': s.homeCurrency,
         'setting-foreign-currency': s.foreignCurrency || '',
-        'setting-exchange-rate': s.exchangeRate || '',
         'setting-exchange-rate': s.exchangeRate || '',
         'setting-location': s.location || '',
         'setting-timezone': s.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -315,3 +331,6 @@ window.createNewTrip = createNewTrip;
 window.shareItem = shareItem;
 window.shareSummary = shareSummary;
 window.deleteItem = deleteItem;
+window.switchTab = switchTab;
+window.setCurrency = setCurrency;
+
