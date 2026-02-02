@@ -36,7 +36,7 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 - [Secret Santa Generator](https://im1person.github.io/playground/tools/secret-santa/): Generate Secret Santa assignments with exclusion rules.
 - [Christmas Countdown Timer](https://im1person.github.io/playground/tools/christmas-countdown/): Countdown timer to Christmas or any date with timezone support.
 - [Gift List Manager](https://im1person.github.io/playground/tools/gift-list-manager/): Track gifts, recipients, and budget for your Christmas shopping.
-- [Travel Expense Tracker](https://im1person.github.io/playground/tools/travel-expense-tracker/): Offline-first travel expense tracker with currency conversion and budget management.
+- [Travel Expense Tracker](https://im1person.github.io/playground/tools/travel-expense-tracker/): Offline-first travel expense tracker with currency conversion and budget management. **(PWA: Works Offline & Installable)**
 
 ### Games
 
