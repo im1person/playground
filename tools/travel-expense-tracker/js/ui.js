@@ -1,8 +1,10 @@
 // UI Module
 import { store } from './store.js';
 import { formatCurrency, getDetailedTime, switchTab, getAdjustedExpenses, getTripDate } from './utils.js';
+import { getReceipt } from './db.js';
 
 let currentCategory = 'general';
+let selectedReceiptBlob = null;
 
 export function selectCategory(cat) {
     currentCategory = cat;
@@ -19,10 +21,13 @@ export function selectCategory(cat) {
     else if (cat === 'transport') document.getElementById('fields-transport').classList.remove('hidden');
 }
 
-export function openAddModal(id = null) {
+export async function openAddModal(id = null) {
     const form = document.getElementById('expense-form');
     // Safety check if DOM is ready
     if (!form) return;
+
+    // Reset Receipt State
+    removeReceipt();
 
     form.reset();
     document.getElementById('entry-id').value = '';
@@ -85,6 +90,20 @@ export function openAddModal(id = null) {
             document.getElementById('inp-ic-owner').value = item.icOwner || '';
             togglePaymentFields(); // Update visibility based on loaded item
 
+            // Load Receipt
+            if (item.receiptId) {
+                try {
+                    const blob = await getReceipt(item.receiptId);
+                    if (blob) {
+                        const url = URL.createObjectURL(blob);
+                        showReceiptPreview(url);
+                        selectedReceiptBlob = blob;
+                    }
+                } catch (err) {
+                    console.error('Failed to load receipt:', err);
+                }
+            }
+
             document.getElementById('modal-title').textContent = '編輯/檢視支出';
         }
     } else {
@@ -138,6 +157,63 @@ export function togglePaymentFields() {
 }
 window.togglePaymentFields = togglePaymentFields;
 
+export function handleReceiptSelection(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    selectedReceiptBlob = file;
+    const url = URL.createObjectURL(file);
+    showReceiptPreview(url);
+}
+
+export function removeReceipt() {
+    selectedReceiptBlob = null;
+    const inp = document.getElementById('inp-receipt');
+    if (inp) inp.value = '';
+    const container = document.getElementById('receipt-preview-container');
+    if (container) container.classList.add('hidden');
+}
+
+function showReceiptPreview(url) {
+    const img = document.getElementById('receipt-preview');
+    const container = document.getElementById('receipt-preview-container');
+    if (img && container) {
+        img.src = url;
+        container.classList.remove('hidden');
+        
+        // Add click listener to open lightbox
+        img.onclick = () => openLightbox(url, '收據預覽 (Receipt Preview)');
+        img.classList.add('cursor-zoom-in');
+    }
+}
+
+export function getSelectedReceiptBlob() {
+    return selectedReceiptBlob;
+}
+
+window.handleReceiptSelection = handleReceiptSelection;
+window.removeReceipt = removeReceipt;
+
+export function openLightbox(url, caption = '') {
+    const lb = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    const cap = document.getElementById('lightbox-caption');
+    if (lb && img) {
+        img.src = url;
+        cap.textContent = caption;
+        lb.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+export function closeLightbox() {
+    const lb = document.getElementById('lightbox');
+    if (lb) lb.classList.add('hidden');
+}
+
+window.openLightbox = openLightbox;
+window.closeLightbox = closeLightbox;
+
 
 export function createItemElement(item, homeCurrency) {
     const div = document.createElement('div');
@@ -187,7 +263,10 @@ export function createItemElement(item, homeCurrency) {
                 <i data-lucide="${iconName}" class="w-5 h-5"></i>
             </div>
             <div class="min-w-0">
-                <div class="font-bold text-gray-800 truncate flex items-center">${item.title} ${paymentBadge}</div>
+                <div class="font-bold text-gray-800 truncate flex items-center">
+                    ${item.title} ${paymentBadge} 
+                    ${item.receiptId ? `<i data-lucide="image" class="w-3.5 h-3.5 text-blue-500 ml-1 cursor-pointer hover:scale-110 transition" onclick="event.stopPropagation(); window.viewReceipt('${item.receiptId}', '${item.title.replace(/'/g, "\\'")}')"></i>` : ''}
+                </div>
                 <div class="text-xs text-gray-500 mt-0.5">
                     <div>${formatCurrency(nativeAmount, item.currency)} ${item.currency !== homeCurrency ? '(@ ' + item.rate + ')' : ''}</div>
                     <div class="mt-1"><span class="font-mono bg-gray-100 px-1 rounded text-[10px] text-gray-600">${getDetailedTime(item.date)}</span></div>
@@ -365,3 +444,20 @@ export function renderTripList() {
     if (window.lucide) lucide.createIcons();
 }
 window.renderTripList = renderTripList;
+
+export async function viewReceipt(receiptId, title = '') {
+    try {
+        const { getReceipt } = await import('./db.js');
+        const blob = await getReceipt(receiptId);
+        if (blob) {
+            const url = URL.createObjectURL(blob);
+            openLightbox(url, title);
+        } else {
+            alert('找不到收據檔案');
+        }
+    } catch (err) {
+        console.error('Error viewing receipt:', err);
+        alert('讀取收據時發生錯誤');
+    }
+}
+window.viewReceipt = viewReceipt;
