@@ -7,9 +7,11 @@ import {
     selectCategory, 
     closeModal, 
     openAddModal, 
-    togglePaymentFields 
+    togglePaymentFields,
+    getSelectedReceiptBlob
 } from './ui.js';
 import { switchTab, formatCurrency, getTripDate, setCurrency } from './utils.js';
+import { saveReceipt, deleteReceipt, clearAllReceipts } from './db.js';
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -151,7 +153,7 @@ function updateSettingsUI(settings) {
 }
 
 
-function handleFormSubmit(e) {
+async function handleFormSubmit(e) {
     e.preventDefault();
     try {
         const entryId = document.getElementById('entry-id').value;
@@ -162,6 +164,29 @@ function handleFormSubmit(e) {
         let currentCategory = 'general';
         const activeCatBtn = document.querySelector('.cat-btn.bg-blue-50');
         if (activeCatBtn) currentCategory = activeCatBtn.dataset.cat;
+
+        const selectedBlob = getSelectedReceiptBlob();
+        let receiptId = null;
+
+        if (isEdit) {
+            const oldItem = store.activeTrip.expenses.find(i => i.id === entryId);
+            receiptId = oldItem?.receiptId || null;
+
+            if (selectedBlob) {
+                // Check if it's a NEW file (File object) vs existing Blob we loaded
+                if (selectedBlob instanceof File) {
+                    receiptId = `rcpt_${id}_${Date.now()}`;
+                    await saveReceipt(receiptId, selectedBlob);
+                    if (oldItem?.receiptId) await deleteReceipt(oldItem.receiptId);
+                }
+            } else if (oldItem?.receiptId) {
+                await deleteReceipt(oldItem.receiptId);
+                receiptId = null;
+            }
+        } else if (selectedBlob) {
+            receiptId = `rcpt_${id}_${Date.now()}`;
+            await saveReceipt(receiptId, selectedBlob);
+        }
 
         const newItem = {
             id: id,
@@ -180,7 +205,8 @@ function handleFormSubmit(e) {
             note: document.getElementById('inp-note').value,
             flightNo: document.getElementById('inp-flight-no').value,
             airline: document.getElementById('inp-airline').value,
-            departure: document.getElementById('inp-departure').value
+            departure: document.getElementById('inp-departure').value,
+            receiptId: receiptId
         };
 
         if (isEdit) {
@@ -194,8 +220,18 @@ function handleFormSubmit(e) {
     }
 }
 
-function deleteItem(id) {
-    if (confirm('Delete?')) store.deleteExpense(id);
+async function deleteItem(id) {
+    if (confirm('Delete?')) {
+        const item = store.activeTrip.expenses.find(i => i.id === id);
+        if (item?.receiptId) {
+            try {
+                await deleteReceipt(item.receiptId);
+            } catch (err) {
+                console.error('Failed to delete receipt:', err);
+            }
+        }
+        store.deleteExpense(id);
+    }
 }
 
 // --- Import/Export ---
@@ -252,8 +288,9 @@ function exportCSV() {
     link.click();
 }
 
-function clearAllData() {
-    if (confirm('Clear ALL trips?')) {
+async function clearAllData() {
+    if (confirm('Clear ALL trips? This will also delete all receipts.')) {
+        await clearAllReceipts();
         localStorage.removeItem('travelTrackerData_v2');
         localStorage.removeItem('travelTrackerBooking'); // Clear legacy data
         location.reload();
