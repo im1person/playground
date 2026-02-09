@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#2d1b1b"/>
+  <ellipse cx="200" cy="100" rx="42" ry="58" fill="#e57373" stroke="#ffcc80" stroke-width="2"/>
+  <rect x="195" y="42" width="10" height="28" fill="#ffcc80" rx="2"/>
+  <text x="200" y="190" font-family="Arial" font-size="18" fill="#ffcc80" text-anchor="middle">Lantern Riddle</text>
+</svg>

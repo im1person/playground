@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Spring Couplet Generator" data-zh-HK="揮春生成器">
+      Spring Couplet Generator
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="🧧 Spring Couplet Generator" data-zh-HK="🧧 揮春生成器">
+        🧧 Spring Couplet Generator
+      </h1>
+
+      <div class="section">
+        <h2 data-en="Template" data-zh-HK="版型">Template</h2>
+        <div class="template-options">
+          <label class="template-option">
+            <input type="radio" name="template" value="full" checked />
+            <span data-en="Full (horizontal + top + bottom)" data-zh-HK="完整（橫額＋上聯＋下聯）">Full (horizontal + top + bottom)</span>
+          </label>
+          <label class="template-option">
+            <input type="radio" name="template" value="single" />
+            <span data-en="Single character (福 / 春)" data-zh-HK="單字（福／春）">Single character (福 / 春)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="section" id="fullInputs">
+        <h2 data-en="Text" data-zh-HK="文字">Text</h2>
+        <div class="input-group">
+          <label for="horizontal" data-en="Horizontal (橫批):" data-zh-HK="橫額：">Horizontal (橫批):</label>
+          <input type="text" id="horizontal" maxlength="8" placeholder="e.g. 吉祥如意" data-placeholder-en="e.g. 吉祥如意" data-placeholder-zh-HK="例：吉祥如意" />
+        </div>
+        <div class="input-group">
+          <label for="topLine" data-en="Top line (上聯):" data-zh-HK="上聯：">Top line (上聯):</label>
+          <input type="text" id="topLine" maxlength="20" placeholder="e.g. 迎春接福" data-placeholder-en="e.g. 迎春接福" data-placeholder-zh-HK="例：迎春接福" />
+        </div>
+        <div class="input-group">
+          <label for="bottomLine" data-en="Bottom line (下聯):" data-zh-HK="下聯：">Bottom line (下聯):</label>
+          <input type="text" id="bottomLine" maxlength="20" placeholder="e.g. 納福迎祥" data-placeholder-en="e.g. 納福迎祥" data-placeholder-zh-HK="例：納福迎祥" />
+        </div>
+      </div>
+
+      <div class="section hidden" id="singleInputs">
+        <h2 data-en="Single character" data-zh-HK="單字">Single character</h2>
+        <div class="input-group">
+          <label for="singleChar" data-en="Character:" data-zh-HK="字：">Character:</label>
+          <input type="text" id="singleChar" maxlength="2" placeholder="福" value="福" />
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 data-en="Presets" data-zh-HK="常用意頭話">Presets</h2>
+        <div class="preset-btns">
+          <button type="button" class="preset-btn" data-h="吉祥如意" data-t="迎春接福" data-b="納福迎祥">吉祥如意</button>
+          <button type="button" class="preset-btn" data-h="恭喜發財" data-t="財源廣進" data-b="心想事成">恭喜發財</button>
+          <button type="button" class="preset-btn" data-h="萬事如意" data-t="福星高照" data-b="歲歲平安">萬事如意</button>
+          <button type="button" class="preset-btn" data-h="龍年大吉" data-t="龍騰虎躍" data-b="吉祥安康">龍年大吉</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 data-en="Preview" data-zh-HK="預覽">Preview</h2>
+        <div id="preview" class="preview"></div>
+        <div class="actions">
+          <button id="downloadBtn" class="action-btn primary" data-en="Download PNG" data-zh-HK="下載 PNG">
+            Download PNG
+          </button>
+          <button id="printBtn" class="action-btn" data-en="Print" data-zh-HK="列印">
+            Print
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="generator.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>

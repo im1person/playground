@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Red Envelope Calculator" data-zh-HK="利是計算器">
+      Red Envelope Calculator
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="🧧 Red Envelope Calculator" data-zh-HK="🧧 紅包計算機">
+        🧧 Red Envelope Calculator
+      </h1>
+
+      <div class="section">
+        <h2 data-en="Budget & Recipients" data-zh-HK="預算與名單">Budget & Recipients</h2>
+        <div class="setting-group">
+          <label for="totalBudget" data-en="Total budget:" data-zh-HK="總預算：">Total budget:</label>
+          <div class="input-row">
+            <input type="number" id="totalBudget" min="0" step="1" placeholder="e.g. 5000" />
+            <select id="currency">
+              <option value="HKD" data-en="HKD" data-zh-HK="港幣">HKD</option>
+              <option value="CNY" data-en="CNY" data-zh-HK="人民幣">CNY</option>
+              <option value="TWD" data-en="TWD" data-zh-HK="新台幣">TWD</option>
+              <option value="USD" data-en="USD" data-zh-HK="美元">USD</option>
+            </select>
+          </div>
+        </div>
+        <div class="setting-group">
+          <label for="recipientCount" data-en="Number of recipients:" data-zh-HK="要包給幾人：">Number of recipients:</label>
+          <input type="number" id="recipientCount" min="1" max="99" value="5" />
+        </div>
+        <button id="calcBtn" class="calc-btn" data-en="Suggest amounts" data-zh-HK="建議金額">
+          Suggest amounts
+        </button>
+      </div>
+
+      <div class="section">
+        <h2 data-en="Lucky amount suggestions" data-zh-HK="意頭金額建議">Lucky amount suggestions</h2>
+        <p class="help-text" data-en="Common lucky numbers (even, avoid 4). Click to use as per-person amount."
+          data-zh-HK="常見意頭數字（偶數、避開 4）。點擊可設為每人金額。">
+          Common lucky numbers (even, avoid 4). Click to use as per-person amount.
+        </p>
+        <div id="luckyList" class="lucky-list"></div>
+      </div>
+
+      <div id="resultSection" class="section result-section hidden">
+        <h2 data-en="Result" data-zh-HK="結果">Result</h2>
+        <div class="result-summary">
+          <span data-en="Per person:" data-zh-HK="每人：">Per person:</span>
+          <strong id="perPerson">—</strong>
+          <span id="currencyLabel">HKD</span>
+        </div>
+        <div class="result-note" id="resultNote"></div>
+        <button id="copyBtn" class="copy-btn" data-en="Copy summary" data-zh-HK="複製摘要">
+          Copy summary
+        </button>
+      </div>
+
+      <div class="section">
+        <h2 data-en="Recipient list (optional)" data-zh-HK="名單（選填）">Recipient list (optional)</h2>
+        <p class="help-text" data-en="Add names to assign amounts for reference."
+          data-zh-HK="新增稱謂或姓名，方便對照金額。">
+          Add names to assign amounts for reference.
+        </p>
+        <div class="input-group">
+          <input type="text" id="recipientName" placeholder="e.g. Grandma"
+            data-placeholder-en="e.g. Grandma"
+            data-placeholder-zh-HK="例：阿嬤" data-placeholder-zh-Hant="例：阿嬤" />
+          <button id="addRecipientBtn" data-en="Add" data-zh-HK="新增">Add</button>
+        </div>
+        <ul id="recipientList" class="recipient-list"></ul>
+      </div>
+    </div>
+
+    <script src="calculator.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>

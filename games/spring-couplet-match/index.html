@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Spring Couplet Match" data-zh-HK="揮春對對碰">
+      Spring Couplet Match
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="🧧 Spring Couplet Match" data-zh-HK="🧧 春聯對對碰">
+        🧧 Spring Couplet Match
+      </h1>
+
+      <div class="game-info">
+        <div class="score-section">
+          <div class="score-item">
+            <span class="score-label" data-en="Score:" data-zh-HK="分數：">Score:</span>
+            <span class="score-value" id="score">0</span>
+          </div>
+          <div class="score-item">
+            <span class="score-label" data-en="Matches:" data-zh-HK="配對：">Matches:</span>
+            <span class="score-value" id="matches">0</span>
+          </div>
+          <div class="score-item">
+            <span class="score-label" data-en="Level:" data-zh-HK="等級：">Level:</span>
+            <span class="score-value" id="level">1</span>
+          </div>
+        </div>
+        <button id="startBtn" class="start-btn" data-en="Start Game" data-zh-HK="開始遊戲">
+          Start Game
+        </button>
+      </div>
+
+      <div class="game-area">
+        <canvas id="gameCanvas"></canvas>
+        <div id="gameOver" class="game-over hidden">
+          <h2 data-en="Level complete!" data-zh-HK="關卡完成！">Level complete!</h2>
+          <p id="finalScore"></p>
+          <button id="restartBtn" class="restart-btn" data-en="Next level" data-zh-HK="下一關">
+            Next level
+          </button>
+        </div>
+      </div>
+
+      <div class="instructions">
+        <p data-en="Match pairs of lucky characters. Clear the board to advance!"
+          data-zh-HK="配對相同意頭字。清除所有牌即可升級！">
+          Match pairs of lucky characters. Clear the board to advance!
+        </p>
+      </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>

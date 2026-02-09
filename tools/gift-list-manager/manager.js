@@ -40,7 +40,7 @@ function addGift() {
 
   if (!recipient || !gift) {
     const locale = getLocale();
-    alert(locale === "zh-Hant" ? "請填寫收禮者和禮物" : "Please fill in recipient and gift");
+    alert((locale === "zh-HK" || locale === "zh-Hant") ? "請填寫收禮者和禮物" : "Please fill in recipient and gift");
     return;
   }
 
@@ -86,7 +86,7 @@ function renderGifts() {
 
   if (gifts.length === 0) {
     const locale = getLocale();
-    giftList.innerHTML = `<p class="empty-text" data-en="No gifts yet. Add your first gift above!" data-zh-Hant="尚無禮物。請在上方新增第一份禮物！">No gifts yet. Add your first gift above!</p>`;
+    giftList.innerHTML = `<p class="empty-text" data-en="No gifts yet. Add your first gift above!" data-zh-HK="尚無禮物。請在上方新增第一份禮物！">No gifts yet. Add your first gift above!</p>`;
     return;
   }
 
@@ -133,10 +133,10 @@ function exportList() {
   const locale = getLocale();
   const lines = gifts.map((gift) => {
     const status = gift.purchased
-      ? locale === "zh-Hant"
+      ? (locale === "zh-HK" || locale === "zh-Hant")
         ? "[已購買]"
         : "[Purchased]"
-      : locale === "zh-Hant"
+      : (locale === "zh-HK" || locale === "zh-Hant")
       ? "[待購買]"
       : "[Pending]";
     return `${status} ${gift.recipient}: ${gift.gift} - $${gift.budget.toFixed(2)}`;
@@ -145,7 +145,7 @@ function exportList() {
   const total = gifts.reduce((sum, gift) => sum + gift.budget, 0);
   lines.push("");
   lines.push(
-    locale === "zh-Hant"
+    (locale === "zh-HK" || locale === "zh-Hant")
       ? `總預算: $${total.toFixed(2)}`
       : `Total Budget: $${total.toFixed(2)}`
   );
@@ -154,7 +154,7 @@ function exportList() {
   navigator.clipboard.writeText(text).then(() => {
     const btn = exportBtn;
     const originalText = btn.textContent;
-    btn.textContent = locale === "zh-Hant" ? "已複製！" : "Copied!";
+    btn.textContent = (locale === "zh-HK" || locale === "zh-Hant") ? "已複製！" : "Copied!";
     setTimeout(() => {
       btn.textContent = originalText;
     }, 2000);
@@ -166,7 +166,7 @@ function clearAll() {
   const locale = getLocale();
   if (
     confirm(
-      locale === "zh-Hant"
+      (locale === "zh-HK" || locale === "zh-Hant")
         ? "確定要清除所有禮物嗎？"
         : "Are you sure you want to clear all gifts?"
     )
@@ -207,9 +207,9 @@ clearBtn.addEventListener("click", clearAll);
 function updateUIText() {
   const locale = getLocale();
   recipientInput.placeholder =
-    locale === "zh-Hant" ? "收禮者姓名" : "Recipient name";
-  giftInput.placeholder = locale === "zh-Hant" ? "禮物想法" : "Gift idea";
-  budgetInput.placeholder = locale === "zh-Hant" ? "預算" : "Budget";
+    (locale === "zh-HK" || locale === "zh-Hant") ? "收禮者姓名" : "Recipient name";
+  giftInput.placeholder = (locale === "zh-HK" || locale === "zh-Hant") ? "禮物想法" : "Gift idea";
+  budgetInput.placeholder = (locale === "zh-HK" || locale === "zh-Hant") ? "預算" : "Budget";
 }
 
 // Initialize

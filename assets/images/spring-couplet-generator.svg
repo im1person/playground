@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#c62828"/>
+  <rect x="40" y="30" width="320" height="200" rx="8" fill="none" stroke="#d4af37" stroke-width="3"/>
+  <text x="200" y="95" font-family="sans-serif" font-size="28" fill="#fff" text-anchor="middle" font-weight="bold">&#21513;&#31077;&#22914;&#24847;</text>
+  <text x="80" y="160" font-family="sans-serif" font-size="18" fill="#fff" transform="rotate(-90 80 160)">&#36814;&#26149;&#25509;&#31119;</text>
+  <text x="320" y="165" font-family="sans-serif" font-size="18" fill="#fff" transform="rotate(90 320 165)">&#32013;&#31119;&#36814;&#31077;</text>
+  <text x="200" y="240" font-family="Arial" font-size="14" fill="#f4e4a6" text-anchor="middle">Spring Couplet Generator</text>
+</svg>

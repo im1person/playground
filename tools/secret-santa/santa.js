@@ -39,6 +39,23 @@ function t(key) {
       receiver: "Receiver",
       copied: "Results copied to clipboard!",
     },
+    "zh-HK": {
+      enterName: "輸入姓名",
+      remove: "移除",
+      noExclusions: "未設定排除規則",
+      addExclusion: "新增排除",
+      removeExclusion: "移除",
+      generate: "生成秘密聖誕老人",
+      results: "結果",
+      copyResults: "複製結果",
+      reset: "重置",
+      noParticipants: "請至少新增 2 位參與者",
+      impossible: "無法在目前的排除規則下完成配對。請移除部分排除規則。",
+      success: "秘密聖誕老人配對完成！",
+      giver: "送禮者",
+      receiver: "收禮者",
+      copied: "結果已複製到剪貼簿！",
+    },
     "zh-Hant": {
       enterName: "輸入姓名",
       remove: "移除",
@@ -63,11 +80,11 @@ function t(key) {
 // Update UI text based on locale
 function updateUIText() {
   const locale = getLocale();
-  participantInput.placeholder = locale === "zh-Hant" ? "輸入姓名" : "Enter name";
-  addBtn.textContent = locale === "zh-Hant" ? "新增" : "Add";
-  generateBtn.textContent = locale === "zh-Hant" ? "生成秘密聖誕老人" : "Generate Secret Santa";
-  copyBtn.textContent = locale === "zh-Hant" ? "複製結果" : "Copy Results";
-  resetBtn.textContent = locale === "zh-Hant" ? "重置" : "Reset";
+  participantInput.placeholder = (locale === "zh-HK" || locale === "zh-Hant") ? "輸入姓名" : "Enter name";
+  addBtn.textContent = (locale === "zh-HK" || locale === "zh-Hant") ? "新增" : "Add";
+  generateBtn.textContent = (locale === "zh-HK" || locale === "zh-Hant") ? "生成秘密聖誕老人" : "Generate Secret Santa";
+  copyBtn.textContent = (locale === "zh-HK" || locale === "zh-Hant") ? "複製結果" : "Copy Results";
+  resetBtn.textContent = (locale === "zh-HK" || locale === "zh-Hant") ? "重置" : "Reset";
   renderParticipants();
   renderExclusions();
   renderResults();
@@ -79,7 +96,7 @@ function addParticipant() {
   if (!name) return;
   if (participants.includes(name)) {
     const locale = getLocale();
-    alert(locale === "zh-Hant" ? "此姓名已存在" : "Name already exists");
+    alert((locale === "zh-HK" || locale === "zh-Hant") ? "此姓名已存在" : "Name already exists");
     return;
   }
   participants.push(name);
@@ -108,7 +125,7 @@ function removeParticipant(name) {
 function renderParticipants() {
   participantsList.innerHTML = "";
   if (participants.length === 0) {
-    participantsList.innerHTML = `<p class="empty-text" data-en="No participants yet" data-zh-Hant="尚無參與者">No participants yet</p>`;
+    participantsList.innerHTML = `<p class="empty-text" data-en="No participants yet" data-zh-HK="尚無參與者">No participants yet</p>`;
     return;
   }
   participants.forEach((name) => {
@@ -129,7 +146,7 @@ function renderExclusions() {
   exclusionsList.innerHTML = "";
   
   if (participants.length < 2) {
-    exclusionsList.innerHTML = `<p class="empty-text" data-en="Add at least 2 participants to set exclusions" data-zh-Hant="至少需要 2 位參與者才能設定排除規則">Add at least 2 participants to set exclusions</p>`;
+    exclusionsList.innerHTML = `<p class="empty-text" data-en="Add at least 2 participants to set exclusions" data-zh-HK="至少需要 2 位參與者才能設定排除規則">Add at least 2 participants to set exclusions</p>`;
     return;
   }
 
@@ -160,7 +177,7 @@ function renderExclusions() {
     const p2 = select2.value;
     if (p1 === p2) {
       const locale = getLocale();
-      alert(locale === "zh-Hant" ? "不能選擇相同的人" : "Cannot select the same person");
+      alert((locale === "zh-HK" || locale === "zh-Hant") ? "不能選擇相同的人" : "Cannot select the same person");
       return;
     }
     const exclusion = [p1, p2].sort().join("|");
@@ -179,7 +196,7 @@ function renderExclusions() {
     const emptyMsg = document.createElement("p");
     emptyMsg.className = "empty-text";
     emptyMsg.setAttribute("data-en", "No exclusions set");
-    emptyMsg.setAttribute("data-zh-Hant", "未設定排除規則");
+    emptyMsg.setAttribute("data-zh-HK", "未設定排除規則");
     emptyMsg.textContent = t("noExclusions");
     exclusionsList.appendChild(emptyMsg);
   } else {
@@ -281,12 +298,12 @@ function renderResults(assignment) {
       item.className = "result-item";
       item.innerHTML = `
         <div class="result-giver">
-          <span class="result-label">${locale === "zh-Hant" ? "送禮者" : "Giver"}:</span>
+          <span class="result-label">${(locale === "zh-HK" || locale === "zh-Hant") ? "送禮者" : "Giver"}:</span>
           <span class="result-name">${escapeHtml(giver)}</span>
         </div>
         <div class="result-arrow">→</div>
         <div class="result-receiver">
-          <span class="result-label">${locale === "zh-Hant" ? "收禮者" : "Receiver"}:</span>
+          <span class="result-label">${(locale === "zh-HK" || locale === "zh-Hant") ? "收禮者" : "Receiver"}:</span>
           <span class="result-name">${escapeHtml(receiver)}</span>
         </div>
       `;
@@ -308,8 +325,8 @@ function copyResults() {
   const lines = Object.entries(assignment)
     .sort()
     .map(([giver, receiver]) => {
-      const giverLabel = locale === "zh-Hant" ? "送禮者" : "Giver";
-      const receiverLabel = locale === "zh-Hant" ? "收禮者" : "Receiver";
+      const giverLabel = (locale === "zh-HK" || locale === "zh-Hant") ? "送禮者" : "Giver";
+      const receiverLabel = (locale === "zh-HK" || locale === "zh-Hant") ? "收禮者" : "Receiver";
       return `${giverLabel}: ${giver} → ${receiverLabel}: ${receiver}`;
     });
 

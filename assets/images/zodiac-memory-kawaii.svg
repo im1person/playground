@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#f5f5dc"/>
+  <defs>
+    <filter id="kawaii-shadow-zm">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="2" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect x="80" y="50" width="80" height="80" rx="12" fill="#d9716d" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow-zm)"/>
+  <text x="120" y="95" font-family="Arial" font-size="28" fill="#fff" text-anchor="middle" font-weight="bold">&#40845;</text>
+  <rect x="240" y="50" width="80" height="80" rx="12" fill="#d9716d" stroke="#654321" stroke-width="4" filter="url(#kawaii-shadow-zm)"/>
+  <text x="280" y="95" font-family="Arial" font-size="28" fill="#fff" text-anchor="middle" font-weight="bold">&#40845;</text>
+  <text x="200" y="190" font-family="Arial" font-size="18" fill="#654321" text-anchor="middle" font-weight="bold">Zodiac Memory</text>
+</svg>

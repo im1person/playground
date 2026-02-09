@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#1a0a0a"/>
+  <rect x="80" y="50" width="80" height="80" rx="8" fill="#c62828" stroke="#d4af37" stroke-width="2"/>
+  <text x="120" y="95" font-family="Arial" font-size="28" fill="#fff" text-anchor="middle" font-weight="bold">&#40845;</text>
+  <rect x="240" y="50" width="80" height="80" rx="8" fill="#c62828" stroke="#d4af37" stroke-width="2"/>
+  <text x="280" y="95" font-family="Arial" font-size="28" fill="#fff" text-anchor="middle" font-weight="bold">&#40845;</text>
+  <text x="200" y="190" font-family="Arial" font-size="20" fill="#d4af37" text-anchor="middle">Zodiac Memory</text>
+</svg>

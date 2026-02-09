@@ -133,7 +133,7 @@ class SlotManager {
       name: slot.name,
       playerCount: slot.players ? slot.players.length : 0,
       roundCount: slot.rounds ? slot.rounds.length : 0,
-      lastUpdated: date.toLocaleString(locale === "zh-Hant" ? "zh-TW" : "en-US"),
+      lastUpdated: date.toLocaleString((locale === "zh-HK" || locale === "zh-Hant") ? "zh-HK" : "en-US"),
       isCurrent: slot.id === this.currentSlotId,
     };
   }
@@ -1135,7 +1135,7 @@ function escapeHtml(text) {
 
 function getLocalizedText(en, zh) {
   const locale = document.documentElement.lang || "en";
-  return locale === "zh-Hant" ? zh : en;
+  return (locale === "zh-HK" || locale === "zh-Hant") ? zh : en;
 }
 
 // Make functions available globally for onclick handlers
@@ -1150,12 +1150,12 @@ window.handleDeleteSlot = handleDeleteSlot;
 function updatePlaceholders() {
   const locale = document.documentElement.lang || "en";
   const placeholders = document.querySelectorAll(
-    "[data-placeholder-en], [data-placeholder-zh-Hant]"
+    "[data-placeholder-en], [data-placeholder-zh-HK]"
   );
   placeholders.forEach((el) => {
     const en = el.getAttribute("data-placeholder-en");
-    const zh = el.getAttribute("data-placeholder-zh-Hant");
-    el.placeholder = locale === "zh-Hant" ? zh : en;
+    const zh = el.getAttribute("data-placeholder-zh-HK");
+    el.placeholder = (locale === "zh-HK" || locale === "zh-Hant") ? zh : en;
   });
 }
 

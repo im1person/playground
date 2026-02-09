@@ -1,0 +1,218 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark {
+  background: #181c1f;
+  color: #f0f0f0;
+}
+
+body.light-mode {
+  background: #f0f0f0;
+  color: #222;
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  margin-top: 60px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #c62828;
+  font-size: 2.2em;
+}
+
+body.dark h1 {
+  color: #ef5350;
+}
+
+.quiz-area {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .quiz-area {
+  background: #23272a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.stats-bar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #eee;
+}
+
+body.dark .stats-bar {
+  border-bottom-color: #444;
+}
+
+.stat {
+  font-weight: 600;
+  color: #666;
+}
+
+body.dark .stat {
+  color: #aaa;
+}
+
+.riddle-card {
+  margin-top: 8px;
+}
+
+.riddle-question {
+  font-size: 1.25em;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  min-height: 2.5em;
+}
+
+.answer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.answer-input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 1.1em;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+body.dark .answer-input {
+  background: #2c2f33;
+  border-color: #555;
+  color: #f0f0f0;
+}
+
+.answer-input:focus {
+  outline: none;
+  border-color: #c62828;
+}
+
+body.dark .answer-input:focus {
+  border-color: #ef5350;
+}
+
+.answer-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn-primary {
+  background: #c62828;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #b71c1c;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #555;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #444;
+  transform: translateY(-1px);
+}
+
+body.dark .btn-secondary {
+  background: #555;
+}
+
+.result-section {
+  margin-top: 8px;
+}
+
+.result-section.hidden {
+  display: none;
+}
+
+.answer-section.hidden {
+  display: none;
+}
+
+.result-message {
+  font-size: 1.2em;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.result-message.correct {
+  color: #2e7d32;
+}
+
+body.dark .result-message.correct {
+  color: #81c784;
+}
+
+.result-message.wrong {
+  color: #c62828;
+}
+
+body.dark .result-message.wrong {
+  color: #ef5350;
+}
+
+.explanation {
+  margin-bottom: 20px;
+  line-height: 1.5;
+  color: #555;
+}
+
+body.dark .explanation {
+  color: #aaa;
+}
+
+.start-screen {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.start-screen.hidden {
+  display: none;
+}
+
+.riddle-card.hidden {
+  display: none;
+}
+
+.intro {
+  margin-bottom: 20px;
+  line-height: 1.5;
+  color: #555;
+}
+
+body.dark .intro {
+  color: #aaa;
+}
+
+.hidden {
+  display: none !important;
+}

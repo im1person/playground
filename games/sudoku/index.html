@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-en="Sudoku" data-zh-Hant="數獨">Sudoku</title>
+    <title data-en="Sudoku" data-zh-HK="數獨">Sudoku</title>
     <link rel="stylesheet" href="../../assets/style.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -12,11 +12,11 @@
 
     <main class="sudoku-shell">
       <div class="shell-heading">
-        <h1 data-en="Sudoku" data-zh-Hant="數獨">Sudoku</h1>
+        <h1 data-en="Sudoku" data-zh-HK="數獨">Sudoku</h1>
         <p
           class="subtitle"
           data-en="Four tiers, smart notes, solver-ready."
-          data-zh-Hant="四種難度、筆記輔助、內建求解器。"
+          data-zh-HK="四種難度、筆記輔助、內建求解器。"
         >
           Four tiers, smart notes, solver-ready.
         </p>
@@ -24,7 +24,7 @@
           class="intro-link"
           href="intro.html"
           data-en="Need a quick overview?"
-          data-zh-Hant="需要快速介紹？"
+          data-zh-HK="需要快速介紹？"
         >
           Need a quick overview?
         </a>
@@ -34,28 +34,28 @@
         <div class="board-panel">
           <div class="status-bar">
             <div class="status-item">
-              <span data-en="Difficulty" data-zh-Hant="難度">Difficulty</span>
+              <span data-en="Difficulty" data-zh-HK="難度">Difficulty</span>
               <select id="difficultySelect" aria-label="Select difficulty">
-                <option value="easy" data-en="Easy" data-zh-Hant="輕鬆">
+                <option value="easy" data-en="Easy" data-zh-HK="輕鬆">
                   Easy
                 </option>
-                <option value="normal" data-en="Normal" data-zh-Hant="標準">
+                <option value="normal" data-en="Normal" data-zh-HK="標準">
                   Normal
                 </option>
-                <option value="hard" data-en="Hard" data-zh-Hant="困難">
+                <option value="hard" data-en="Hard" data-zh-HK="困難">
                   Hard
                 </option>
-                <option value="master" data-en="Master" data-zh-Hant="大師">
+                <option value="master" data-en="Master" data-zh-HK="大師">
                   Master
                 </option>
               </select>
             </div>
             <div class="status-item">
-              <span data-en="Timer" data-zh-Hant="計時">Timer</span>
+              <span data-en="Timer" data-zh-HK="計時">Timer</span>
               <span id="timerDisplay">00:00</span>
             </div>
             <div class="status-item">
-              <span data-en="Mistakes" data-zh-Hant="錯誤">Mistakes</span>
+              <span data-en="Mistakes" data-zh-HK="錯誤">Mistakes</span>
               <span id="mistakeDisplay">0 / 3</span>
             </div>
           </div>
@@ -82,7 +82,7 @@
               class="pad-btn utility"
               data-action="erase"
               data-en="Erase"
-              data-zh-Hant="清除"
+              data-zh-HK="清除"
             >
               Erase
             </button>
@@ -92,7 +92,7 @@
               data-action="notes"
               aria-pressed="false"
               data-en="Notes"
-              data-zh-Hant="筆記"
+              data-zh-HK="筆記"
             >
               Notes
             </button>
@@ -101,46 +101,46 @@
 
         <aside class="control-panel">
           <div class="control-card">
-            <h2 data-en="Actions" data-zh-Hant="操作">Actions</h2>
+            <h2 data-en="Actions" data-zh-HK="操作">Actions</h2>
             <div class="control-buttons">
               <button
                 data-action="new"
                 data-en="New Puzzle"
-                data-zh-Hant="新局"
+                data-zh-HK="新局"
               >
                 New Puzzle
               </button>
-              <button data-action="hint" data-en="Hint" data-zh-Hant="提示">
+              <button data-action="hint" data-en="Hint" data-zh-HK="提示">
                 Hint
               </button>
               <button
                 data-action="auto"
                 data-en="Auto Solve"
-                data-zh-Hant="自動解"
+                data-zh-HK="自動解"
               >
                 Auto Solve
               </button>
-              <button data-action="undo" data-en="Undo" data-zh-Hant="復原">
+              <button data-action="undo" data-en="Undo" data-zh-HK="復原">
                 Undo
               </button>
-              <button data-action="redo" data-en="Redo" data-zh-Hant="重做">
+              <button data-action="redo" data-en="Redo" data-zh-HK="重做">
                 Redo
               </button>
             </div>
           </div>
 
           <div class="control-card">
-            <h2 data-en="Notes" data-zh-Hant="筆記">Notes</h2>
+            <h2 data-en="Notes" data-zh-HK="筆記">Notes</h2>
             <p
               data-en="Select a cell, toggle Notes, then tap numbers to add candidates."
-              data-zh-Hant="選取格子、切換筆記模式，再點擊數字即可加入候選值。"
+              data-zh-HK="選取格子、切換筆記模式，再點擊數字即可加入候選值。"
             >
               Select a cell, toggle Notes, then tap numbers to add candidates.
             </p>
           </div>
 
           <div class="control-card">
-            <h2 data-en="Shortcuts" data-zh-Hant="快捷鍵">Shortcuts</h2>
+            <h2 data-en="Shortcuts" data-zh-HK="快捷鍵">Shortcuts</h2>
             <ul>
               <li>Arrow Keys · Move</li>
               <li>1-9 · Fill value</li>
@@ -152,17 +152,17 @@
       </section>
 
       <section class="saved-progress">
-        <h2 data-en="Saved Progress" data-zh-Hant="保存進度">Saved Progress</h2>
+        <h2 data-en="Saved Progress" data-zh-HK="保存進度">Saved Progress</h2>
         <p
           data-en="Your current grid auto-saves locally. Refresh without fear."
-          data-zh-Hant="目前棋盤會自動保存，隨時可重新載入。"
+          data-zh-HK="目前棋盤會自動保存，隨時可重新載入。"
         >
           Your current grid auto-saves locally. Refresh without fear.
         </p>
         <button
           id="resetProgress"
           data-en="Clear Saved Game"
-          data-zh-Hant="清除保存進度"
+          data-zh-HK="清除保存進度"
         >
           Clear Saved Game
         </button>
@@ -171,7 +171,7 @@
 
     <dialog id="victoryModal" class="modal">
       <div class="modal-card">
-        <h2 data-en="Puzzle Complete!" data-zh-Hant="完成數獨！">
+        <h2 data-en="Puzzle Complete!" data-zh-HK="完成數獨！">
           Puzzle Complete!
         </h2>
         <p id="victoryStats"></p>
@@ -179,11 +179,11 @@
           <button
             data-action="replay"
             data-en="Play Again"
-            data-zh-Hant="再玩一局"
+            data-zh-HK="再玩一局"
           >
             Play Again
           </button>
-          <button data-action="close" data-en="Close" data-zh-Hant="關閉">
+          <button data-action="close" data-en="Close" data-zh-HK="關閉">
             Close
           </button>
         </div>

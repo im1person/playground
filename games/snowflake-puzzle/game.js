@@ -212,7 +212,7 @@ function endGame() {
   cancelAnimationFrame(animationFrame);
   const locale = getLocale();
   finalScore.textContent =
-    locale === "zh-Hant"
+    (locale === "zh-HK" || locale === "zh-Hant")
       ? `最終分數: ${score} | 配對: ${matches} | 等級: ${level}`
       : `Final Score: ${score} | Matches: ${matches} | Level: ${level}`;
   gameOver.classList.remove("hidden");
@@ -232,7 +232,7 @@ function drawInitialScreen() {
   ctx.textAlign = "center";
   const locale = getLocale();
   const message =
-    locale === "zh-Hant"
+    (locale === "zh-HK" || locale === "zh-Hant")
       ? "點擊「開始遊戲」來開始！"
       : "Click 'Start Game' to begin!";
   ctx.fillText(message, canvas.width / 2, canvas.height / 2);

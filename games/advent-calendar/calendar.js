@@ -154,7 +154,7 @@ function showSurprise(day) {
   const surprise = surprises[day];
   const locale = getLocale();
   
-  modalTitle.textContent = locale === "zh-Hant" ? `第 ${day} 天` : `Day ${day}`;
+  modalTitle.textContent = (locale === "zh-HK" || locale === "zh-Hant") ? `第 ${day} 天` : `Day ${day}`;
   modalContent.innerHTML = `
     <div class="surprise-display">
       <div class="surprise-emoji-large">${surprise.emoji}</div>
@@ -185,7 +185,7 @@ function updateTodayDate() {
     month: "long", 
     day: "numeric" 
   };
-  todayDateEl.textContent = now.toLocaleDateString(locale === "zh-Hant" ? "zh-TW" : "en-US", options);
+  todayDateEl.textContent = now.toLocaleDateString((locale === "zh-HK" || locale === "zh-Hant") ? "zh-HK" : "en-US", options);
 }
 
 // Initialize

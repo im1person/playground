@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#2d1b1b"/>
+  <circle cx="200" cy="130" r="70" fill="#e57373" stroke="#ffcc80" stroke-width="3"/>
+  <circle cx="200" cy="130" r="52" fill="#fff8e1" stroke="#ffcc80" stroke-width="2"/>
+  <text x="200" y="95" font-family="Arial" font-size="22" fill="#ffcc80" text-anchor="middle">Reunion Dinner</text>
+</svg>

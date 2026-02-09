@@ -120,10 +120,10 @@ function updateDeckCount() {
   if (!deck || !deckCount) return;
   const count = deck.getCount();
   const locale = document.documentElement.lang || "en";
-  const text = locale === "zh-Hant" ? `剩餘: ${count}` : `Cards: ${count}`;
+  const text = (locale === "zh-HK" || locale === "zh-Hant") ? `剩餘: ${count}` : `Cards: ${count}`;
   deckCount.textContent = text;
   deckCount.setAttribute("data-en", `Cards: ${count}`);
-  deckCount.setAttribute("data-zh-Hant", `剩餘: ${count}`);
+  deckCount.setAttribute("data-zh-HK", `剩餘: ${count}`);
 }
 
 /**
@@ -224,8 +224,8 @@ function updateLayoutModeButton() {
   }
 
   layoutModeBtn.setAttribute("data-en", textEn);
-  layoutModeBtn.setAttribute("data-zh-Hant", textZh);
-  layoutModeBtn.textContent = locale === "zh-Hant" ? textZh : textEn;
+  layoutModeBtn.setAttribute("data-zh-HK", textZh);
+  layoutModeBtn.textContent = (locale === "zh-HK" || locale === "zh-Hant") ? textZh : textEn;
   layoutModeBtn.classList.toggle("active", layoutMode !== "normal");
 }
 

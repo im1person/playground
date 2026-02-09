@@ -135,15 +135,15 @@ function getLocale() {
 }
 
 function getScoreText(score) {
-  return getLocale() === 'zh-Hant' ? '分數: ' + score : 'Score: ' + score;
+  return (getLocale() === 'zh-HK' || getLocale() === 'zh-Hant') ? '分數: ' + score : 'Score: ' + score;
 }
 
 function getGameOverText(score) {
-  return getLocale() === 'zh-Hant' ? `遊戲結束！最終分數: ${score}` : `Game Over! Final Score: ${score}`;
+  return (getLocale() === 'zh-HK' || getLocale() === 'zh-Hant') ? `遊戲結束！最終分數: ${score}` : `Game Over! Final Score: ${score}`;
 }
 
 function getRestartText() {
-  return getLocale() === 'zh-Hant' ? '重新開始' : 'Restart Game';
+  return (getLocale() === 'zh-HK' || getLocale() === 'zh-Hant') ? '重新開始' : 'Restart Game';
 }
 
 startBtn.addEventListener('click', function() {

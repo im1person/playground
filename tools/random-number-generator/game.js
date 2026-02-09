@@ -86,7 +86,7 @@ function updateExcludeButtons() {
 }
 
 function getResultPrefix(i) {
-  const locale = localStorage.getItem("playground-locale") || "zh-Hant";
+  const locale = localStorage.getItem("playground-locale") || "zh-HK";
   if (locale === "en") {
     return `Run ${i}:`;
   } else {
