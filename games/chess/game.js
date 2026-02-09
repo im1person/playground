@@ -148,7 +148,7 @@ class ChessGame {
 
   updateStatus() {
     const locale = document.documentElement.lang || "en";
-    const isZh = locale === "zh-Hant";
+    const isZh = (locale === "zh-HK" || locale === "zh-Hant");
     
     if (this.engine.isCheckmate()) {
       this.statusEl.textContent = isZh ? "將死！" : "Checkmate!";

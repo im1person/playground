@@ -24,16 +24,14 @@ function getLocale() {
 function initTimezones() {
   // Add common timezones
   const timezones = [
+    { value: "Asia/Hong_Kong", label: "Hong Kong" },
+    { value: "Asia/Shanghai", label: "Shanghai" },
+    { value: "Asia/Taipei", label: "Taipei" },
+    { value: "Asia/Tokyo", label: "Tokyo" },
     { value: "UTC", label: "UTC" },
     { value: "America/New_York", label: "Eastern Time (US)" },
-    { value: "America/Chicago", label: "Central Time (US)" },
-    { value: "America/Denver", label: "Mountain Time (US)" },
     { value: "America/Los_Angeles", label: "Pacific Time (US)" },
     { value: "Europe/London", label: "London" },
-    { value: "Europe/Paris", label: "Paris" },
-    { value: "Asia/Tokyo", label: "Tokyo" },
-    { value: "Asia/Shanghai", label: "Shanghai" },
-    { value: "Asia/Hong_Kong", label: "Hong Kong" },
     { value: "Australia/Sydney", label: "Sydney" },
   ];
 
@@ -44,11 +42,8 @@ function initTimezones() {
     timezoneSelect.appendChild(option);
   });
 
-  // Load saved preference
   const savedTz = localStorage.getItem("countdown-timezone");
-  if (savedTz) {
-    timezoneSelect.value = savedTz;
-  }
+  timezoneSelect.value = savedTz || "Asia/Hong_Kong";
 }
 
 // Get current date/time as a Date object

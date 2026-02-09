@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Lunar New Year Countdown" data-zh-HK="農曆新年倒數">
+      Lunar New Year Countdown
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="🧧 Lunar New Year Countdown" data-zh-HK="🧧 農曆新年倒數">
+        🧧 Lunar New Year Countdown
+      </h1>
+
+      <div class="zodiac-banner" id="zodiacBanner">
+        <span id="zodiacLabel" data-en="Year of the Dragon" data-zh-HK="龍年">Year of the Dragon</span>
+      </div>
+
+      <div class="countdown-section">
+        <div class="countdown-display">
+          <div class="time-unit">
+            <div class="time-value" id="days">0</div>
+            <div class="time-label" data-en="Days" data-zh-HK="天">Days</div>
+          </div>
+          <div class="time-separator">:</div>
+          <div class="time-unit">
+            <div class="time-value" id="hours">0</div>
+            <div class="time-label" data-en="Hours" data-zh-HK="小時">Hours</div>
+          </div>
+          <div class="time-separator">:</div>
+          <div class="time-unit">
+            <div class="time-value" id="minutes">0</div>
+            <div class="time-label" data-en="Minutes" data-zh-HK="分鐘">Minutes</div>
+          </div>
+          <div class="time-separator">:</div>
+          <div class="time-unit">
+            <div class="time-value" id="seconds">0</div>
+            <div class="time-label" data-en="Seconds" data-zh-HK="秒">Seconds</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 data-en="Settings" data-zh-HK="設定">Settings</h2>
+        <div class="setting-group">
+          <label for="timezone" data-en="Timezone:" data-zh-HK="時區：">Timezone:</label>
+          <select id="timezone">
+            <option value="auto" data-en="Auto (Browser)" data-zh-HK="自動（瀏覽器）">Auto (Browser)</option>
+          </select>
+        </div>
+        <button id="updateBtn" class="update-btn" data-en="Update Countdown" data-zh-HK="更新倒數">
+          Update Countdown
+        </button>
+      </div>
+
+      <div class="section">
+        <h2 data-en="Quick Presets" data-zh-HK="快速設定">Quick Presets</h2>
+        <div class="presets">
+          <button class="preset-btn" data-preset="lny" data-en="🧧 Lunar New Year (初一)" data-zh-HK="🧧 農曆初一">
+            🧧 Lunar New Year (初一)
+          </button>
+          <button class="preset-btn" data-preset="eve" data-en="🏮 New Year's Eve (除夕)" data-zh-HK="🏮 除夕">
+            🏮 New Year's Eve (除夕)
+          </button>
+          <button class="preset-btn" data-preset="custom" data-en="Custom" data-zh-HK="自訂">
+            Custom
+          </button>
+        </div>
+      </div>
+
+      <div id="messageSection" class="section message-section hidden">
+        <h2 id="messageTitle" data-en="🎉 新年快樂！" data-zh-HK="🎉 新年快樂！">🎉 新年快樂！</h2>
+        <p id="messageText" data-en="Lunar New Year has arrived!" data-zh-HK="農曆新年到了！">
+          Lunar New Year has arrived!
+        </p>
+      </div>
+    </div>
+
+    <script src="countdown.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>

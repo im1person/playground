@@ -3,48 +3,48 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-en="Chess" data-zh-Hant="西洋棋">Chess</title>
+    <title data-en="Chess" data-zh-HK="西洋棋">Chess</title>
     <link rel="stylesheet" href="../../assets/style.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="page">
       <header>
-        <h1 data-en="Chess" data-zh-Hant="西洋棋">Chess</h1>
+        <h1 data-en="Chess" data-zh-HK="西洋棋">Chess</h1>
         <div class="controls">
           <label>
-            <span data-en="Mode:" data-zh-Hant="模式：">Mode:</span>
+            <span data-en="Mode:" data-zh-HK="模式：">Mode:</span>
             <select id="modeSelect">
               <option
                 value="two-player"
                 data-en="Two Players"
-                data-zh-Hant="雙人對戰"
+                data-zh-HK="雙人對戰"
               >
                 Two Players
               </option>
-              <option value="ai" data-en="Vs AI" data-zh-Hant="對戰 AI">
+              <option value="ai" data-en="Vs AI" data-zh-HK="對戰 AI">
                 Vs AI
               </option>
-              <option value="puzzle" data-en="Puzzle" data-zh-Hant="謎題">
+              <option value="puzzle" data-en="Puzzle" data-zh-HK="謎題">
                 Puzzle
               </option>
-              <option value="analysis" data-en="Analysis" data-zh-Hant="分析">
+              <option value="analysis" data-en="Analysis" data-zh-HK="分析">
                 Analysis
               </option>
             </select>
           </label>
           <label>
-            <span data-en="Difficulty:" data-zh-Hant="難度：">Difficulty:</span>
+            <span data-en="Difficulty:" data-zh-HK="難度：">Difficulty:</span>
             <select id="difficulty">
-              <option value="1" data-en="Easy" data-zh-Hant="簡單">Easy</option>
-              <option value="2" selected data-en="Medium" data-zh-Hant="中等">
+              <option value="1" data-en="Easy" data-zh-HK="簡單">Easy</option>
+              <option value="2" selected data-en="Medium" data-zh-HK="中等">
                 Medium
               </option>
-              <option value="3" data-en="Hard" data-zh-Hant="困難">Hard</option>
+              <option value="3" data-en="Hard" data-zh-HK="困難">Hard</option>
             </select>
           </label>
-          <button id="newGame" data-en="New" data-zh-Hant="新局">New</button>
-          <button id="undo" data-en="Undo" data-zh-Hant="悔棋">Undo</button>
+          <button id="newGame" data-en="New" data-zh-HK="新局">New</button>
+          <button id="undo" data-en="Undo" data-zh-HK="悔棋">Undo</button>
         </div>
       </header>
 
@@ -53,10 +53,10 @@
           <div id="board" class="board" aria-label="Chess board"></div>
         </div>
         <aside class="side-panel">
-          <div class="status" id="status" data-en="Ready" data-zh-Hant="準備中">
+          <div class="status" id="status" data-en="Ready" data-zh-HK="準備中">
             Ready
           </div>
-          <h3 data-en="Moves" data-zh-Hant="走棋記錄">Moves</h3>
+          <h3 data-en="Moves" data-zh-HK="走棋記錄">Moves</h3>
           <ol id="moveList"></ol>
         </aside>
       </main>
@@ -78,20 +78,20 @@
           const modeSelect = document.getElementById("modeSelect");
           if (modeSelect) {
             modeSelect.querySelectorAll("option").forEach((option) => {
-              const zhText = option.getAttribute("data-zh-Hant");
+              const zhText = option.getAttribute("data-zh-HK");
               const enText = option.getAttribute("data-en");
               if (zhText && enText) {
-                option.textContent = locale === "zh-Hant" ? zhText : enText;
+                option.textContent = (locale === "zh-HK" || locale === "zh-Hant") ? zhText : enText;
               }
             });
           }
           const difficultySelect = document.getElementById("difficulty");
           if (difficultySelect) {
             difficultySelect.querySelectorAll("option").forEach((option) => {
-              const zhText = option.getAttribute("data-zh-Hant");
+              const zhText = option.getAttribute("data-zh-HK");
               const enText = option.getAttribute("data-en");
               if (zhText && enText) {
-                option.textContent = locale === "zh-Hant" ? zhText : enText;
+                option.textContent = (locale === "zh-HK" || locale === "zh-Hant") ? zhText : enText;
               }
             });
           }

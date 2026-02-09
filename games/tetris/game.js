@@ -612,7 +612,7 @@ function playerReset() {
     updateScore();
     isGameOver = true;
     btn.textContent =
-      document.documentElement.lang === "zh-Hant" ? "重新開始" : "Restart";
+      (document.documentElement.lang === "zh-HK" || document.documentElement.(lang === "zh-HK" || lang === "zh-Hant")) ? "重新開始" : "Restart";
     btn.style.display = "block";
   }
 }
@@ -969,9 +969,9 @@ function update(time = 0) {
 function updateScore() {
   const lang = document.documentElement.lang;
   scoreElement.innerText =
-    lang === "zh-Hant" ? `分數: ${player.score}` : `Score: ${player.score}`;
+    (lang === "zh-HK" || lang === "zh-Hant") ? `分數: ${player.score}` : `Score: ${player.score}`;
   levelElement.innerText =
-    lang === "zh-Hant" ? `等級: ${player.level}` : `Level: ${player.level}`;
+    (lang === "zh-HK" || lang === "zh-Hant") ? `等級: ${player.level}` : `Level: ${player.level}`;
 }
 
 document.addEventListener("keydown", (event) => {
@@ -1024,10 +1024,10 @@ autoBtn.addEventListener("click", () => {
   isAutoSolver = !isAutoSolver;
   autoBtn.style.backgroundColor = isAutoSolver ? "#d32f2f" : "#9c27b0"; // Red when on to signify "Stop" or similar
   autoBtn.innerText = isAutoSolver
-    ? document.documentElement.lang === "zh-Hant"
+    ? (document.documentElement.lang === "zh-HK" || document.documentElement.(lang === "zh-HK" || lang === "zh-Hant"))
       ? "停止自動"
       : "Stop Auto"
-    : document.documentElement.lang === "zh-Hant"
+    : (document.documentElement.lang === "zh-HK" || document.documentElement.(lang === "zh-HK" || lang === "zh-Hant"))
     ? "自動解題"
     : "Auto Solver";
 

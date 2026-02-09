@@ -27,6 +27,13 @@ const IMAGE_MAP = {
   "advent-calendar.svg": "advent-calendar-kawaii.svg",
   "gift-list.svg": "gift-list-kawaii.svg",
   "snowflake-puzzle.svg": "snowflake-puzzle-kawaii.svg",
+  "lunar-new-year-countdown.svg": "lunar-new-year-countdown-kawaii.svg",
+  "red-envelope-calculator.svg": "red-envelope-calculator-kawaii.svg",
+  "spring-couplet-generator.svg": "spring-couplet-generator-kawaii.svg",
+  "zodiac-memory.svg": "zodiac-memory-kawaii.svg",
+  "spring-couplet-match.svg": "spring-couplet-match-kawaii.svg",
+  "reunion-dinner.svg": "reunion-dinner-kawaii.svg",
+  "lantern-riddle.svg": "lantern-riddle-kawaii.svg",
 };
 
 /**

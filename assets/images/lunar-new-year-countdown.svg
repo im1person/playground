@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#c62828"/>
+  <rect x="20" y="20" width="360" height="220" rx="8" fill="none" stroke="#d4af37" stroke-width="3"/>
+  <text x="200" y="100" font-family="Arial" font-size="48" fill="#fff" text-anchor="middle" font-weight="bold">LNY</text>
+  <text x="200" y="160" font-family="Arial" font-size="24" fill="#fff" text-anchor="middle">Countdown</text>
+  <text x="200" y="200" font-family="Arial" font-size="18" fill="#f4e4a6" text-anchor="middle">&#x521d;&#x4e00;</text>
+</svg>

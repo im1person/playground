@@ -10,7 +10,7 @@ export function createHeader(homePath = "index.html") {
     <a href="${homePath}" class="home-btn" aria-label="Home" title="Home">🏠</a>
     <select id="localeSelect" class="locale-select">
       <option value="en">English</option>   
-      <option value="zh-Hant">繁體中文</option>
+      <option value="zh-HK">繁體（香港）</option>
     </select>
     <button
       id="localeToggleBtn"

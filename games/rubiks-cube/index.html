@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-en="Rubik's Cube" data-zh-Hant="魔術方塊">Rubik's Cube</title>
+    <title data-en="Rubik's Cube" data-zh-HK="魔術方塊">Rubik's Cube</title>
     <link rel="stylesheet" href="../../assets/style.css" />
     <link rel="stylesheet" href="styles.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -14,11 +14,11 @@
 
     <main class="game-shell">
       <div class="shell-heading">
-        <h1 data-en="Rubik's Cube" data-zh-Hant="魔術方塊">Rubik's Cube</h1>
+        <h1 data-en="Rubik's Cube" data-zh-HK="魔術方塊">Rubik's Cube</h1>
         <p
           class="subtitle"
           data-en="3D Solver Simulator"
-          data-zh-Hant="3D 解題模擬器"
+          data-zh-HK="3D 解題模擬器"
         >
           3D Solver Simulator
         </p>
@@ -35,22 +35,22 @@
           <div class="controls-container">
             <div class="status-panel">
               <div class="status-item">
-                <span data-en="Moves:" data-zh-Hant="步數:">Moves:</span>
+                <span data-en="Moves:" data-zh-HK="步數:">Moves:</span>
                 <span id="moveCount">0</span>
               </div>
               <div class="status-item">
-                <span data-en="Status:" data-zh-Hant="狀態:">Status:</span>
-                <span id="solveStatus" data-en="Ready" data-zh-Hant="就緒"
+                <span data-en="Status:" data-zh-HK="狀態:">Status:</span>
+                <span id="solveStatus" data-en="Ready" data-zh-HK="就緒"
                   >Ready</span
                 >
               </div>
             </div>
 
             <div class="action-group">
-              <button id="scrambleBtn" data-en="Scramble" data-zh-Hant="打亂">
+              <button id="scrambleBtn" data-en="Scramble" data-zh-HK="打亂">
                 Scramble
               </button>
-              <button id="resetBtn" data-en="Reset" data-zh-Hant="重置">
+              <button id="resetBtn" data-en="Reset" data-zh-HK="重置">
                 Reset
               </button>
             </div>
@@ -60,15 +60,15 @@
                 <option
                   value="beginner"
                   data-en="Beginner Method"
-                  data-zh-Hant="層解法"
+                  data-zh-HK="層解法"
                 >
                   Beginner Method
                 </option>
-                <option value="cfop" data-en="CFOP" data-zh-Hant="CFOP">
+                <option value="cfop" data-en="CFOP" data-zh-HK="CFOP">
                   CFOP
                 </option>
               </select>
-              <button id="solveBtn" data-en="Solve" data-zh-Hant="解題">
+              <button id="solveBtn" data-en="Solve" data-zh-HK="解題">
                 Solve
               </button>
             </div>
@@ -78,7 +78,7 @@
               <button id="playPauseBtn">▶</button>
               <button id="nextStepBtn">⏭</button>
               <div class="speed-control">
-                <span data-en="Speed" data-zh-Hant="速度">Speed</span>
+                <span data-en="Speed" data-zh-HK="速度">Speed</span>
                 <input
                   type="range"
                   id="speedSlider"

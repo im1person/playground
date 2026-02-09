@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#f5f5dc"/>
+  <defs>
+    <filter id="kawaii-shadow-lny">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="2" dy="4" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect x="80" y="50" width="240" height="160" rx="16" fill="#d9716d" stroke="#654321" stroke-width="5" filter="url(#kawaii-shadow-lny)"/>
+  <text x="200" y="115" font-family="Arial" font-size="48" fill="#fff" text-anchor="middle" font-weight="bold">LNY</text>
+  <text x="200" y="165" font-family="Arial" font-size="22" fill="#654321" text-anchor="middle" font-weight="bold">LNY</text>
+  <text x="200" y="195" font-family="Arial" font-size="16" fill="#654321" text-anchor="middle">Countdown</text>
+</svg>

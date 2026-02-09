@@ -31,7 +31,7 @@ document.getElementById("copyBtn").addEventListener("click", () => {
     const btn = document.getElementById("copyBtn");
     const originalText = btn.textContent;
     const currentLocale = localStorage.getItem("playground-locale") || "en";
-    btn.textContent = currentLocale === "zh-Hant" ? "已複製!" : "Copied!";
+    btn.textContent = (currentLocale === "zh-HK" || currentLocale === "zh-Hant") ? "已複製!" : "Copied!";
     setTimeout(() => (btn.textContent = originalText), 2000);
   });
 });
@@ -98,8 +98,8 @@ function renderParamsTable() {
   table.innerHTML = `
       <thead>
         <tr>
-          <th data-en="Key" data-zh-Hant="鍵" style="width: 40%">Key</th>
-          <th data-en="Value" data-zh-Hant="值" style="width: 45%">Value</th>
+          <th data-en="Key" data-zh-HK="鍵" style="width: 40%">Key</th>
+          <th data-en="Value" data-zh-HK="值" style="width: 45%">Value</th>
           <th style="width: 15%"></th>
         </tr>
       </thead>
@@ -138,7 +138,7 @@ function addParamRow(key, value, updateUrl = true) {
         value
       )}" placeholder="Value"></td>
       <td style="text-align: right;">
-          <button class="btn btn-icon delete-btn" data-en="✕" data-zh-Hant="✕">✕</button>
+          <button class="btn btn-icon delete-btn" data-en="✕" data-zh-HK="✕">✕</button>
       </td>
   `;
 
@@ -229,7 +229,7 @@ function toggleBulkEdit() {
     // card.classList.add("grid-full"); // No longer needed with flex layout
 
     toggleBtn.setAttribute("data-en", "Key-Value Edit");
-    toggleBtn.setAttribute("data-zh-Hant", "表格編輯");
+    toggleBtn.setAttribute("data-zh-HK", "表格編輯");
   } else {
     // Switching to Table
     // Ensure table is up to date with current URL object (which matches bulk text)
@@ -241,7 +241,7 @@ function toggleBulkEdit() {
     // card.classList.remove("grid-full"); // No longer needed with flex layout
 
     toggleBtn.setAttribute("data-en", "Bulk Edit");
-    toggleBtn.setAttribute("data-zh-Hant", "批量編輯");
+    toggleBtn.setAttribute("data-zh-HK", "批量編輯");
   }
 
   if (window.updateLocale) {

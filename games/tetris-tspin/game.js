@@ -796,7 +796,7 @@ function playerReset() {
     updateScore();
     isGameOver = true;
     btn.textContent =
-      document.documentElement.lang === "zh-Hant" ? "重新開始" : "Restart";
+      (document.documentElement.lang === "zh-HK" || document.documentElement.(lang === "zh-HK" || lang === "zh-Hant")) ? "重新開始" : "Restart";
     btn.style.display = "block";
   }
 }
@@ -1306,9 +1306,9 @@ function update(time = 0) {
 function updateScore() {
   const lang = document.documentElement.lang;
   scoreElement.innerText =
-    lang === "zh-Hant" ? `分數: ${player.score}` : `Score: ${player.score}`;
+    (lang === "zh-HK" || lang === "zh-Hant") ? `分數: ${player.score}` : `Score: ${player.score}`;
   levelElement.innerText =
-    lang === "zh-Hant" ? `等級: ${player.level}` : `Level: ${player.level}`;
+    (lang === "zh-HK" || lang === "zh-Hant") ? `等級: ${player.level}` : `Level: ${player.level}`;
 
   // Show B2B in UI (Hack: append to Level for now or create new element)
   if (player.b2b) {
@@ -1370,7 +1370,7 @@ autoBtn.addEventListener("click", () => {
       const speedValue = document.getElementById("speedValue");
       if (speedValue) {
         const lang = document.documentElement.lang;
-        speedValue.textContent = "50" + (lang === "zh-Hant" ? "毫秒" : "ms");
+        speedValue.textContent = "50" + ((lang === "zh-HK" || lang === "zh-Hant") ? "毫秒" : "ms");
       }
     }
   }
@@ -1396,7 +1396,7 @@ tspinAutoBtn.addEventListener("click", () => {
       const speedValue = document.getElementById("speedValue");
       if (speedValue) {
         const lang = document.documentElement.lang;
-        speedValue.textContent = "300" + (lang === "zh-Hant" ? "毫秒" : "ms");
+        speedValue.textContent = "300" + ((lang === "zh-HK" || lang === "zh-Hant") ? "毫秒" : "ms");
       }
     }
   }
@@ -1419,13 +1419,13 @@ function updateAutoBtnStyles() {
   // Reset both
   autoBtn.style.backgroundColor = "#9c27b0";
   autoBtn.innerText =
-    document.documentElement.lang === "zh-Hant"
+    (document.documentElement.lang === "zh-HK" || document.documentElement.(lang === "zh-HK" || lang === "zh-Hant"))
       ? "自動解題 (一般)"
       : "Auto Solver (Normal)";
 
   tspinAutoBtn.style.backgroundColor = "#e91e63";
   tspinAutoBtn.innerText =
-    document.documentElement.lang === "zh-Hant"
+    (document.documentElement.lang === "zh-HK" || document.documentElement.(lang === "zh-HK" || lang === "zh-Hant"))
       ? "自動解題 (T-Spin)"
       : "Auto Solver (T-Spin)";
 
@@ -1433,11 +1433,11 @@ function updateAutoBtnStyles() {
     if (isTSpinBot) {
       tspinAutoBtn.style.backgroundColor = "#d32f2f";
       tspinAutoBtn.innerText =
-        document.documentElement.lang === "zh-Hant" ? "停止自動" : "Stop Auto";
+        (document.documentElement.lang === "zh-HK" || document.documentElement.(lang === "zh-HK" || lang === "zh-Hant")) ? "停止自動" : "Stop Auto";
     } else {
       autoBtn.style.backgroundColor = "#d32f2f";
       autoBtn.innerText =
-        document.documentElement.lang === "zh-Hant" ? "停止自動" : "Stop Auto";
+        (document.documentElement.lang === "zh-HK" || document.documentElement.(lang === "zh-HK" || lang === "zh-Hant")) ? "停止自動" : "Stop Auto";
     }
   }
 

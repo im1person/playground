@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Lantern Riddle Quiz" data-zh-HK="猜燈謎">
+      Lantern Riddle Quiz
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="🏮 Lantern Riddle Quiz" data-zh-HK="🏮 猜燈謎">
+        🏮 Lantern Riddle Quiz
+      </h1>
+
+      <div class="quiz-area">
+        <div class="stats-bar">
+          <span class="stat" id="progressText" data-en="Question 1 of 20" data-zh-HK="第 1 題，共 20 題">Question 1 of 20</span>
+          <span class="stat" id="scoreText" data-en="Correct: 0" data-zh-HK="答對：0">Correct: 0</span>
+        </div>
+
+        <div id="riddleCard" class="riddle-card hidden">
+          <p id="riddleQuestion" class="riddle-question"></p>
+          <div id="answerSection" class="answer-section">
+            <input type="text" id="answerInput" class="answer-input" placeholder="" maxlength="50" autocomplete="off" />
+            <div class="answer-actions">
+              <button id="submitBtn" class="btn btn-primary" data-en="Submit" data-zh-HK="提交">Submit</button>
+              <button id="revealBtn" class="btn btn-secondary" data-en="Reveal answer" data-zh-HK="揭曉答案">Reveal answer</button>
+            </div>
+          </div>
+          <div id="resultSection" class="result-section hidden">
+            <p id="resultMessage" class="result-message"></p>
+            <p id="explanation" class="explanation"></p>
+            <button id="nextBtn" class="btn btn-primary" data-en="Next" data-zh-HK="下一題">Next</button>
+          </div>
+        </div>
+
+        <div class="start-screen" id="startScreen">
+          <p class="intro" data-en="Guess the riddle! Type your answer and submit. You can reveal the answer if stuck."
+            data-zh-HK="猜謎語！輸入答案後提交，猜唔到可以揭曉答案。">
+            Guess the riddle! Type your answer and submit. You can reveal the answer if stuck.
+          </p>
+          <button id="startBtn" class="btn btn-primary" data-en="Start" data-zh-HK="開始">Start</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="riddles.js"></script>
+    <script src="game.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>

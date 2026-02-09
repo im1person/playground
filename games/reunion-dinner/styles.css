@@ -1,0 +1,283 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark {
+  background: #181c1f;
+  color: #f0f0f0;
+}
+
+body.light-mode {
+  background: #f0f0f0;
+  color: #222;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-top: 60px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #c62828;
+  font-size: 2.5em;
+}
+
+body.dark h1 {
+  color: #ef5350;
+}
+
+.game-area {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.table-container {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 400px;
+}
+
+body.dark .table-container {
+  background: #23272a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.table-svg {
+  width: 100%;
+  height: auto;
+  max-width: 400px;
+  display: block;
+  margin: 0 auto;
+}
+
+.dish-layer {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 400px;
+  height: 400px;
+  cursor: crosshair;
+  pointer-events: auto;
+}
+
+.dish {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  cursor: grab;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  transition: transform 0.1s;
+  user-select: none;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+body.dark .dish {
+  background: rgba(60, 60, 60, 0.95);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.dish:hover {
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+.dish:active {
+  cursor: grabbing;
+}
+
+.controls-panel {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 260px;
+  max-width: 320px;
+}
+
+body.dark .controls-panel {
+  background: #23272a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.score-section {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #eee;
+}
+
+body.dark .score-section {
+  border-bottom-color: #444;
+}
+
+.score-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.score-label {
+  font-weight: 600;
+  color: #666;
+}
+
+body.dark .score-label {
+  color: #aaa;
+}
+
+.score-value {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #c62828;
+}
+
+body.dark .score-value {
+  color: #ef5350;
+}
+
+.dish-palette h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+  color: #c62828;
+  font-size: 1.2em;
+}
+
+body.dark .dish-palette h3 {
+  color: #ef5350;
+}
+
+.dish-buttons {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.dish-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px;
+  border: 3px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 0.9em;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  background: #f5f5f5;
+}
+
+body.dark .dish-btn {
+  background: #2c2f33;
+}
+
+.dish-btn .dish-emoji {
+  font-size: 1.8em;
+}
+
+.dish-btn .dish-label {
+  font-weight: 600;
+}
+
+.dish-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.dish-btn.selected {
+  border-color: #c62828;
+  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.3);
+}
+
+body.dark .dish-btn.selected {
+  border-color: #ef5350;
+  box-shadow: 0 0 0 3px rgba(239, 83, 80, 0.3);
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.action-btn {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  color: white;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+}
+
+.clear-btn {
+  background: #d32f2f;
+}
+
+.clear-btn:hover {
+  background: #b71c1c;
+}
+
+.random-btn {
+  background: #f57c00;
+}
+
+.random-btn:hover {
+  background: #e65100;
+}
+
+@media (max-width: 900px) {
+  .game-area {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .table-container {
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .dish-layer {
+    width: 100%;
+    max-width: 400px;
+    height: 400px;
+  }
+
+  .controls-panel {
+    width: 100%;
+    max-width: 400px;
+  }
+}
+
+@media (max-width: 500px) {
+  .table-svg {
+    max-width: 100%;
+  }
+
+  .dish-layer {
+    width: calc(100% - 40px);
+    max-width: calc(100vw - 80px);
+    height: calc(100vw - 80px);
+  }
+}

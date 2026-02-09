@@ -1,9 +1,9 @@
-// assets/locale-menu.js
+// assets/locale-menu.js — Target base: Hong Kong (zh-HK)
 export function initLocaleMenu({
   selectId = "localeSelect",
   toggleButtonId = "localeToggleBtn",
   localeKey = "playground-locale",
-  defaultLocale = "en",
+  defaultLocale = "zh-HK",
   onLocaleChange = null,
 } = {}) {
   const select = document.getElementById(selectId);
@@ -13,27 +13,37 @@ export function initLocaleMenu({
 
   const localeLabels = {
     en: "EN",
+    "zh-HK": "中文",
     "zh-Hant": "中文",
   };
 
   function updateToggleBtn(locale) {
     if (!toggleBtn) return;
     toggleBtn.textContent = localeLabels[locale] || "Lang";
-    const ariaLabel = locale === "en" ? "Switch to Chinese" : "切換成英文";
+    const ariaLabel = locale === "en" ? "Switch to Chinese" : "Switch to English";
     toggleBtn.setAttribute("aria-label", ariaLabel);
     toggleBtn.setAttribute("title", ariaLabel);
   }
 
+  function getLocalizedContent(el, locale) {
+    const attr = "data-" + locale;
+    return el.getAttribute(attr) ?? el.getAttribute("data-zh-Hant") ?? el.getAttribute("data-en");
+  }
+
   function setLocale(locale) {
     localStorage.setItem(localeKey, locale);
-    document.documentElement.lang = locale;
+    document.documentElement.lang = locale === "zh-HK" ? "zh-HK" : locale;
     select.value = locale;
     document.querySelectorAll("[data-en]").forEach((el) => {
-      el.innerHTML =
-        el.getAttribute("data-" + locale) || el.getAttribute("data-en");
+      const content = getLocalizedContent(el, locale);
+      if (content != null) el.innerHTML = content;
+    });
+    document.querySelectorAll("[data-placeholder-en]").forEach((el) => {
+      const attr = "data-placeholder-" + locale;
+      const placeholder = el.getAttribute(attr) ?? el.getAttribute("data-placeholder-zh-Hant") ?? el.getAttribute("data-placeholder-en");
+      if (placeholder != null) el.placeholder = placeholder;
     });
     updateToggleBtn(locale);
-    // Dispatch localechange event for other components to listen to
     document.dispatchEvent(new CustomEvent("localechange", { detail: { locale } }));
     if (typeof onLocaleChange === "function") onLocaleChange(locale);
   }
@@ -44,7 +54,7 @@ export function initLocaleMenu({
   select.addEventListener("change", (e) => setLocale(e.target.value));
   if (toggleBtn) {
     toggleBtn.addEventListener("click", () => {
-      const nextLocale = select.value === "en" ? "zh-Hant" : "en";
+      const nextLocale = select.value === "en" ? "zh-HK" : "en";
       setLocale(nextLocale);
     });
   }

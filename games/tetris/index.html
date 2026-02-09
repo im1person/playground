@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-en="Tetris" data-zh-Hant="俄羅斯方塊">Tetris</title>
+    <title data-en="Tetris" data-zh-HK="俄羅斯方塊">Tetris</title>
     <link rel="stylesheet" href="../../assets/style.css" />
     <style>
       body {
@@ -287,29 +287,29 @@
     </style>
   </head>
   <body>
-    <h1 data-en="Tetris" data-zh-Hant="俄羅斯方塊">Tetris</h1>
+    <h1 data-en="Tetris" data-zh-HK="俄羅斯方塊">Tetris</h1>
 
     <div class="game-container">
       <!-- Left Panel: Status & Hold -->
       <div class="left-panel">
         <div class="preview-box">
-          <div data-en="Hold" data-zh-Hant="暫存">Hold</div>
+          <div data-en="Hold" data-zh-HK="暫存">Hold</div>
           <canvas id="hold" width="100" height="100"></canvas>
         </div>
 
         <div class="status-group">
-          <div id="score" data-en="Score: 0" data-zh-Hant="分數: 0" style="font-size: 1.2em; font-weight: bold;">Score: 0</div>
-          <div id="level" data-en="Level: 1" data-zh-Hant="等級: 1" style="font-size: 1.2em;">Level: 1</div>
+          <div id="score" data-en="Score: 0" data-zh-HK="分數: 0" style="font-size: 1.2em; font-weight: bold;">Score: 0</div>
+          <div id="level" data-en="Level: 1" data-zh-HK="等級: 1" style="font-size: 1.2em;">Level: 1</div>
         </div>
         
         <div class="controls-info">
-          <p data-en="Controls:" data-zh-Hant="操作說明:">Controls:</p>
+          <p data-en="Controls:" data-zh-HK="操作說明:">Controls:</p>
           <ul style="padding-left: 20px; margin-top: 5px">
-            <li data-en="← → : Move" data-zh-Hant="← → : 移動">← → : Move</li>
-            <li data-en="↓ : Soft Drop" data-zh-Hant="↓ : 加速下落">↓ : Soft Drop</li>
-            <li data-en="Space : Hard Drop" data-zh-Hant="空白鍵 : 直接落下">Space : Hard Drop</li>
-            <li data-en="↑ / Q / W : Rotate" data-zh-Hant="↑ / Q / W : 旋轉">↑ / Q / W : Rotate</li>
-            <li data-en="C / Shift : Hold" data-zh-Hant="C / Shift : 暫存">C / Shift : Hold</li>
+            <li data-en="← → : Move" data-zh-HK="← → : 移動">← → : Move</li>
+            <li data-en="↓ : Soft Drop" data-zh-HK="↓ : 加速下落">↓ : Soft Drop</li>
+            <li data-en="Space : Hard Drop" data-zh-HK="空白鍵 : 直接落下">Space : Hard Drop</li>
+            <li data-en="↑ / Q / W : Rotate" data-zh-HK="↑ / Q / W : 旋轉">↑ / Q / W : Rotate</li>
+            <li data-en="C / Shift : Hold" data-zh-HK="C / Shift : 暫存">C / Shift : Hold</li>
           </ul>
         </div>
       </div>
@@ -320,26 +320,26 @@
       <!-- Right Panel: Next Queue & Buttons -->
       <div class="right-panel">
         <div class="preview-box">
-          <div data-en="Next" data-zh-Hant="下一個">Next</div>
+          <div data-en="Next" data-zh-HK="下一個">Next</div>
           <div id="next-queue" style="display: flex; flex-direction: column; align-items: center;">
              <canvas id="next" width="100" height="100"></canvas>
           </div>
         </div>
 
         <div class="button-group">
-          <button id="startBtn" data-en="Start Game" data-zh-Hant="開始遊戲">Start Game</button>
-          <button id="matrixBtn" data-en="Toggle Matrix View" data-zh-Hant="切換矩陣視圖" style="margin-top: 10px; background-color: #00bcd4">
+          <button id="startBtn" data-en="Start Game" data-zh-HK="開始遊戲">Start Game</button>
+          <button id="matrixBtn" data-en="Toggle Matrix View" data-zh-HK="切換矩陣視圖" style="margin-top: 10px; background-color: #00bcd4">
             Toggle Matrix View
           </button>
-          <button id="autoBtn" data-en="Auto Solver" data-zh-Hant="自動解題" style="margin-top: 10px; background-color: #9c27b0">
+          <button id="autoBtn" data-en="Auto Solver" data-zh-HK="自動解題" style="margin-top: 10px; background-color: #9c27b0">
             Auto Solver
           </button>
           <div id="speedControl" style="margin-top: 15px; display: none; width: 100%;">
-            <label for="speedSlider" style="display: block; margin-bottom: 5px; font-size: 0.9em;" data-en="Auto Solver Speed" data-zh-Hant="自動解題速度">Auto Solver Speed</label>
+            <label for="speedSlider" style="display: block; margin-bottom: 5px; font-size: 0.9em;" data-en="Auto Solver Speed" data-zh-HK="自動解題速度">Auto Solver Speed</label>
             <input type="range" id="speedSlider" min="10" max="1000" value="50" style="width: 100%;">
-            <div id="speedValue" style="text-align: center; font-size: 0.8em; margin-top: 5px; color: #aaa;" data-en="50ms" data-zh-Hant="50毫秒">50ms</div>
+            <div id="speedValue" style="text-align: center; font-size: 0.8em; margin-top: 5px; color: #aaa;" data-en="50ms" data-zh-HK="50毫秒">50ms</div>
           </div>
-          <a href="intro.html" style="margin-top: 15px; color: #aaa; text-decoration: none; font-size: 0.9em; text-align: center; display: block;" data-en="Game Guide & Logic" data-zh-Hant="遊戲指南與邏輯">Game Guide & Logic</a>
+          <a href="intro.html" style="margin-top: 15px; color: #aaa; text-decoration: none; font-size: 0.9em; text-align: center; display: block;" data-en="Game Guide & Logic" data-zh-HK="遊戲指南與邏輯">Game Guide & Logic</a>
         </div>
       </div>
 

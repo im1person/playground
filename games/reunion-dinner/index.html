@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Reunion Dinner Platter" data-zh-HK="團年飯擺盤">
+      Reunion Dinner Platter
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="🍽️ Reunion Dinner Platter" data-zh-HK="🍽️ 團年飯擺盤">
+        🍽️ Reunion Dinner Platter
+      </h1>
+
+      <div class="game-area">
+        <div class="table-container">
+          <svg id="tableSvg" viewBox="0 0 400 400" class="table-svg">
+            <!-- Table drawn in JS -->
+          </svg>
+          <div id="dishLayer" class="dish-layer"></div>
+        </div>
+
+        <div class="controls-panel">
+          <div class="score-section">
+            <div class="score-item">
+              <span class="score-label" data-en="Dishes:" data-zh-HK="餸菜：">Dishes:</span>
+              <span class="score-value" id="dishCount">0</span>
+            </div>
+          </div>
+
+          <div class="dish-palette">
+            <h3 data-en="Dishes" data-zh-HK="餸菜">Dishes</h3>
+            <div class="dish-buttons" id="dishButtons"></div>
+          </div>
+
+          <div class="action-buttons">
+            <button id="clearBtn" class="action-btn clear-btn" data-en="Clear All" data-zh-HK="清除全部">
+              Clear All
+            </button>
+            <button id="randomBtn" class="action-btn random-btn" data-en="Random Table" data-zh-HK="隨機擺盤">
+              Random Table
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="game.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>

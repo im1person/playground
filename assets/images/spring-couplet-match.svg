@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#1a0a0a"/>
+  <rect x="100" y="60" width="70" height="90" rx="6" fill="#c62828" stroke="#d4af37" stroke-width="2"/>
+  <text x="135" y="115" font-family="sans-serif" font-size="36" fill="#fff" text-anchor="middle" font-weight="bold">&#31119;</text>
+  <rect x="230" y="60" width="70" height="90" rx="6" fill="#c62828" stroke="#d4af37" stroke-width="2"/>
+  <text x="265" y="115" font-family="sans-serif" font-size="36" fill="#fff" text-anchor="middle" font-weight="bold">&#31119;</text>
+  <text x="200" y="190" font-family="Arial" font-size="18" fill="#d4af37" text-anchor="middle">Spring Couplet Match</text>
+</svg>
