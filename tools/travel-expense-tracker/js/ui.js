@@ -1,9 +1,12 @@
-// UI Module (Global Dependencies: store, utils app-functions?)
-// Note: In classic scripts, circular dependencies are solved by function hoisting and late binding (calling functions only when they exist).
+// UI Module
+import { store } from './store.js';
+import { formatCurrency, getDetailedTime, switchTab, getAdjustedExpenses, getTripDate } from './utils.js';
+import { getReceipt } from './db.js';
 
 let currentCategory = 'general';
+let selectedReceiptBlob = null;
 
-function selectCategory(cat) {
+export function selectCategory(cat) {
     currentCategory = cat;
     document.querySelectorAll('.cat-btn').forEach(btn => {
         if (btn.dataset.cat === cat) {
@@ -18,182 +21,13 @@ function selectCategory(cat) {
     else if (cat === 'transport') document.getElementById('fields-transport').classList.remove('hidden');
 }
 
-function openAddModal(id = null) {
+export async function openAddModal(id = null) {
     const form = document.getElementById('expense-form');
     // Safety check if DOM is ready
     if (!form) return;
 
-    form.reset();
-    document.getElementById('entry-id').value = '';
-    const homeCurr = store.activeTrip ? store.activeTrip.settings.homeCurrency : 'HKD';
-    document.getElementById('inp-currency').value = homeCurr;
-
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    document.getElementById('inp-date').value = now.toISOString().slice(0, 16);
-
-    // Set default date for checkin
-    document.getElementById('inp-checkin').valueAsDate = new Date();
-
-    // Check if Edit
-    if (id && typeof id === 'string' && store.activeTrip) {
-        const item = store.activeTrip.expenses.find(i => i.id === id);
-        if (item) {
-            document.getElementById('entry-id').value = item.id;
-            document.getElementById('inp-title').value = item.title;
-            document.getElementById('inp-amount').value = item.amount;
-            document.getElementById('inp-currency').value = item.currency;
-            document.getElementById('inp-rate').value = item.rate || 1;
-
-            const d = new Date(item.date);
-            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-            document.getElementById('inp-date').value = d.toISOString().slice(0, 16);
-
-            const pMethod = item.paymentMethod || 'cash';
-            const radio = document.querySelector(`input[name="payment-method"][value="${pMethod}"]`);
-            if (radio) radio.checked = true;
-
-            selectCategory(item.category);
-            document.getElementById('inp-address').value = item.address || '';
-            document.getElementById('inp-checkin').value = item.checkin || '';
-            document.getElementById('inp-nights').value = item.nights || '';
-            document.getElementById('inp-spread-cost').checked = !!item.spreadCost;
-            document.getElementById('inp-note').value = item.note || '';
-            document.getElementById('inp-flight-no').value = item.flightNo || '';
-            document.getElementById('inp-airline').value = item.airline || '';
-            document.getElementById('inp-departure').value = item.departure || '';
-
-            document.getElementById('modal-title').textContent = '編輯/檢視支出';
-        }
-    } else {
-        selectCategory('general');
-        document.getElementById('modal-title').textContent = '新增支出';
-    }
-
-    const modalForm = document.getElementById('modal-form');
-    modalForm.classList.remove('hidden');
-    setTimeout(() => {
-        modalForm.classList.remove('opacity-0');
-        document.getElementById('modal-content').classList.remove('translate-y-full');
-    }, 10);
-}
-
-function closeModal() {
-    const modalForm = document.getElementById('modal-form');
-    modalForm.classList.add('opacity-0');
-    document.getElementById('modal-content').classList.add('translate-y-full');
-    setTimeout(() => {
-        modalForm.classList.add('hidden');
-    }, 300);
-}
-
-function createItemElement(item, homeCurrency) {
-    const div = document.createElement('div');
-    div.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition';
-    div.onclick = () => openAddModal(item.id);
-
-    const nativeAmount = parseFloat(item.amount);
-    const rate = parseFloat(item.rate) || 1;
-    const homeAmount = nativeAmount * rate;
-
-    let iconName = 'shopping-bag';
-    let iconColor = 'bg-gray-100 text-gray-600';
-    if (item.category === 'accommodation') { iconName = 'hotel'; iconColor = 'bg-indigo-100 text-indigo-600'; }
-    if (item.category === 'transport') { iconName = 'plane'; iconColor = 'bg-teal-100 text-teal-600'; }
-
-    let detailHtml = '';
-    if (item.category === 'accommodation' && item.checkin) {
-        const checkinDate = new Date(item.checkin);
-        const nights = parseInt(item.nights) || 1;
-        const checkoutDate = new Date(checkinDate);
-        checkoutDate.setDate(checkinDate.getDate() + nights);
-        const avgPrice = nativeAmount / nights;
-
-        detailHtml = `
-            <div class="text-[10px] text-gray-400 mt-1 flex flex-col gap-0.5">
-                <div class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> ${item.address || '無地址'}</div>
-                <div>退房: ${checkoutDate.toLocaleDateString()} (${nights}晚, 均價: ${formatCurrency(avgPrice, item.currency)})</div>
-            </div>`;
-    } else if (item.category === 'transport') {
-        detailHtml = `<div class="text-[10px] text-gray-400 mt-1 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${item.departure ? new Date(item.departure).toLocaleString() : ''} ${item.flightNo || ''}</div>`;
-    }
-
-    div.innerHTML = `
-        <div class="flex items-center gap-3 overflow-hidden">
-            <div class="${iconColor} p-2 rounded-lg shrink-0">
-                <i data-lucide="${iconName}" class="w-5 h-5"></i>
-            </div>
-            <div class="min-w-0">
-                <div class="font-bold text-gray-800 truncate">${item.title}</div>
-                <div class="text-xs text-gray-500">${formatCurrency(nativeAmount, item.currency)} ${item.currency !== homeCurrency ? '(@ ' + item.rate + ')' : ''}</div>
-                ${detailHtml}
-            </div>
-        </div>
-        <div class="text-right shrink-0">
-            <div class="font-bold text-gray-800">${formatCurrency(homeAmount, homeCurrency)}</div>
-            <div class="flex gap-2 justify-end mt-2">
-                    <button class="btn-share text-gray-400 hover:text-blue-500"><i data-lucide="share-2" class="w-4 h-4"></i></button>
-                    <button class="btn-delete text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-            </div>
-        </div>
-    `;
-
-    // Attach listeners safely
-    // Note: in classic script, shareItem and deleteItem must be global
-    div.querySelector('.btn-share').onclick = (e) => { e.stopPropagation(); shareItem(item.id); };
-    div.querySelector('.btn-delete').onclick = (e) => { e.stopPropagation(); deleteItem(item.id); };
-
-    return div;
-}
-
-function renderFullList(dataList, currency) {
-    const fullList = document.getElementById('full-list');
-    const sorted = [...dataList].reverse();
-    fullList.innerHTML = sorted.length ? '' : '<div class="text-center text-gray-400 py-10 text-sm">點擊 + 新增第一筆支出</div>';
-    sorted.forEach(item => fullList.appendChild(createItemElement(item, currency)));
-    if (window.lucide) lucide.createIcons();
-}
-
-function renderTripList() {
-    const list = document.getElementById('trip-list-container');
-    if (!list) return;
-
-    list.innerHTML = '';
-    store.data.trips.forEach(trip => {
-        const div = document.createElement('div');
-        div.className = `p-4 rounded-xl border flex justify-between items-center cursor-pointer transition ${trip.id === store.data.activeTripId ? 'bg-blue-50 border-blue-500' : 'bg-white border-gray-100 hover:bg-gray-50'}`;
-        div.onclick = () => {
-            store.switchTrip(trip.id);
-            document.getElementById('view-trip-select').classList.add('hidden');
-            document.getElementById('view-dashboard').classList.remove('hidden');
-        };
-
-        div.innerHTML = `
-            <div>
-                <div class="font-bold text-gray-800">${trip.name}</div>
-                <div class="text-xs text-gray-500">${trip.expenses.length} Records</div>
-            </div>
-            ${trip.id === store.data.activeTripId ? '<i data-lucide="check" class="text-blue-500 w-5 h-5"></i>' : ''}
-        `;
-        list.appendChild(div);
-    });
-    if (window.lucide) lucide.createIcons();
-}
-
-// Exports
-window.selectCategory = selectCategory;
-window.openAddModal = openAddModal;
-window.closeModal = closeModal;
-window.createItemElement = createItemElement;
-window.renderFullList = renderFullList;
-window.renderTripList = renderTripList;
-
-
-
-function openAddModal(id = null) {
-    const form = document.getElementById('expense-form');
-    // Safety check if DOM is ready
-    if (!form) return;
+    // Reset Receipt State
+    removeReceipt();
 
     form.reset();
     document.getElementById('entry-id').value = '';
@@ -253,6 +87,22 @@ function openAddModal(id = null) {
             document.getElementById('inp-flight-no').value = item.flightNo || '';
             document.getElementById('inp-airline').value = item.airline || '';
             document.getElementById('inp-departure').value = item.departure || '';
+            document.getElementById('inp-ic-owner').value = item.icOwner || '';
+            togglePaymentFields(); // Update visibility based on loaded item
+
+            // Load Receipt
+            if (item.receiptId) {
+                try {
+                    const blob = await getReceipt(item.receiptId);
+                    if (blob) {
+                        const url = URL.createObjectURL(blob);
+                        showReceiptPreview(url);
+                        selectedReceiptBlob = blob;
+                    }
+                } catch (err) {
+                    console.error('Failed to load receipt:', err);
+                }
+            }
 
             document.getElementById('modal-title').textContent = '編輯/檢視支出';
         }
@@ -269,7 +119,7 @@ function openAddModal(id = null) {
     }, 10);
 }
 
-function closeModal() {
+export function closeModal() {
     const modalForm = document.getElementById('modal-form');
     modalForm.classList.add('opacity-0');
     document.getElementById('modal-content').classList.add('translate-y-full');
@@ -280,10 +130,23 @@ function closeModal() {
 
 // Ensure global expoure for HTML onclicks inside the modal
 window.selectCategory = selectCategory;
+window.openAddModal = openAddModal;
 window.closeModal = closeModal;
-window.togglePaymentFields = togglePaymentFields;
 
-function togglePaymentFields() {
+// Temporary solution until we have a proper modal for export
+window.showExportModal = function() {
+    // Scroll to settings view where export buttons are located
+    switchTab('settings');
+    // Highlight the data section
+    const dataSection = document.querySelector('#view-settings > div:last-child');
+    if(dataSection) {
+        dataSection.scrollIntoView({ behavior: 'smooth' });
+        dataSection.classList.add('ring-2', 'ring-blue-500');
+        setTimeout(() => dataSection.classList.remove('ring-2', 'ring-blue-500'), 2000);
+    }
+};
+
+export function togglePaymentFields() {
     const method = document.querySelector('input[name="payment-method"]:checked')?.value;
     const icField = document.getElementById('field-ic-owner');
     if (method === 'ic_card') {
@@ -292,12 +155,70 @@ function togglePaymentFields() {
         icField.classList.add('hidden');
     }
 }
+window.togglePaymentFields = togglePaymentFields;
+
+export function handleReceiptSelection(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    selectedReceiptBlob = file;
+    const url = URL.createObjectURL(file);
+    showReceiptPreview(url);
+}
+
+export function removeReceipt() {
+    selectedReceiptBlob = null;
+    const inp = document.getElementById('inp-receipt');
+    if (inp) inp.value = '';
+    const container = document.getElementById('receipt-preview-container');
+    if (container) container.classList.add('hidden');
+}
+
+function showReceiptPreview(url) {
+    const img = document.getElementById('receipt-preview');
+    const container = document.getElementById('receipt-preview-container');
+    if (img && container) {
+        img.src = url;
+        container.classList.remove('hidden');
+        
+        // Add click listener to open lightbox
+        img.onclick = () => openLightbox(url, '收據預覽 (Receipt Preview)');
+        img.classList.add('cursor-zoom-in');
+    }
+}
+
+export function getSelectedReceiptBlob() {
+    return selectedReceiptBlob;
+}
+
+window.handleReceiptSelection = handleReceiptSelection;
+window.removeReceipt = removeReceipt;
+
+export function openLightbox(url, caption = '') {
+    const lb = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    const cap = document.getElementById('lightbox-caption');
+    if (lb && img) {
+        img.src = url;
+        cap.textContent = caption;
+        lb.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+}
+
+export function closeLightbox() {
+    const lb = document.getElementById('lightbox');
+    if (lb) lb.classList.add('hidden');
+}
+
+window.openLightbox = openLightbox;
+window.closeLightbox = closeLightbox;
 
 
-function createItemElement(item, homeCurrency) {
+export function createItemElement(item, homeCurrency) {
     const div = document.createElement('div');
     div.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition';
-    div.onclick = () => openAddModal(item.id);
+    div.onclick = () => window.openAddModal(item.id);
 
     const nativeAmount = parseFloat(item.amount);
     const rate = parseFloat(item.rate) || 1;
@@ -342,7 +263,10 @@ function createItemElement(item, homeCurrency) {
                 <i data-lucide="${iconName}" class="w-5 h-5"></i>
             </div>
             <div class="min-w-0">
-                <div class="font-bold text-gray-800 truncate flex items-center">${item.title} ${paymentBadge}</div>
+                <div class="font-bold text-gray-800 truncate flex items-center">
+                    ${item.title} ${paymentBadge} 
+                    ${item.receiptId ? `<i data-lucide="image" class="w-3.5 h-3.5 text-blue-500 ml-1 cursor-pointer hover:scale-110 transition" onclick="event.stopPropagation(); window.viewReceipt('${item.receiptId}', '${item.title.replace(/'/g, "\\'")}')"></i>` : ''}
+                </div>
                 <div class="text-xs text-gray-500 mt-0.5">
                     <div>${formatCurrency(nativeAmount, item.currency)} ${item.currency !== homeCurrency ? '(@ ' + item.rate + ')' : ''}</div>
                     <div class="mt-1"><span class="font-mono bg-gray-100 px-1 rounded text-[10px] text-gray-600">${getDetailedTime(item.date)}</span></div>
@@ -365,12 +289,13 @@ function createItemElement(item, homeCurrency) {
 
     return div;
 }
+window.createItemElement = createItemElement;
 
 // Initial Listeners setup in app.js or here? 
 // Let's attach the listener in renderFullList or better, make app.js call render on toggle.
 // For now, let's just update the render function.
 
-function renderFullList(dataList, currency) {
+export function renderFullList(dataList, currency) {
     const listContainer = document.getElementById('full-list');
     const isGrouped = document.getElementById('toggle-group-day')?.checked;
 
@@ -489,8 +414,9 @@ function renderFullList(dataList, currency) {
 
     if (window.lucide) lucide.createIcons();
 }
+window.renderFullList = renderFullList;
 
-function renderTripList() {
+export function renderTripList() {
     // New function for Trip Selector View
     const list = document.getElementById('trip-list-container');
     if (!list) return;
@@ -517,3 +443,21 @@ function renderTripList() {
     });
     if (window.lucide) lucide.createIcons();
 }
+window.renderTripList = renderTripList;
+
+export async function viewReceipt(receiptId, title = '') {
+    try {
+        const { getReceipt } = await import('./db.js');
+        const blob = await getReceipt(receiptId);
+        if (blob) {
+            const url = URL.createObjectURL(blob);
+            openLightbox(url, title);
+        } else {
+            alert('找不到收據檔案');
+        }
+    } catch (err) {
+        console.error('Error viewing receipt:', err);
+        alert('讀取收據時發生錯誤');
+    }
+}
+window.viewReceipt = viewReceipt;

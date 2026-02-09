@@ -1,5 +1,5 @@
 // Utils (Global)
-function formatCurrency(num, curr) {
+export function formatCurrency(num, curr) {
     try {
         return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: curr }).format(num);
     } catch (e) {
@@ -7,9 +7,17 @@ function formatCurrency(num, curr) {
     }
 }
 
-function getTripTime(isoStr) {
+export function getTripTime(isoStr) {
     if (!isoStr) return '';
     try {
+        // Access store via window for now, or pass it in? 
+        // Better: Functions that need dependencies should probably accept them, 
+        // BUT to minimize refactor risk, we can keep using window.store if we ensure app.js sets it, 
+        // OR better: Import store? Circular dependency risk if store uses utils.
+        // Let's stick to simple pure functions where possible.
+        // These functions access `window.store`. In ESM, `window.store` might not be set yet if we don't assign it.
+        // We will ensure `store.js` assigns `window.store` for backward compat or just import `store` instance.
+        // For now, let's allow `window.store` access but note it.
         const store = window.store;
         const tz = store?.activeTrip?.settings?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
         return new Date(isoStr).toLocaleTimeString('sv-SE', { timeZone: tz, hour: '2-digit', minute: '2-digit' });
@@ -18,7 +26,7 @@ function getTripTime(isoStr) {
     }
 }
 
-function getDetailedTime(isoStr) {
+export function getDetailedTime(isoStr) {
     if (!isoStr) return '';
     try {
         const store = window.store;
@@ -33,26 +41,24 @@ function getDetailedTime(isoStr) {
             hour: '2-digit',
             minute: '2-digit',
             hour12: false
-        }).replace(' ', ''); // remove space between date/week if any, or adjust manually
+        }).replace(' ', ''); 
     } catch (e) {
         return '';
     }
 }
 
-function getTripDate(isoStr) {
+export function getTripDate(isoStr) {
     if (!isoStr) return '';
     try {
-        const store = window.store; // Ensure global access
+        const store = window.store; 
         const tz = store?.activeTrip?.settings?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-        // Return YYYY-MM-DD in target timezone
-        // Swedish locale uses YYYY-MM-DD format, which is convenient
         return new Date(isoStr).toLocaleDateString('sv-SE', { timeZone: tz });
     } catch (e) {
         return isoStr.split('T')[0]; // Fallback
     }
 }
 
-function setCurrency(inputId, code) {
+export function setCurrency(inputId, code) {
     const el = document.getElementById(inputId);
     if (el) {
         el.value = code;
@@ -60,7 +66,7 @@ function setCurrency(inputId, code) {
     }
 }
 
-function switchTab(viewName) {
+export function switchTab(viewName) {
     // Update Nav
     document.querySelectorAll('.bottom-nav-item').forEach(el => {
         if (el.dataset.target === 'view-' + viewName) {
@@ -76,21 +82,12 @@ function switchTab(viewName) {
     if (target) target.classList.remove('hidden');
 }
 
-// Expose to window explicitly if needed, though top-level var is global in non-module scripts
-window.formatCurrency = formatCurrency;
-window.setCurrency = setCurrency;
-window.switchTab = switchTab;
-
-function getAdjustedExpenses(expenses) {
+export function getAdjustedExpenses(expenses) {
     const processedList = [];
     expenses.forEach(item => {
         if (item.category === 'accommodation' && item.spreadCost && item.nights > 1 && item.checkin) {
             const nights = parseInt(item.nights);
             const avgAmount = parseFloat(item.amount) / nights;
-
-            // Checkin date is normally local date string "YYYY-MM-DD"
-            // We need to create dates starting from this.
-            // Using a safe approach to avoid timezone shifts:
             const parts = item.checkin.split('-');
             const year = parseInt(parts[0]);
             const month = parseInt(parts[1]) - 1;
@@ -98,21 +95,12 @@ function getAdjustedExpenses(expenses) {
 
             for (let i = 0; i < nights; i++) {
                 let splitItem = { ...item };
-
-                // Construct date for this night
-                // We want the resulting 'date' property (ISO string) to have the correct YYYY-MM-DD when split('T')[0] is called.
-                // We can just construct a UTC date at midnight?
-                // Or construct local date and toISOString?
-                // Existing app uses `new Date(inp-date.value).toISOString()`.
-                // Let's create a date object for noon to be safe from simple DST shifts.
                 const d = new Date(year, month, day + i, 12, 0, 0);
                 splitItem.date = d.toISOString();
-
                 splitItem.amount = avgAmount;
                 splitItem.title = `${item.title} (${i + 1}/${nights})`;
                 splitItem.isVirtual = true;
                 splitItem.originalId = item.id;
-
                 processedList.push(splitItem);
             }
         } else {
@@ -121,7 +109,7 @@ function getAdjustedExpenses(expenses) {
     });
     return processedList;
 }
-window.getAdjustedExpenses = getAdjustedExpenses;
-window.getTripDate = getTripDate;
-window.getTripTime = getTripTime;
-window.getDetailedTime = getDetailedTime;
+
+// Global exports moved to window assignment in main module if needed, 
+// strictly exports here.
+

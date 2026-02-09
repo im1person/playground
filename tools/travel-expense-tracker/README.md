@@ -22,6 +22,7 @@ A modern, offline-first web application designed for travelers to track expenses
 - **Data Sovereignty**:
   - 100% Client-side. All data stays in your browser's `localStorage`.
   - **Export/Import**: Full JSON backups and CSV export for Excel/Google Sheets.
+- **📱 PWA Ready (Offline & Installable)**: Install it as a standalone app on your mobile or desktop device. Works offline with automatic data persistence.
 
 ## Tech Stack
 
@@ -37,4 +38,5 @@ A modern, offline-first web application designed for travelers to track expenses
 3. Start adding expenses via the **+** button!
 
 ---
-*Developed with focus on privacy, speed, and traveler UX.*
+
+_Developed with focus on privacy, speed, and traveler UX._

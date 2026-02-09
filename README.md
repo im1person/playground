@@ -35,8 +35,9 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 ## Entries
 
 ### Tools
+
 - [Random Number Generator](https://im1person.github.io/playground/tools/random-number-generator/): Pick random numbers, exclude numbers, and more.
-- [URL Parser](https://im1person.github.io/playground/tools/url-parser/): Parse, analyze, and edit URLs with a modern interface.
+- [URL Parser](https://im1person.github.io/playground/tools/url-parser/): Parse, analyze, and edit URLs with a modern interface. **(PWA: Works Offline & Installable)**
 - [Magic Bridge Scorer](https://im1person.github.io/playground/tools/magic-bridge-scorer/): Score Magic Bridge games and track results.
 - [Piano](https://im1person.github.io/playground/tools/piano/): Interactive piano with MIDI support.
 - [Secret Santa Generator](https://im1person.github.io/playground/tools/secret-santa/): Generate Secret Santa assignments with exclusion rules.
@@ -45,9 +46,10 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 - [Red Envelope Calculator](https://im1person.github.io/playground/tools/red-envelope-calculator/): Split budget into lucky red envelope amounts; optional recipient list and copy summary.
 - [Spring Couplet Generator](https://im1person.github.io/playground/tools/spring-couplet-generator/): Create spring couplets (橫批 + 上聯 + 下聯) or single 福; download PNG or print.
 - [Gift List Manager](https://im1person.github.io/playground/tools/gift-list-manager/): Track gifts, recipients, and budget for your Christmas shopping.
-- [Travel Expense Tracker](https://im1person.github.io/playground/tools/travel-expense-tracker/): Offline-first travel expense tracker with currency conversion and budget management.
+- [Travel Expense Tracker](https://im1person.github.io/playground/tools/travel-expense-tracker/): Offline-first travel expense tracker with currency conversion and budget management. **(PWA: Works Offline & Installable)**
 
 ### Games
+
 - [Falling Balls Game](https://im1person.github.io/playground/games/falling-balls/): Pop falling balls for points. Fast, fun, and mobile-friendly.
 - [Tetris](https://im1person.github.io/playground/games/tetris/): Classic Tetris game. Stack blocks and clear lines!
 - [Tetris (T-Spin)](https://im1person.github.io/playground/games/tetris-tspin/): Advanced Tetris with T-Spin detection logic (3-Corner Rule).

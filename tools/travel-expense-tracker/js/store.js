@@ -19,7 +19,7 @@ const DEFAULT_TRIP = {
     expenses: []
 };
 
-class Store {
+export class Store {
     constructor() {
         this.data = {
             activeTripId: null,
@@ -141,8 +141,5 @@ class Store {
 }
 
 // Global Store Instance
-window.store = new Store();
+export const store = new Store();
 
-
-// Global Store Instance
-window.store = new Store();
