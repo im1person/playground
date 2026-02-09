@@ -1,10 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-en="URL Parser" data-zh-HK="URL 解析器">URL Parser</title>
     <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#8ab4f8" />
+    <link rel="apple-touch-icon" href="icon-512.png" />
     <style>
       :root {
         --bg-color: #202124;
@@ -42,17 +45,17 @@
         color: var(--text-color);
         margin: 0;
         padding: 20px;
-        transition: background-color 0.3s, color 0.3s;
+        transition:
+          background-color 0.3s,
+          color 0.3s;
         line-height: 1.5;
-        display: block; /* Override assets/style.css flex layout */
+        display: block;
+        /* Override assets/style.css flex layout */
       }
 
       .main-wrapper {
         max-width: 100%;
         margin: 0 auto;
-        padding-top: 20px;
-        padding-left: 20px;
-        padding-right: 20px;
         box-sizing: border-box;
       }
 
@@ -62,6 +65,8 @@
         color: var(--text-color);
         font-size: 2rem;
         text-align: center;
+        cursor: default;
+        user-select: none;
       }
 
       h1 span {
@@ -83,7 +88,9 @@
         border-radius: 12px;
         padding: 24px;
         box-shadow: var(--shadow-sm);
-        transition: border-color 0.2s, box-shadow 0.2s;
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
       }
 
       .card-header {
@@ -102,6 +109,8 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin: 0;
+        cursor: default;
+        user-select: none;
       }
 
       /* Input Section */
@@ -120,6 +129,12 @@
         color: var(--sub-text);
         font-size: 0.9rem;
         font-weight: 500;
+        cursor: default;
+        user-select: none;
+      }
+
+      label.input-label {
+        cursor: pointer;
       }
 
       .url-input-container {
@@ -136,7 +151,8 @@
       input[type="text"] {
         width: 100%;
         padding: 14px 16px;
-        padding-right: 70px; /* Reserve space for Paste button */
+        padding-right: 80px;
+        /* Reserve space for Input Actions */
         font-size: 16px;
         border-radius: 8px;
         border: 1px solid var(--border-color);
@@ -173,6 +189,7 @@
         color: var(--bg-color);
         padding: 0 24px;
       }
+
       .light-mode .btn-primary {
         color: #fff;
       }
@@ -192,24 +209,41 @@
         background: var(--primary-bg-hover);
       }
 
-      .paste-btn {
+      .input-actions {
         position: absolute;
         right: 8px;
         top: 50%;
         transform: translateY(-50%);
-        font-size: 12px;
-        color: var(--sub-text);
-        z-index: 2; /* Ensure it stays on top */
-        background: var(
-          --input-bg
-        ); /* Optional: background to cover text if padding fails */
-        padding: 4px 8px;
-        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        z-index: 2;
       }
 
-      .paste-btn:hover {
+      .input-action-btn {
+        background: var(--input-bg);
+        border: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        color: var(--sub-text);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 600;
+      }
+
+      .input-action-btn:hover {
         color: var(--primary-color);
         background: var(--primary-bg-hover);
+      }
+
+      #clearInputBtn {
+        font-size: 14px;
+        display: none; /* Hidden by default */
+      }
+
+      #clearInputBtn:hover {
+        color: var(--danger-color);
       }
 
       /* Data Display */
@@ -224,7 +258,9 @@
         display: flex;
         flex-direction: column;
         gap: 4px;
-        flex: 1 1 150px; /* Grow, shrink, min-width */
+        flex: 1 1 150px;
+        min-width: 0; /* Important for flex items to shrink */
+        overflow: hidden;
       }
 
       .data-label {
@@ -234,6 +270,8 @@
         font-weight: 600;
         margin-bottom: 4px;
         letter-spacing: 0.5px;
+        cursor: default;
+        user-select: none;
       }
 
       .data-value {
@@ -245,8 +283,10 @@
         padding: 8px 12px;
         border-radius: 6px;
         border: 1px solid transparent;
-        flex-grow: 1; /* Ensure value box takes up available height */
+        flex-grow: 1;
+        /* Ensure value box takes up available height */
       }
+
       .light-mode .data-value {
         background: #f8f9fa;
         border-color: #e8eaed;
@@ -337,11 +377,16 @@
         padding: 14px 16px;
         color: var(--text-color);
         outline: none;
-        resize: vertical; /* Allow vertical resize if needed */
-        min-height: 50px; /* Minimum height for single line */
-        white-space: pre-wrap; /* Wrap text */
-        word-break: break-all; /* Break long lines */
-        overflow: hidden; /* Hide scrollbars if auto-sizing */
+        resize: vertical;
+        /* Allow vertical resize if needed */
+        min-height: 50px;
+        /* Minimum height for single line */
+        white-space: pre-wrap;
+        /* Wrap text */
+        word-break: break-all;
+        /* Break long lines */
+        overflow: hidden;
+        /* Hide scrollbars if auto-sizing */
       }
 
       .btn-copy {
@@ -379,17 +424,440 @@
         white-space: pre-wrap;
         word-break: break-all;
       }
+
       .bulk-textarea:focus {
         border-color: var(--primary-color);
         box-shadow: 0 0 0 2px var(--primary-bg-hover);
       }
+
+      /* YouTube Timestamp Styles - Strictly Scoped */
+      #youtubeTimestampCard {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 0, 0, 0.01) 0%,
+          rgba(255, 0, 0, 0.005) 100%
+        );
+        border-left: 3px solid rgba(255, 0, 0, 0.3);
+        margin-bottom: 24px;
+      }
+
+      .light-mode #youtubeTimestampCard {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 0, 0, 0.02) 0%,
+          rgba(255, 0, 0, 0.005) 100%
+        );
+        border-left: 3px solid rgba(255, 0, 0, 0.4);
+      }
+
+      #youtubeTimestampCard .card-title {
+        color: #df3d3d; /* More subtle red */
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      #youtubeTimestampCard .card-title::before {
+        content: "▶";
+        font-size: 0.9rem;
+        opacity: 0.7;
+      }
+
+      #youtubeTimestampCard .timestamp-input-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      #youtubeTimestampCard .timestamp-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 8px;
+        transition: all 0.2s;
+      }
+
+      #youtubeTimestampCard .timestamp-group:focus-within {
+        background: rgba(255, 0, 0, 0.05);
+      }
+
+      #youtubeTimestampCard .timestamp-group.error {
+        border-color: #ff4d4f;
+        background: rgba(255, 0, 0, 0.08);
+      }
+
+      .time-separator {
+        font-weight: 800;
+        font-size: 1.8rem;
+        color: #df3d3d;
+        padding: 0 2px;
+        user-select: none;
+        cursor: default;
+        opacity: 0.8;
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      #youtubeTimestampCard .timestamp-group .input-label {
+        color: rgba(215, 30, 30, 0.6);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      #youtubeTimestampCard .timestamp-input {
+        width: 50px;
+        text-align: center;
+        border: none;
+        background: transparent;
+        font-weight: 800;
+        font-size: 1.8rem;
+        color: #fff;
+        padding: 4px 0;
+        font-family: "Courier New", Courier, monospace;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      }
+
+      #youtubeTimestampCard .timestamp-input:focus {
+        outline: none;
+        box-shadow: none;
+      }
+
+      #youtubeTimestampCard .timestamp-input.error {
+        color: #ff4d4f;
+      }
+
+      #youtubeTimestampCard .timestamp-buttons {
+        display: flex;
+        gap: 8px;
+        margin-left: auto;
+        align-items: center;
+      }
+
+      #youtubeTimestampCard .timestamp-buttons .btn {
+        padding: 8px 16px;
+        height: 36px;
+        min-width: 90px;
+        box-sizing: border-box;
+        border: 1px solid transparent;
+      }
+
+      #cleanYoutubeBtn {
+        color: var(--success-color);
+        border-color: rgba(129, 201, 149, 0.3) !important;
+      }
+
+      #ytCopyBtn,
+      #ytOpenBtn {
+        color: white;
+      }
+
+      #ytCopyBtn {
+        background: #df3d3d;
+      }
+
+      #ytOpenBtn {
+        background: var(--primary-color);
+      }
+
+      #clearTimestampBtn {
+        color: var(--sub-text);
+        border-color: var(--border-color) !important;
+      }
+
+      #clearTimestampBtn:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--text-color);
+      }
+
+      .light-mode #clearTimestampBtn:hover {
+        background: rgba(0, 0, 0, 0.02);
+      }
+
+      #youtubeTimestampCard .timestamp-error-msg {
+        color: #ff4d4f;
+        font-size: 0.75rem;
+        margin-top: 4px;
+        display: none;
+      }
+
+      #youtubeTimestampCard .timestamp-error-msg.show {
+        display: block;
+      }
+
+      /* Mobile Responsive */
+      @media (max-width: 768px) {
+        .parser-grid {
+          padding: 0;
+        }
+
+        .card {
+          padding: 16px;
+        }
+
+        .timestamp-input-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .timestamp-buttons {
+          margin-left: 0;
+          width: 100%;
+          margin-top: 12px;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .timestamp-buttons .btn {
+          width: 100%;
+        }
+      }
+
+      /* History Card Styles */
+      .history-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .history-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px 16px;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+
+      .history-item:hover {
+        border-color: var(--primary-color);
+        background: var(--primary-bg-hover);
+        transform: translateX(4px);
+      }
+
+      .history-item-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .history-url {
+        font-family: var(--font-mono);
+        font-size: 0.85rem;
+        color: var(--text-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-bottom: 2px;
+        opacity: 0.9;
+      }
+
+      .history-meta {
+        font-size: 0.72rem;
+        color: var(--sub-text);
+        display: flex;
+        gap: 12px;
+        font-weight: 500;
+      }
+
+      .btn-delete-history {
+        color: var(--sub-text);
+        opacity: 0.3;
+        transition: all 0.2s;
+        padding: 6px;
+        font-size: 14px;
+        border-radius: 4px;
+        line-height: 1;
+      }
+
+      .history-item:hover .btn-delete-history {
+        opacity: 1;
+      }
+
+      .btn-delete-history:hover {
+        color: var(--danger-color);
+        background: rgba(242, 139, 130, 0.1);
+      }
+
+      @media (max-width: 480px) {
+        #youtubeTimestampCard .timestamp-input {
+          width: 40px;
+          font-size: 1.1rem;
+        }
+
+        .time-separator {
+          font-size: 1rem;
+        }
+      }
+
+      /* Path Segment Editor Styles */
+      .data-item.path-item {
+        flex: 1 1 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .path-segments-container {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        min-height: 48px;
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .path-segments-container::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
+      }
+
+      .light-mode .path-segments-container {
+        background: #f8f9fa;
+      }
+
+      .path-segment-wrapper {
+        display: flex;
+        align-items: center;
+      }
+
+      .path-slash {
+        color: var(--sub-text);
+        font-weight: 700;
+        font-size: 1.1rem;
+        padding: 0 1px;
+        user-select: none;
+        cursor: default;
+        opacity: 0.5;
+      }
+
+      .path-segment-input {
+        display: inline-block;
+        height: 32px !important;
+        padding: 0 10px !important;
+        margin: 2px 0;
+        font-size: 0.9rem !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 6px !important;
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: var(--text-color) !important;
+        font-family: var(--font-mono) !important;
+        text-align: left !important;
+        box-sizing: border-box !important; /* Changed to border-box to work with max-width */
+        outline: none !important;
+        transition:
+          background 0.2s,
+          border-color 0.2s !important;
+        flex-shrink: 1; /* Allow shrinking */
+        max-width: 100% !important; /* Force stay inside container */
+        min-width: 3ch !important;
+      }
+
+      .path-segment-input:focus {
+        border-color: var(--primary-color) !important;
+        background-color: rgba(138, 180, 248, 0.1) !important;
+        box-shadow: 0 0 0 2px rgba(138, 180, 248, 0.2) !important;
+      }
+
+      .path-segment-input:hover {
+        border-color: var(--sub-text) !important;
+        background-color: rgba(255, 255, 255, 0.08) !important;
+      }
+
+      @media (max-width: 480px) {
+        .time-separator {
+          font-size: 1rem;
+        }
+      }
+
+      /* Phase 1: Toast Notifications */
+      .toast-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        z-index: 9999;
+      }
+
+      .toast {
+        background: var(--card-bg);
+        color: var(--text-color);
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 250px;
+        max-width: 400px;
+        animation: toast-in 0.3s ease-out;
+        transition: all 0.3s;
+        cursor: default;
+        user-select: none;
+      }
+
+      .toast.success {
+        border-left: 4px solid var(--success-color);
+      }
+      .toast.error {
+        border-left: 4px solid var(--danger-color);
+      }
+      .toast.info {
+        border-left: 4px solid var(--primary-color);
+      }
+
+      .toast-icon {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+      }
+
+      .toast-message {
+        font-size: 0.9rem;
+        font-weight: 500;
+        flex-grow: 1;
+      }
+
+      @keyframes toast-in {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      .toast.fade-out {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+
+      .light-mode .toast {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
     </style>
   </head>
+
   <body>
     <div class="main-wrapper">
       <h1
         data-en="URL <span>Parser</span>"
-        data-zh-HK="URL <span>解析器</span>"
+        data-zh-Hant="URL <span>解析器</span>"
       >
         URL <span>Parser</span>
       </h1>
@@ -401,7 +869,7 @@
             <label
               class="input-label"
               data-en="Enter URL to parse"
-              data-zh-HK="輸入要解析的 URL"
+              data-zh-Hant="輸入要解析的 URL"
               >Enter URL to parse</label
             >
             <div class="url-input-container">
@@ -410,24 +878,203 @@
                   type="text"
                   id="urlInput"
                   placeholder="https://example.com/path?query=123"
+                  aria-label="URL to parse"
                 />
-                <button
-                  id="pasteBtn"
-                  class="btn btn-text paste-btn"
-                  data-en="Paste"
-                  data-zh-HK="貼上"
-                >
-                  Paste
-                </button>
+                <div class="input-actions">
+                  <button
+                    id="clearInputBtn"
+                    class="input-action-btn"
+                    title="Clear input"
+                    aria-label="Clear input"
+                  >
+                    ✕
+                  </button>
+                  <button
+                    id="pasteBtn"
+                    class="input-action-btn"
+                    data-en="Paste"
+                    data-zh-Hant="貼上"
+                    aria-label="Paste from clipboard"
+                  >
+                    Paste
+                  </button>
+                </div>
               </div>
               <button
                 id="parseBtn"
                 class="btn btn-primary"
                 data-en="Parse"
-                data-zh-HK="解析"
+                data-zh-Hant="解析"
               >
                 Parse
               </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- YouTube Timestamp Card -->
+        <div class="card" id="youtubeTimestampCard" style="display: none">
+          <div class="card-header">
+            <h2
+              class="card-title"
+              data-en="YouTube Timestamp"
+              data-zh-Hant="YouTube 時間戳記"
+            >
+              YouTube Timestamp
+            </h2>
+          </div>
+          <div class="input-group">
+            <label
+              class="input-label"
+              data-en="Add timestamp to share video at specific time"
+              data-zh-Hant="新增時間戳記以分享特定時間的影片"
+              >Add timestamp to share video at specific time</label
+            >
+            <div class="timestamp-input-row" style="margin: 20px 0">
+              <div
+                style="
+                  display: flex;
+                  gap: 8px;
+                  align-items: center;
+                  justify-content: center;
+                  background: #000;
+                  padding: 16px 24px;
+                  border-radius: 16px;
+                  box-shadow:
+                    inset 0 2px 10px rgba(0, 0, 0, 0.5),
+                    0 1px 0 rgba(255, 255, 255, 0.1);
+                "
+              >
+                <div class="timestamp-group">
+                  <input
+                    type="text"
+                    id="ytHours"
+                    class="timestamp-input"
+                    placeholder="00"
+                    maxlength="2"
+                    inputmode="numeric"
+                  />
+                  <label
+                    class="input-label"
+                    for="ytHours"
+                    style="
+                      font-size: 0.6rem;
+                      color: #df3d3d;
+                      font-weight: 800;
+                      letter-spacing: 1px;
+                      margin-top: 4px;
+                    "
+                    >HR</label
+                  >
+                </div>
+                <div class="time-separator" style="margin-bottom: 20px">:</div>
+                <div class="timestamp-group">
+                  <input
+                    type="text"
+                    id="ytMinutes"
+                    class="timestamp-input"
+                    placeholder="00"
+                    maxlength="2"
+                    inputmode="numeric"
+                  />
+                  <label
+                    class="input-label"
+                    for="ytMinutes"
+                    style="
+                      font-size: 0.6rem;
+                      color: #df3d3d;
+                      font-weight: 800;
+                      letter-spacing: 1px;
+                      margin-top: 4px;
+                    "
+                    >MIN</label
+                  >
+                </div>
+                <div class="time-separator" style="margin-bottom: 20px">:</div>
+                <div class="timestamp-group">
+                  <input
+                    type="text"
+                    id="ytSeconds"
+                    class="timestamp-input"
+                    placeholder="00"
+                    maxlength="2"
+                    inputmode="numeric"
+                  />
+                  <label
+                    class="input-label"
+                    for="ytSeconds"
+                    style="
+                      font-size: 0.6rem;
+                      color: #df3d3d;
+                      font-weight: 800;
+                      letter-spacing: 1px;
+                      margin-top: 4px;
+                    "
+                    >SEC</label
+                  >
+                </div>
+              </div>
+              <div class="timestamp-buttons">
+                <button
+                  id="cleanYoutubeBtn"
+                  class="btn btn-text"
+                  style="display: none"
+                  data-en="Clean & Apply"
+                  data-zh-Hant="清理並套用"
+                  title="Remove tracking parameters like si=, feature="
+                >
+                  Clean & Apply
+                </button>
+                <button
+                  id="ytCopyBtn"
+                  class="btn"
+                  data-en="Copy Link"
+                  data-zh-Hant="複製連結"
+                >
+                  Copy Link
+                </button>
+                <button
+                  id="ytOpenBtn"
+                  class="btn"
+                  data-en="Open Link"
+                  data-zh-Hant="開啟連結"
+                >
+                  Open Link
+                </button>
+                <button
+                  id="clearTimestampBtn"
+                  class="btn btn-text"
+                  data-en="Clear"
+                  data-zh-Hant="清除"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+            <!-- Added closing tag for timestamp-input-row -->
+
+            <div
+              class="input-label"
+              style="
+                margin-top: 8px;
+                font-size: 0.8rem;
+                cursor: default;
+                user-select: none;
+              "
+            >
+              <span
+                data-en="Example: 1h 23m 45s = 1:23:45"
+                data-zh-Hant="範例：1h 23m 45s = 1:23:45"
+                >Example: 1h 23m 45s = 1:23:45</span
+              >
+            </div>
+            <div
+              id="timestampError"
+              class="timestamp-error-msg"
+              data-en="Please enter valid time values"
+              data-zh-Hant="請輸入有效的時間值"
+            >
+              Please enter valid time values
             </div>
           </div>
         </div>
@@ -439,38 +1086,44 @@
               <h2
                 class="card-title"
                 data-en="Components"
-                data-zh-HK="組成部分"
+                data-zh-Hant="組成部分"
               >
                 Components
               </h2>
             </div>
             <div class="data-list">
               <div class="data-item">
-                <span class="data-label" data-en="Protocol" data-zh-HK="協議"
+                <span class="data-label" data-en="Protocol" data-zh-Hant="協議"
                   >Protocol</span
                 >
                 <span id="protocol" class="data-value">-</span>
               </div>
               <div class="data-item">
-                <span class="data-label" data-en="Host" data-zh-HK="主機"
+                <span class="data-label" data-en="Host" data-zh-Hant="主機"
                   >Host</span
                 >
                 <span id="host" class="data-value">-</span>
               </div>
               <div class="data-item">
-                <span class="data-label" data-en="Port" data-zh-HK="端口"
+                <span class="data-label" data-en="Port" data-zh-Hant="端口"
                   >Port</span
                 >
                 <span id="port" class="data-value">-</span>
               </div>
-              <div class="data-item">
-                <span class="data-label" data-en="Pathname" data-zh-HK="路徑"
+              <div class="data-item path-item">
+                <span class="data-label" data-en="Pathname" data-zh-Hant="路徑"
                   >Pathname</span
                 >
-                <span id="pathname" class="data-value">-</span>
+                <div id="pathnameContainer" class="path-segments-container">
+                  <span
+                    class="sub-text"
+                    style="font-style: italic; opacity: 0.6"
+                    >Click to edit segments...</span
+                  >
+                </div>
               </div>
               <div class="data-item">
-                <span class="data-label" data-en="Hash" data-zh-HK="錨點"
+                <span class="data-label" data-en="Hash" data-zh-Hant="錨點"
                   >Hash</span
                 >
                 <span id="hash" class="data-value">-</span>
@@ -484,7 +1137,7 @@
               <h2
                 class="card-title"
                 data-en="Query Parameters"
-                data-zh-HK="查詢參數"
+                data-zh-Hant="查詢參數"
               >
                 Query Parameters
               </h2>
@@ -492,7 +1145,7 @@
                 id="bulkEditToggle"
                 class="btn btn-text"
                 data-en="Bulk Edit"
-                data-zh-HK="批量編輯"
+                data-zh-Hant="批量編輯"
               >
                 Bulk Edit
               </button>
@@ -510,13 +1163,13 @@
               >
                 <div
                   data-en="Rows are separated by new lines"
-                  data-zh-HK="每行代表一個參數"
+                  data-zh-Hant="每行代表一個參數"
                 >
                   Rows are separated by new lines
                 </div>
                 <div
                   data-en="Keys and values are separated by :"
-                  data-zh-HK="鍵與值之間用 : 分隔"
+                  data-zh-Hant="鍵與值之間用 : 分隔"
                 >
                   Keys and values are separated by :
                 </div>
@@ -526,7 +1179,7 @@
               id="addParamBtn"
               class="btn btn-add"
               data-en="+ Add Parameter"
-              data-zh-HK="+ 新增參數"
+              data-zh-Hant="+ 新增參數"
             >
               + Add Parameter
             </button>
@@ -538,7 +1191,7 @@
               <h2
                 class="card-title"
                 data-en="Generated URL"
-                data-zh-HK="產生的 URL"
+                data-zh-Hant="產生的 URL"
               >
                 Generated URL
               </h2>
@@ -554,17 +1207,42 @@
                 id="copyBtn"
                 class="btn-copy"
                 data-en="Copy"
-                data-zh-HK="複製"
+                data-zh-Hant="複製"
               >
                 Copy
               </button>
             </div>
           </div>
+
+          <!-- History Card -->
+          <div class="card grid-full" id="historyCard" style="display: none">
+            <div class="card-header">
+              <h2
+                class="card-title"
+                data-en="Recent History"
+                data-zh-Hant="最近紀錄"
+              >
+                Recent History
+              </h2>
+              <button
+                id="clearHistoryBtn"
+                class="btn btn-text"
+                style="color: var(--danger-color)"
+                data-en="Clear All"
+                data-zh-Hant="清除全部"
+              >
+                Clear All
+              </button>
+            </div>
+            <div id="historyList" class="history-list"></div>
+          </div>
         </div>
       </div>
     </div>
 
-    <script src="parser.js"></script>
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script type="module" src="parser.js"></script>
 
     <script type="module">
       import { initThemeToggle } from "../../assets/theme-toggle.js";
@@ -573,6 +1251,18 @@
       initHeader("../../index.html");
       initThemeToggle();
       window.updateLocale = initLocaleMenu();
+
+      // Register PWA Service Worker
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("sw.js")
+            .then((reg) => console.log("PWA: Service Worker registered"))
+            .catch((err) =>
+              console.log("PWA: Service Worker registration failed", err),
+            );
+        });
+      }
     </script>
   </body>
 </html>
