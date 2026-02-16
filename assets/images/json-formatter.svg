@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#e8f5e9"/>
+  <text x="200" y="140" font-family="ui-monospace, monospace" font-size="72" font-weight="bold" text-anchor="middle" fill="#2e7d32">{ }</text>
+  <text x="200" y="200" font-family="ui-monospace, monospace" font-size="32" text-anchor="middle" fill="#2e7d32">JSON</text>
+</svg>

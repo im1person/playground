@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>JSON Formatter</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#0d9488" />
+    <link rel="apple-touch-icon" href="icon-512.png" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>JSON Formatter</h1>
+      <p class="help-text">貼上 JSON 純文字，一鍵自動縮排格式化。</p>
+
+      <div class="section" id="textSection">
+        <div class="toolbar">
+          <div class="toolbar-group">
+            <button type="button" id="formatBtn" class="btn btn-primary" title="格式化 (Ctrl+Enter)">
+              格式化<span class="btn-hint" aria-hidden="true">Ctrl+↵</span>
+            </button>
+            <button type="button" id="minifyBtn" class="btn" title="壓成單行、無縮排">壓成一行</button>
+            <button type="button" id="copyBtn" class="btn" title="複製到剪貼簿 (Ctrl+Shift+C)">
+              複製結果<span class="btn-hint" aria-hidden="true">Ctrl+Shift+C</span>
+            </button>
+            <button type="button" id="editFieldsBtn" class="btn" title="以欄位方式編輯">逐欄位編輯</button>
+          </div>
+          <div class="toolbar-group toolbar-group-options">
+            <label class="auto-format-label">
+              <span>縮排：</span>
+              <select id="indentSizeSelect" title="格式化時使用的縮排">
+                <option value="2">2 空格</option>
+                <option value="4">4 空格</option>
+                <option value="tab">Tab</option>
+              </select>
+            </label>
+            <label class="auto-format-label">
+              <input type="checkbox" id="sortKeysCheckbox" title="格式化時依 key 字母排序" />
+              排序 key
+            </label>
+            <label class="auto-format-label">
+              <input type="checkbox" id="autoFormatOnPaste" checked title="貼上後自動縮排" />
+              貼上時自動格式化
+            </label>
+          </div>
+        </div>
+        <div class="json-input-wrap">
+          <div id="lineNumbers" class="line-numbers" aria-hidden="true">1</div>
+          <div class="json-input-inner">
+            <textarea
+              id="jsonInput"
+              placeholder='貼上 JSON，例如：{"name":"test","count":1}'
+              spellcheck="false"
+              rows="16"
+            ></textarea>
+          </div>
+        </div>
+        <div class="text-tools-row">
+          <div id="statsBar" class="stats-bar">長度：0 字元 · 0 行</div>
+          <div class="text-tools-actions">
+            <button type="button" id="validateBtn" class="btn btn-secondary" title="驗證是否為合法 JSON">檢查 JSON</button>
+            <button type="button" id="loadFileBtn" class="btn btn-secondary" title="從本機選擇 .json 檔案">從檔案載入</button>
+            <button type="button" id="saveFileBtn" class="btn btn-secondary" title="下載目前內容為 data.json">下載 JSON</button>
+            <input type="file" id="fileInput" accept=".json,application/json" hidden />
+          </div>
+        </div>
+        <div class="error-box">
+          <div id="errorMsg" class="error-msg hidden"></div>
+          <button type="button" id="jumpToErrorLineBtn" class="btn btn-secondary btn-sm hidden" title="捲動到錯誤行">跳到該行</button>
+        </div>
+      </div>
+
+      <div class="section field-editor-section hidden" id="fieldSection">
+        <div class="toolbar">
+          <div class="toolbar-group">
+            <button type="button" id="backToTextBtn" class="btn btn-primary" title="回到文字編輯">返回文字</button>
+            <button type="button" id="expandAllBtn" class="btn" title="展開所有巢狀">全部展開</button>
+            <button type="button" id="collapseAllBtn" class="btn" title="收合所有巢狀">全部收合</button>
+          </div>
+          <label class="auto-format-label">
+            <input type="checkbox" id="defaultExpandAll" title="進入編輯時自動全部展開" />
+            預設全部展開
+          </label>
+        </div>
+        <div id="fieldEditorList" class="field-editor-list"></div>
+        <div id="fieldErrorMsg" class="error-msg hidden"></div>
+      </div>
+    </div>
+
+    <script src="formatter.js"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker
+            .register("sw.js")
+            .then(function (reg) { console.log("PWA: Service Worker registered"); })
+            .catch(function (err) { console.log("PWA: Service Worker registration failed", err); });
+        });
+      }
+    </script>
+  </body>
+</html>
