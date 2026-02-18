@@ -11,12 +11,26 @@ const messages = {
     invalidNumber: "Please enter a valid number",
     selectPlayer: "Please select a player",
     clearConfirm: "Clear all data and reset?",
+    clearHistoryConfirm: "Clear all history?",
+    historyEmpty: "No records yet.",
+    sessionNameRequired: "Please enter a game/session name.",
+    resetConfirm: "Reset this game? Players and history will be cleared.",
+    deleteConfirm: "Delete this game? This cannot be undone.",
+    noSessions: "No games yet. Create one below.",
+    zeroSumError: "Scores are not balanced! Total score does not match initial total. Please check the history for errors.",
   },
   "zh-HK": {
     scoreUpdated: "已更新分數",
     invalidNumber: "請輸入有效數字",
     selectPlayer: "請選擇玩家",
     clearConfirm: "確定清除所有紀錄並重置？",
+    clearHistoryConfirm: "確定清空所有紀錄？",
+    historyEmpty: "尚無紀錄。",
+    sessionNameRequired: "請輸入局名／場次名稱。",
+    resetConfirm: "確定重置本局？玩家與紀錄將被清空。",
+    deleteConfirm: "確定刪除此局？無法復原。",
+    noSessions: "尚無局次，請於下方建立。",
+    zeroSumError: "分數不平衡！總分數與初始總分數不符，請檢查歷史紀錄是否有誤。",
   },
 };
 
@@ -29,13 +43,49 @@ function t(key) {
   return messages[locale]?.[key] ?? messages.en[key] ?? key;
 }
 
-// ---------- Data ----------
+// ---------- Data (multi-session) ----------
+function ensurePlayerInitialScores(session) {
+  const start = session.startingScore ?? 0;
+  (session.players || []).forEach((p) => {
+    if (p.initialScore === undefined) p.initialScore = start;
+  });
+}
+
+function migrateOldToNew(oldData) {
+  const name = getLocale() === "zh-HK" ? "已儲存的遊戲" : "Saved game";
+  const startingScore = oldData.startingScore ?? 0;
+  const players = (oldData.players || []).map((p) => ({
+    ...p,
+    initialScore: p.initialScore !== undefined ? p.initialScore : startingScore,
+  }));
+  const session = {
+    id: String(Date.now()),
+    name,
+    players,
+    startingScore,
+    history: Array.isArray(oldData.history) ? oldData.history : [],
+    createdAt: new Date().toISOString(),
+  };
+  return {
+    sessions: [session],
+    currentSessionId: session.id,
+  };
+}
+
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const data = JSON.parse(raw);
-    if (data && Array.isArray(data.players) && data.players.length >= 2) return data;
+    if (!data) return null;
+    if (Array.isArray(data.players) && data.players.length >= 2) {
+      return migrateOldToNew(data);
+    }
+    if (data.sessions && Array.isArray(data.sessions)) {
+      data.sessions.forEach(ensurePlayerInitialScores);
+      const currentSessionId = data.currentSessionId || null;
+      return { sessions: data.sessions, currentSessionId };
+    }
   } catch (_) {}
   return null;
 }
@@ -44,25 +94,41 @@ function saveData(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
+function getCurrentSession() {
+  if (!state.sessions || !state.currentSessionId) return null;
+  return state.sessions.find((s) => s.id === state.currentSessionId) || null;
+}
+
 // ---------- DOM refs ----------
+const dashboardSection = document.getElementById("dashboardSection");
 const initSection = document.getElementById("initSection");
 const mainSection = document.getElementById("mainSection");
+const sessionNameInput = document.getElementById("sessionName");
 const playerCountInput = document.getElementById("playerCount");
 const startingScoreInput = document.getElementById("startingScore");
 const playerNamesContainer = document.getElementById("playerNamesContainer");
 const startScoreboardBtn = document.getElementById("startScoreboardBtn");
 const playerCardsEl = document.getElementById("playerCards");
 const addPlayerBtn = document.getElementById("addPlayerBtn");
-const clearDataBtn = document.getElementById("clearDataBtn");
 const numpadOverlay = document.getElementById("numpadOverlay");
 const numpadBackdrop = document.getElementById("numpadBackdrop");
 const numpadPanel = document.getElementById("numpadPanel");
 
 // ---------- State ----------
 let state = {
-  players: [],
-  startingScore: 0,
+  sessions: [],
+  currentSessionId: null,
 };
+
+/** When starting from Init: if set, we update this session instead of creating new */
+let initResettingSessionId = null;
+
+// Selected player IDs per mode (for chip UI)
+let selectedModeAWinner = null;
+let selectedModeBLoser = null;
+let selectedModeCFrom = null;
+let selectedModeCTo = null;
+let selectedModeDPlayer = null;
 
 // ---------- Init section ----------
 function renderPlayerNameInputs(count) {
@@ -87,50 +153,238 @@ function renderPlayerNameInputs(count) {
 }
 
 function startScoreboard() {
+  const name = (sessionNameInput && sessionNameInput.value.trim()) || "";
+  if (!name) {
+    showToast(t("sessionNameRequired"));
+    return;
+  }
   const count = Math.max(2, Math.min(20, parseInt(playerCountInput.value, 10) || 2));
   const startingScore = parseScore(startingScoreInput.value);
   const names = [];
   for (let i = 1; i <= count; i++) {
     const input = document.getElementById(`playerName${i}`);
-    const name = (input && input.value.trim()) || `Player ${i}`;
-    names.push(name);
+    names.push((input && input.value.trim()) || `Player ${i}`);
   }
-  state = {
-    players: names.map((name, idx) => ({
-      id: `p${Date.now()}_${idx}`,
+  const players = names.map((n, idx) => ({
+    id: `p${Date.now()}_${idx}`,
+    name: n,
+    score: startingScore,
+    initialScore: startingScore,
+  }));
+  const now = new Date().toISOString();
+
+  if (initResettingSessionId) {
+    const session = state.sessions.find((s) => s.id === initResettingSessionId);
+    if (session) {
+      session.name = name;
+      session.players = players;
+      session.startingScore = startingScore;
+      session.history = [];
+      state.currentSessionId = session.id;
+    }
+    initResettingSessionId = null;
+  } else {
+    const session = {
+      id: String(Date.now()),
       name,
-      score: startingScore,
-    })),
-    startingScore,
-  };
+      players,
+      startingScore,
+      history: [],
+      createdAt: now,
+    };
+    state.sessions = state.sessions || [];
+    state.sessions.push(session);
+    state.currentSessionId = session.id;
+  }
+  selectedModeAWinner = selectedModeBLoser = selectedModeCFrom = selectedModeCTo = selectedModeDPlayer = null;
   saveData(state);
+  if (sessionNameInput) sessionNameInput.value = "";
   showMain();
   renderAll();
+  renderHistory();
 }
 
-// ---------- Main section ----------
-function showInit() {
+// ---------- Views ----------
+function showDashboard() {
+  if (dashboardSection) dashboardSection.hidden = false;
+  if (initSection) initSection.hidden = true;
+  if (mainSection) mainSection.hidden = true;
+  const settlementSection = document.getElementById("settlementSection");
+  if (settlementSection) settlementSection.hidden = true;
+  state.currentSessionId = null;
+  renderSessionList();
+}
+
+function showInit(forResetSessionId) {
+  initResettingSessionId = forResetSessionId || null;
+  if (dashboardSection) dashboardSection.hidden = true;
   if (initSection) initSection.hidden = false;
   if (mainSection) mainSection.hidden = true;
   const count = Math.max(2, parseInt(playerCountInput.value, 10) || 4);
+  if (forResetSessionId) {
+    const session = state.sessions.find((s) => s.id === forResetSessionId);
+    if (sessionNameInput && session) sessionNameInput.value = session.name || "";
+  } else if (sessionNameInput) {
+    sessionNameInput.value = "";
+  }
   renderPlayerNameInputs(count);
 }
 
 function showMain() {
+  if (dashboardSection) dashboardSection.hidden = true;
   if (initSection) initSection.hidden = true;
   if (mainSection) mainSection.hidden = false;
+  const title = document.getElementById("currentSessionTitle");
+  const session = getCurrentSession();
+  if (title) title.textContent = session ? session.name : "—";
+  updateMainActionsForSettled();
+  renderAll();
+  renderHistory();
+}
+
+function updateMainActionsForSettled() {
+  const session = getCurrentSession();
+  const settled = session && session.isSettled === true;
+  const addBtn = document.getElementById("addPlayerBtn");
+  const resetBtn = document.getElementById("resetSessionBtn");
+  const settlementBtn = document.getElementById("settlementBtn");
+  if (addBtn) addBtn.hidden = !!settled;
+  if (resetBtn) resetBtn.hidden = !!settled;
+  if (settlementBtn) settlementBtn.hidden = !!settled;
+}
+
+function renderSessionList() {
+  const list = document.getElementById("sessionList");
+  if (!list) return;
+  const sessions = state.sessions || [];
+  if (sessions.length === 0) {
+    list.innerHTML = `<p class="session-list-empty">${t("noSessions")}</p>`;
+    return;
+  }
+  const isZh = getLocale() === "zh-HK";
+  const settledLabel = isZh ? "🏆 已完局" : "🏆 Settled";
+  list.innerHTML = sessions
+    .slice()
+    .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+    .map((s) => {
+      const dateStr = s.createdAt ? formatSessionDate(s.createdAt) : "";
+      const metaParts = [dateStr, (s.players && s.players.length) ? `${s.players.length} players` : ""];
+      const settled = s.isSettled === true;
+      if (settled && s.players && s.players.length > 0) {
+        const withNet = s.players.map((p) => ({ name: p.name, net: (Number(p.score) || 0) - (Number(p.initialScore) ?? 0) }));
+        const top = withNet.sort((a, b) => b.net - a.net)[0];
+        if (top && top.net > 0) metaParts.push(isZh ? `最大贏家：${top.name}` : `Winner: ${top.name}`);
+        const count = (s.history && s.history.length) || 0;
+        metaParts.push(isZh ? `${count} 筆紀錄` : `${count} records`);
+      }
+      const meta = metaParts.filter(Boolean).join(" · ");
+      return `
+        <button type="button" class="session-list-item ${settled ? "session-list-item-settled" : ""}" data-session-id="${escapeHtml(s.id)}">
+          ${settled ? `<span class="session-list-item-badge">${settledLabel}</span>` : ""}
+          <div class="session-list-item-name">${escapeHtml(s.name || "—")}</div>
+          ${meta ? `<div class="session-list-item-meta">${escapeHtml(meta)}</div>` : ""}
+        </button>
+      `;
+    })
+    .join("");
+  list.querySelectorAll(".session-list-item").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-session-id");
+      if (id) openSession(id);
+    });
+  });
+}
+
+function formatSessionDate(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(getLocale() === "zh-HK" ? "zh-HK" : "en-GB", {
+      month: "short",
+      day: "numeric",
+      year: d.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
+    });
+  } catch (_) {
+    return "";
+  }
+}
+
+function openSession(sessionId) {
+  state.currentSessionId = sessionId;
+  saveData(state);
+  const session = getCurrentSession();
+  if (session && session.isSettled === true) {
+    mainSection.hidden = true;
+    const settlementSection = document.getElementById("settlementSection");
+    if (settlementSection) settlementSection.hidden = false;
+    const nameEl = document.getElementById("settlementSessionName");
+    if (nameEl) nameEl.textContent = session.name || "—";
+    renderSettlement();
+  } else {
+    showMain();
+  }
+}
+
+function backToDashboard() {
+  showDashboard();
+}
+
+function resetSession() {
+  const session = getCurrentSession();
+  if (!session || !confirm(t("resetConfirm"))) return;
+  session.players = [];
+  session.history = [];
+  saveData(state);
+  selectedModeAWinner = selectedModeBLoser = selectedModeCFrom = selectedModeCTo = selectedModeDPlayer = null;
+  showInit(session.id);
+  renderPlayerNameInputs(4);
+}
+
+function deleteSession() {
+  const session = getCurrentSession();
+  if (!session || !confirm(t("deleteConfirm"))) return;
+  state.sessions = (state.sessions || []).filter((s) => s.id !== session.id);
+  if (state.currentSessionId === session.id) state.currentSessionId = state.sessions[0] ? state.sessions[0].id : null;
+  saveData(state);
+  if (state.sessions.length === 0) {
+    showInit();
+    renderPlayerNameInputs(4);
+  } else {
+    showDashboard();
+  }
+  showToast(getLocale() === "zh-HK" ? "已刪除此局" : "Game deleted");
+}
+
+function newGame() {
+  initResettingSessionId = null;
+  if (sessionNameInput) sessionNameInput.value = "";
+  playerCountInput.value = 4;
+  startingScoreInput.value = "0";
+  showInit();
+  renderPlayerNameInputs(4);
 }
 
 function renderAll() {
+  const session = getCurrentSession();
+  const players = session ? session.players || [] : [];
   renderPlayerCards();
-  fillModeSelects();
+  if (players.length && selectedModeAWinner == null && selectedModeBLoser == null && selectedModeCFrom == null && selectedModeCTo == null && selectedModeDPlayer == null) {
+    selectedModeAWinner = players[0].id;
+    selectedModeBLoser = players[0].id;
+    selectedModeCFrom = players[0].id;
+    selectedModeCTo = players.length > 1 ? players[1].id : null;
+    selectedModeDPlayer = players[0].id;
+  }
+  renderPlayerChipsAll();
   renderModeA();
   renderModeB();
+  renderHistory();
 }
 
 function renderPlayerCards() {
   if (!playerCardsEl) return;
-  playerCardsEl.innerHTML = state.players
+  const session = getCurrentSession();
+  const players = session ? session.players || [] : [];
+  playerCardsEl.innerHTML = players
     .map(
       (p) => `
     <div class="player-card" data-player-id="${p.id}">
@@ -142,34 +396,69 @@ function renderPlayerCards() {
     .join("");
 }
 
-function fillModeSelects() {
-  const options = state.players
-    .map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`)
+function getPlayerName(id) {
+  const session = getCurrentSession();
+  const players = session ? session.players || [] : [];
+  const p = players.find((x) => x.id === id);
+  return p ? p.name : "";
+}
+
+function renderPlayerChips(containerId, selectedId, role) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const session = getCurrentSession();
+  const players = session ? session.players || [] : [];
+  container.innerHTML = players
+    .map(
+      (p) =>
+        `<button type="button" class="player-chip" data-player-id="${p.id}" data-role="${role}">${escapeHtml(p.name)}</button>`
+    )
     .join("");
-  const selects = [
-    "modeAWinner",
-    "modeBLoser",
-    "modeCFrom",
-    "modeCTo",
-    "modeDPlayer",
-  ];
-  selects.forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) {
-      const current = el.value;
-      el.innerHTML = options;
-      const stillExists = state.players.some((p) => p.id === current);
-      if (stillExists) el.value = current;
-    }
+  container.querySelectorAll(".player-chip").forEach((btn) => {
+    const id = btn.getAttribute("data-player-id");
+    btn.classList.toggle("selected", id === selectedId);
+    btn.addEventListener("click", () => {
+      if (role === "modeAWinner") {
+        selectedModeAWinner = id;
+        renderPlayerChips("modeAWinnerChips", selectedModeAWinner, "modeAWinner");
+        renderModeA();
+      } else if (role === "modeBLoser") {
+        selectedModeBLoser = id;
+        renderPlayerChips("modeBLoserChips", selectedModeBLoser, "modeBLoser");
+        renderModeB();
+      } else if (role === "modeCFrom") {
+        selectedModeCFrom = id;
+        renderPlayerChips("modeCFromChips", selectedModeCFrom, "modeCFrom");
+        if (selectedModeCTo === id) selectedModeCTo = null;
+        renderPlayerChips("modeCToChips", selectedModeCTo, "modeCTo");
+      } else if (role === "modeCTo") {
+        selectedModeCTo = id;
+        renderPlayerChips("modeCToChips", selectedModeCTo, "modeCTo");
+        if (selectedModeCFrom === id) selectedModeCFrom = null;
+        renderPlayerChips("modeCFromChips", selectedModeCFrom, "modeCFrom");
+      } else if (role === "modeDPlayer") {
+        selectedModeDPlayer = id;
+        renderPlayerChips("modeDPlayerChips", selectedModeDPlayer, "modeDPlayer");
+      }
+    });
   });
 }
 
+function renderPlayerChipsAll() {
+  renderPlayerChips("modeAWinnerChips", selectedModeAWinner, "modeAWinner");
+  renderPlayerChips("modeBLoserChips", selectedModeBLoser, "modeBLoser");
+  renderPlayerChips("modeCFromChips", selectedModeCFrom, "modeCFrom");
+  renderPlayerChips("modeCToChips", selectedModeCTo, "modeCTo");
+  renderPlayerChips("modeDPlayerChips", selectedModeDPlayer, "modeDPlayer");
+}
+
 function renderModeA() {
-  const winnerSelect = document.getElementById("modeAWinner");
   const container = document.getElementById("modeALosers");
-  if (!winnerSelect || !container) return;
-  const winnerId = winnerSelect.value;
-  container.innerHTML = state.players
+  if (!container) return;
+  const winnerId = selectedModeAWinner;
+  const session = getCurrentSession();
+  const players = session ? session.players || [] : [];
+  container.innerHTML = players
     .filter((p) => p.id !== winnerId)
     .map(
       (p) => `
@@ -183,11 +472,12 @@ function renderModeA() {
 }
 
 function renderModeB() {
-  const loserSelect = document.getElementById("modeBLoser");
   const container = document.getElementById("modeBWinners");
-  if (!loserSelect || !container) return;
-  const loserId = loserSelect.value;
-  container.innerHTML = state.players
+  if (!container) return;
+  const loserId = selectedModeBLoser;
+  const session = getCurrentSession();
+  const players = session ? session.players || [] : [];
+  container.innerHTML = players
     .filter((p) => p.id !== loserId)
     .map(
       (p) => `
@@ -208,7 +498,7 @@ function parseScore(str) {
 }
 
 function runModeA() {
-  const winnerId = document.getElementById("modeAWinner")?.value;
+  const winnerId = selectedModeAWinner;
   if (!winnerId) {
     showToast(t("selectPlayer"));
     return;
@@ -218,21 +508,28 @@ function runModeA() {
   );
   let total = 0;
   const updates = [];
+  const parts = [];
   for (const input of loserInputs) {
     const pid = input.getAttribute("data-mode-a-loser");
     const val = parseScore(input.value);
     const amount = Number.isFinite(val) ? val : 0;
     total += amount;
     updates.push({ id: pid, delta: -amount });
+    if (amount !== 0) parts.push(`${getPlayerName(pid)} ${amount > 0 ? "-" + amount : amount}`);
   }
   updates.push({ id: winnerId, delta: total });
-  applyUpdates(updates);
+  const remark = (document.getElementById("modeARemark")?.value || "").trim();
+  const msg = getLocale() === "zh-HK"
+    ? `${getPlayerName(winnerId)} 贏 ${total}（${parts.join("、") || "—"}）`
+    : `${getPlayerName(winnerId)} won ${total} (from ${parts.join(", ") || "—"})`;
+  applyUpdates(updates, msg, remark);
   loserInputs.forEach((i) => (i.value = ""));
+  if (document.getElementById("modeARemark")) document.getElementById("modeARemark").value = "";
   showToast(t("scoreUpdated"));
 }
 
 function runModeB() {
-  const loserId = document.getElementById("modeBLoser")?.value;
+  const loserId = selectedModeBLoser;
   if (!loserId) {
     showToast(t("selectPlayer"));
     return;
@@ -242,22 +539,29 @@ function runModeB() {
   );
   let total = 0;
   const updates = [];
+  const parts = [];
   for (const input of winnerInputs) {
     const pid = input.getAttribute("data-mode-b-winner");
     const val = parseScore(input.value);
     const amount = Number.isFinite(val) ? val : 0;
     total += amount;
     updates.push({ id: pid, delta: amount });
+    if (amount !== 0) parts.push(`${getPlayerName(pid)} +${amount}`);
   }
   updates.push({ id: loserId, delta: -total });
-  applyUpdates(updates);
+  const remark = (document.getElementById("modeBRemark")?.value || "").trim();
+  const msg = getLocale() === "zh-HK"
+    ? `${getPlayerName(loserId)} 付 ${total}（${parts.join("、") || "—"}）`
+    : `${getPlayerName(loserId)} paid ${total} (to ${parts.join(", ") || "—"})`;
+  applyUpdates(updates, msg, remark);
   winnerInputs.forEach((i) => (i.value = ""));
+  if (document.getElementById("modeBRemark")) document.getElementById("modeBRemark").value = "";
   showToast(t("scoreUpdated"));
 }
 
 function runModeC() {
-  const fromId = document.getElementById("modeCFrom")?.value;
-  const toId = document.getElementById("modeCTo")?.value;
+  const fromId = selectedModeCFrom;
+  const toId = selectedModeCTo;
   const amountEl = document.getElementById("modeCAmount");
   if (!fromId || !toId) {
     showToast(t("selectPlayer"));
@@ -268,18 +572,25 @@ function runModeC() {
     showToast(t("invalidNumber"));
     return;
   }
+  const remark = (document.getElementById("modeCRemark")?.value || "").trim();
+  const msg = getLocale() === "zh-HK"
+    ? `${getPlayerName(fromId)} → ${getPlayerName(toId)}：${amount}`
+    : `${getPlayerName(fromId)} → ${getPlayerName(toId)}: ${amount}`;
   applyUpdates(
     [
       { id: fromId, delta: -amount },
       { id: toId, delta: amount },
-    ]
+    ],
+    msg,
+    remark
   );
   if (amountEl) amountEl.value = "";
+  if (document.getElementById("modeCRemark")) document.getElementById("modeCRemark").value = "";
   showToast(t("scoreUpdated"));
 }
 
 function runModeD() {
-  const playerId = document.getElementById("modeDPlayer")?.value;
+  const playerId = selectedModeDPlayer;
   const pointsEl = document.getElementById("modeDPoints");
   if (!playerId) {
     showToast(t("selectPlayer"));
@@ -290,16 +601,77 @@ function runModeD() {
     showToast(t("invalidNumber"));
     return;
   }
-  applyUpdates([{ id: playerId, delta: points }]);
+  const remark = (document.getElementById("modeDRemark")?.value || "").trim();
+  const msg = getLocale() === "zh-HK"
+    ? `${getPlayerName(playerId)} ${points >= 0 ? "+" : ""}${points}`
+    : `${getPlayerName(playerId)} ${points >= 0 ? "+" : ""}${points}`;
+  applyUpdates([{ id: playerId, delta: points }], msg, remark);
   if (pointsEl) pointsEl.value = "";
+  if (document.getElementById("modeDRemark")) document.getElementById("modeDRemark").value = "";
   showToast(t("scoreUpdated"));
 }
 
-function applyUpdates(updates) {
+function getTimeStamp() {
+  const d = new Date();
+  const h = String(d.getHours()).padStart(2, "0");
+  const m = String(d.getMinutes()).padStart(2, "0");
+  const s = String(d.getSeconds()).padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
+
+function addHistory(message, remark) {
+  const session = getCurrentSession();
+  if (!session) return;
+  session.history = session.history || [];
+  session.history.unshift({
+    time: getTimeStamp(),
+    message,
+    remark: remark || "",
+  });
+  saveData(state);
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById("historyList");
+  if (!list) return;
+  const session = getCurrentSession();
+  const history = session ? session.history || [] : [];
+  if (history.length === 0) {
+    list.innerHTML = `<div class="history-empty" data-empty="${t("historyEmpty")}"></div>`;
+    return;
+  }
+  list.innerHTML = history
+    .map(
+      (entry) => `
+    <div class="history-item">
+      <span class="history-item-time">${escapeHtml(entry.time)}</span>
+      <span class="history-item-message">${escapeHtml(entry.message)}</span>
+      ${entry.remark ? `<div class="history-item-remark">${escapeHtml(entry.remark)}</div>` : ""}
+    </div>
+  `
+    )
+    .join("");
+}
+
+function clearHistory() {
+  const session = getCurrentSession();
+  if (!session || !confirm(t("clearHistoryConfirm"))) return;
+  session.history = [];
+  saveData(state);
+  renderHistory();
+  showToast(getLocale() === "zh-HK" ? "已清空紀錄" : "History cleared");
+}
+
+function applyUpdates(updates, message, remark) {
+  const session = getCurrentSession();
+  if (!session) return;
+  const players = session.players || [];
   for (const { id, delta } of updates) {
-    const p = state.players.find((x) => x.id === id);
+    const p = players.find((x) => x.id === id);
     if (p) p.score += delta;
   }
+  if (message) addHistory(message, remark || "");
   saveData(state);
   renderPlayerCards();
   flashScores(updates.map((u) => u.id));
@@ -321,27 +693,197 @@ function flashScores(playerIds) {
 
 // ---------- Add player ----------
 function addPlayer() {
-  const name = prompt(getLocale() === "zh-HK" ? "新玩家名稱：" : "New player name:", "Player " + (state.players.length + 1));
+  const session = getCurrentSession();
+  if (!session) return;
+  const players = session.players || [];
+  const startingScore = session.startingScore ?? 0;
+  const name = prompt(getLocale() === "zh-HK" ? "新玩家名稱：" : "New player name:", "Player " + (players.length + 1));
   if (name == null || !name.trim()) return;
-  state.players.push({
-    id: `p${Date.now()}_${state.players.length}`,
+  session.players = session.players || [];
+  session.players.push({
+    id: `p${Date.now()}_${session.players.length}`,
     name: name.trim(),
-    score: state.startingScore,
+    score: startingScore,
+    initialScore: startingScore,
   });
   saveData(state);
   renderAll();
   showToast(getLocale() === "zh-HK" ? "已新增玩家" : "Player added");
 }
 
-// ---------- Clear data ----------
-function clearData() {
-  if (!confirm(t("clearConfirm"))) return;
-  localStorage.removeItem(STORAGE_KEY);
-  state = { players: [], startingScore: 0 };
-  document.getElementById("playerCount").value = 4;
-  document.getElementById("startingScore").value = "0";
-  showInit();
-  renderPlayerNameInputs(4);
+// ---------- Settlement (View C) & Zero-sum check ----------
+function runZeroSumCheck() {
+  const session = getCurrentSession();
+  if (!session || !session.players || session.players.length === 0) return true;
+  const sumScore = session.players.reduce((acc, p) => acc + (Number(p.score) || 0), 0);
+  const sumInitial = session.players.reduce((acc, p) => acc + (Number(p.initialScore) ?? 0), 0);
+  return Math.abs(sumScore - sumInitial) < 1e-6;
+}
+
+function showZeroSumErrorModal() {
+  const modal = document.getElementById("zeroSumErrorModal");
+  const text = document.getElementById("zeroSumErrorText");
+  if (text) text.textContent = t("zeroSumError");
+  if (modal) {
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+  }
+}
+
+function closeZeroSumErrorModal() {
+  const modal = document.getElementById("zeroSumErrorModal");
+  if (modal) {
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+  }
+}
+
+function computeDebtResolution(players) {
+  const list = (players || []).map((p) => ({
+    name: p.name,
+    net: (Number(p.score) || 0) - (Number(p.initialScore) ?? 0),
+  }));
+  const winners = list.filter((x) => x.net > 0).sort((a, b) => b.net - a.net);
+  const losers = list.filter((x) => x.net < 0).sort((a, b) => a.net - b.net);
+  const steps = [];
+  let wi = 0;
+  let li = 0;
+  while (wi < winners.length && li < losers.length) {
+    const w = winners[wi];
+    const l = losers[li];
+    if (w.net <= 0) { wi++; continue; }
+    if (l.net >= 0) { li++; continue; }
+    const amount = Math.min(w.net, Math.abs(l.net));
+    if (amount <= 0) break;
+    steps.push({ fromName: l.name, toName: w.name, amount });
+    w.net -= amount;
+    l.net += amount;
+    if (w.net <= 0) wi++;
+    if (l.net >= 0) li++;
+  }
+  return steps;
+}
+
+function openSettlementView() {
+  if (!runZeroSumCheck()) {
+    showZeroSumErrorModal();
+    return;
+  }
+  const session = getCurrentSession();
+  if (!session) return;
+  if (mainSection) mainSection.hidden = true;
+  const settlementSection = document.getElementById("settlementSection");
+  if (settlementSection) settlementSection.hidden = false;
+  const nameEl = document.getElementById("settlementSessionName");
+  if (nameEl) nameEl.textContent = session.name || "—";
+  renderSettlement();
+}
+
+function renderSettlement() {
+  const session = getCurrentSession();
+  if (!session) return;
+  const players = session.players || [];
+  const history = session.history || [];
+  const withNet = players.map((p) => ({
+    ...p,
+    net: (Number(p.score) || 0) - (Number(p.initialScore) ?? 0),
+  }));
+  const sorted = withNet.slice().sort((a, b) => b.net - a.net);
+  const maxAbs = Math.max(1, ...sorted.map((x) => Math.abs(x.net)));
+
+  const leaderboardEl = document.getElementById("settlementLeaderboard");
+  if (leaderboardEl) {
+    leaderboardEl.innerHTML = sorted
+      .map((row, idx) => {
+        const isWinner = row.net > 0;
+        const pct = maxAbs > 0 ? (Math.abs(row.net) / maxAbs) * 100 : 0;
+        const barClass = row.net >= 0 ? "positive" : "negative";
+        const crown = isWinner && idx === 0 ? " 👑" : "";
+        const netStr = row.net >= 0 ? `+${row.net}` : String(row.net);
+        return `
+          <div class="settlement-row ${isWinner ? "winner" : ""}">
+            <span class="settlement-rank">${idx + 1}</span>
+            <span class="settlement-name">${escapeHtml(row.name)}${crown}</span>
+            <span class="settlement-net ${barClass}">${netStr}</span>
+            <div class="settlement-bar-wrap">
+              <div class="settlement-bar ${barClass}" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      })
+      .join("");
+  }
+
+  const totalRecordsEl = document.getElementById("settlementTotalRecords");
+  if (totalRecordsEl) totalRecordsEl.textContent = history.length;
+
+  const plan = computeDebtResolution(players);
+  const planEl = document.getElementById("settlementPlan");
+  if (planEl) {
+    const isZh = getLocale() === "zh-HK";
+    if (plan.length === 0) {
+      planEl.innerHTML = `<p class="settlement-plan-empty">${isZh ? "無需找數，已平帳。" : "No transfers needed."}</p>`;
+    } else {
+      planEl.innerHTML = plan
+        .map(
+          (s) =>
+            `<div class="settlement-plan-item">${isZh ? `${escapeHtml(s.fromName)} 應付款給 ${escapeHtml(s.toName)}：${s.amount} 分` : `${escapeHtml(s.fromName)} pays ${escapeHtml(s.toName)}: ${s.amount}`}</div>`
+        )
+        .join("");
+    }
+  }
+}
+
+function copyResultsToClipboard() {
+  const session = getCurrentSession();
+  if (!session) return;
+  const players = session.players || [];
+  const history = session.history || [];
+  const withNet = players.map((p) => ({
+    name: p.name,
+    net: (Number(p.score) || 0) - (Number(p.initialScore) ?? 0),
+  }));
+  const sorted = withNet.slice().sort((a, b) => b.net - a.net);
+  const plan = computeDebtResolution(players);
+  const isZh = getLocale() === "zh-HK";
+  const lines = [
+    session.name || "Settlement",
+    "",
+    isZh ? "【排行榜】" : "【Leaderboard】",
+    ...sorted.map((row, i) => {
+      const netStr = row.net >= 0 ? `+${row.net}` : String(row.net);
+      const crown = row.net > 0 && i === 0 ? " 👑" : "";
+      return `${i + 1}. ${row.name}${crown}: ${netStr}`;
+    }),
+    "",
+    isZh ? "【找數建議】" : "【Settlement Plan】",
+    ...(plan.length === 0
+      ? [isZh ? "無需找數。" : "No transfers needed."]
+      : plan.map((s) => (isZh ? `${s.fromName} 應付款給 ${s.toName}：${s.amount} 分` : `${s.fromName} pays ${s.toName}: ${s.amount}`))),
+    "",
+    isZh ? `本局總紀錄次數：${history.length}` : `Total records: ${history.length}`,
+  ];
+  const text = lines.join("\n");
+  navigator.clipboard.writeText(text).then(
+    () => showToast(isZh ? "已複製賽果" : "Results copied"),
+    () => showToast("Copy failed")
+  );
+}
+
+function backFromSettlement() {
+  const settlementSection = document.getElementById("settlementSection");
+  if (settlementSection) settlementSection.hidden = true;
+  if (mainSection) mainSection.hidden = false;
+}
+
+function confirmSettlementAndBackToDashboard() {
+  const session = getCurrentSession();
+  if (!session) return;
+  session.isSettled = true;
+  saveData(state);
+  state.currentSessionId = null;
+  showDashboard();
+  showToast(getLocale() === "zh-HK" ? "已結算，已返回大廳" : "Settlement confirmed. Back to dashboard.");
 }
 
 // ---------- Tabs ----------
@@ -486,18 +1028,6 @@ function bindNumpad() {
   });
 }
 
-// ---------- Mode A/B select change re-render ----------
-function bindModeSelects() {
-  const modeAWinner = document.getElementById("modeAWinner");
-  const modeBLoser = document.getElementById("modeBLoser");
-  if (modeAWinner) {
-    modeAWinner.addEventListener("change", () => renderModeA());
-  }
-  if (modeBLoser) {
-    modeBLoser.addEventListener("change", () => renderModeB());
-  }
-}
-
 // ---------- Buttons ----------
 function bindButtons() {
   if (startScoreboardBtn) {
@@ -506,8 +1036,22 @@ function bindButtons() {
   if (addPlayerBtn) {
     addPlayerBtn.addEventListener("click", addPlayer);
   }
-  if (clearDataBtn) {
-    clearDataBtn.addEventListener("click", clearData);
+  document.getElementById("backToDashboardBtn")?.addEventListener("click", backToDashboard);
+  document.getElementById("newGameBtn")?.addEventListener("click", newGame);
+  document.getElementById("resetSessionBtn")?.addEventListener("click", resetSession);
+  document.getElementById("deleteSessionBtn")?.addEventListener("click", deleteSession);
+  document.getElementById("settlementBtn")?.addEventListener("click", openSettlementView);
+  document.getElementById("closeZeroSumModalBtn")?.addEventListener("click", closeZeroSumErrorModal);
+  document.getElementById("copyResultsBtn")?.addEventListener("click", copyResultsToClipboard);
+  document.getElementById("backFromSettlementBtn")?.addEventListener("click", backFromSettlement);
+  document.getElementById("confirmSettlementBtn")?.addEventListener("click", confirmSettlementAndBackToDashboard);
+  document.getElementById("deleteFromSettlementBtn")?.addEventListener("click", deleteSession);
+  document.getElementById("zeroSumErrorModal")?.addEventListener("click", (e) => {
+    if (e.target.id === "zeroSumErrorModal") closeZeroSumErrorModal();
+  });
+  const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+  if (clearHistoryBtn) {
+    clearHistoryBtn.addEventListener("click", clearHistory);
   }
   if (playerCountInput) {
     playerCountInput.addEventListener("change", () =>
@@ -533,15 +1077,21 @@ function escapeHtml(s) {
 
 function init() {
   const data = loadData();
-  if (data) {
-    state = data;
-    showMain();
-    renderAll();
+  if (data && data.sessions && data.sessions.length > 0) {
+    state.sessions = data.sessions;
+    state.currentSessionId = data.currentSessionId || null;
+    if (state.currentSessionId && state.sessions.some((s) => s.id === state.currentSessionId)) {
+      showMain();
+      renderAll();
+    } else {
+      showDashboard();
+    }
   } else {
+    state = { sessions: [], currentSessionId: null };
     showInit();
+    renderPlayerNameInputs(4);
   }
   bindTabs();
-  bindModeSelects();
   bindButtons();
   bindNumpad();
 }
