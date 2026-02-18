@@ -16,7 +16,19 @@
     <header id="siteHeader" class="site-header"></header>
 
     <main class="scoreboard-app">
-      <!-- Initial setup (shown when no saved data) -->
+      <!-- Dashboard: session list (shown when has sessions, no current game open) -->
+      <section id="dashboardSection" class="dashboard-section" hidden>
+        <div class="scoreboard-heading">
+          <h1 data-en="General Scoreboard" data-zh-HK="通用計分板">General Scoreboard</h1>
+          <p class="subtitle" data-en="Choose a game or start a new one" data-zh-HK="選擇一局或開新局">Choose a game or start a new one</p>
+        </div>
+        <div class="dashboard-actions">
+          <button type="button" id="newGameBtn" class="btn btn-primary" data-en="+ New game" data-zh-HK="+ 新局">+ New game</button>
+        </div>
+        <div id="sessionList" class="session-list"></div>
+      </section>
+
+      <!-- Initial setup (new game or reset current) -->
       <section id="initSection" class="init-section">
         <div class="scoreboard-heading">
           <h1 data-en="General Scoreboard" data-zh-HK="通用計分板">
@@ -28,6 +40,10 @@
         </div>
         <div class="init-form card">
           <h2 data-en="Setup" data-zh-HK="初始設定">Setup</h2>
+          <div class="form-group">
+            <label for="sessionName" data-en="Game / Session name:" data-zh-HK="局名 / 場次名稱：">Game / Session name:</label>
+            <input type="text" id="sessionName" placeholder="" data-placeholder-en="e.g. Feb 18 Big Two" data-placeholder-zh-Hant="例：2月18日 鋤大D" />
+          </div>
           <div class="form-group">
             <label for="playerCount" data-en="Number of players:" data-zh-HK="玩家人數：">Number of players:</label>
             <input type="number" id="playerCount" min="2" max="20" value="4" />
@@ -43,10 +59,13 @@
         </div>
       </section>
 
-      <!-- Main scoreboard (shown when data exists) -->
+      <!-- Main scoreboard (current session) -->
       <section id="mainSection" class="main-section" hidden>
-        <div class="scoreboard-heading">
-          <h1 data-en="General Scoreboard" data-zh-HK="通用計分板">General Scoreboard</h1>
+        <div class="main-section-header">
+          <div class="scoreboard-heading scoreboard-heading-inline">
+            <button type="button" id="backToDashboardBtn" class="btn btn-icon-text" data-en="← Dashboard" data-zh-HK="← 返回主選單">← Dashboard</button>
+            <h1 id="currentSessionTitle" class="session-title">—</h1>
+          </div>
         </div>
 
         <!-- Player cards -->
@@ -73,9 +92,13 @@
             <div class="mode-a-form">
               <div class="form-group">
                 <label data-en="Winner:" data-zh-HK="贏家：">Winner:</label>
-                <select id="modeAWinner"></select>
+                <div id="modeAWinnerChips" class="player-chips" role="group"></div>
               </div>
               <div id="modeALosers" class="mode-losers"></div>
+              <div class="form-group remark-group">
+                <label for="modeARemark" data-en="Remark (optional):" data-zh-HK="備註（選填）：">Remark (optional):</label>
+                <input type="text" id="modeARemark" class="remark-input" placeholder="" data-placeholder-en="e.g. Round 1, penalty" data-placeholder-zh-Hant="例：第一局、罰分" />
+              </div>
               <button type="button" id="modeACalcBtn" class="btn btn-primary" data-en="Calculate" data-zh-HK="計算">Calculate</button>
             </div>
           </div>
@@ -86,9 +109,13 @@
             <div class="mode-b-form">
               <div class="form-group">
                 <label data-en="Big loser:" data-zh-HK="大輸家：">Big loser:</label>
-                <select id="modeBLoser"></select>
+                <div id="modeBLoserChips" class="player-chips" role="group"></div>
               </div>
               <div id="modeBWinners" class="mode-winners"></div>
+              <div class="form-group remark-group">
+                <label for="modeBRemark" data-en="Remark (optional):" data-zh-HK="備註（選填）：">Remark (optional):</label>
+                <input type="text" id="modeBRemark" class="remark-input" placeholder="" data-placeholder-en="e.g. Round 1" data-placeholder-zh-Hant="例：第一局" />
+              </div>
               <button type="button" id="modeBCalcBtn" class="btn btn-primary" data-en="Calculate" data-zh-HK="計算">Calculate</button>
             </div>
           </div>
@@ -97,19 +124,21 @@
           <div id="panelC" class="tab-panel" role="tabpanel" hidden>
             <h3 data-en="Transfer points from one player to another" data-zh-HK="玩家 A 過數給玩家 B">Transfer points from one player to another</h3>
             <div class="mode-c-form">
-              <div class="form-row">
-                <div class="form-group">
-                  <label data-en="From:" data-zh-HK="從：">From:</label>
-                  <select id="modeCFrom"></select>
-                </div>
-                <div class="form-group">
-                  <label data-en="To:" data-zh-HK="給：">To:</label>
-                  <select id="modeCTo"></select>
-                </div>
+              <div class="form-group">
+                <label data-en="From:" data-zh-HK="從：">From:</label>
+                <div id="modeCFromChips" class="player-chips" role="group"></div>
+              </div>
+              <div class="form-group">
+                <label data-en="To:" data-zh-HK="給：">To:</label>
+                <div id="modeCToChips" class="player-chips" role="group"></div>
               </div>
               <div class="form-group">
                 <label data-en="Amount:" data-zh-HK="分數：">Amount:</label>
                 <input type="text" id="modeCAmount" class="score-input" readonly inputmode="none" placeholder="0" data-placeholder-en="0" data-placeholder-zh-Hant="0" />
+              </div>
+              <div class="form-group remark-group">
+                <label for="modeCRemark" data-en="Remark (optional):" data-zh-HK="備註（選填）：">Remark (optional):</label>
+                <input type="text" id="modeCRemark" class="remark-input" placeholder="" data-placeholder-en="e.g. Debt" data-placeholder-zh-Hant="例：還款" />
               </div>
               <button type="button" id="modeCTransferBtn" class="btn btn-primary" data-en="Transfer" data-zh-HK="過數">Transfer</button>
             </div>
@@ -121,22 +150,71 @@
             <div class="mode-d-form">
               <div class="form-group">
                 <label data-en="Player:" data-zh-HK="玩家：">Player:</label>
-                <select id="modeDPlayer"></select>
+                <div id="modeDPlayerChips" class="player-chips" role="group"></div>
               </div>
               <div class="form-group">
                 <label data-en="Points (positive = add, negative = subtract):" data-zh-HK="分數（正數加分，負數扣分）：">Points (positive = add, negative = subtract):</label>
                 <input type="text" id="modeDPoints" class="score-input" readonly inputmode="none" placeholder="0" data-placeholder-en="0" data-placeholder-zh-Hant="0" />
+              </div>
+              <div class="form-group remark-group">
+                <label for="modeDRemark" data-en="Remark (optional):" data-zh-HK="備註（選填）：">Remark (optional):</label>
+                <input type="text" id="modeDRemark" class="remark-input" placeholder="" data-placeholder-en="e.g. Penalty, bonus" data-placeholder-zh-Hant="例：罰分、獎勵" />
               </div>
               <button type="button" id="modeDApplyBtn" class="btn btn-primary" data-en="Apply" data-zh-HK="套用">Apply</button>
             </div>
           </div>
         </div>
 
+        <!-- History Log -->
+        <section class="history-section card">
+          <div class="history-header">
+            <h2 data-en="History Log" data-zh-HK="分數變動紀錄">History Log</h2>
+            <button type="button" id="clearHistoryBtn" class="btn btn-secondary" data-en="Clear history" data-zh-HK="清空紀錄">Clear history</button>
+          </div>
+          <div id="historyList" class="history-list" role="log"></div>
+        </section>
+
         <div class="main-actions">
-          <button type="button" id="clearDataBtn" class="btn btn-secondary" data-en="Clear all & reset" data-zh-HK="清除紀錄並重置">Clear all & reset</button>
+          <button type="button" id="settlementBtn" class="btn btn-primary" data-en="🏆 End game / Settlement" data-zh-HK="🏆 結算本局">🏆 End game / Settlement</button>
+          <button type="button" id="resetSessionBtn" class="btn btn-secondary" data-en="Reset this game" data-zh-HK="重置本局">Reset this game</button>
+          <button type="button" id="deleteSessionBtn" class="btn btn-secondary btn-danger" data-en="Delete game" data-zh-HK="刪除此局">Delete game</button>
+        </div>
+      </section>
+
+      <!-- View C: Settlement Summary (hidden by default) -->
+      <section id="settlementSection" class="settlement-section" hidden>
+        <div class="scoreboard-heading">
+          <h1 data-en="Settlement" data-zh-HK="結算本局">Settlement</h1>
+          <p id="settlementSessionName" class="subtitle">—</p>
+        </div>
+        <div class="settlement-card card">
+          <h2 data-en="Leaderboard" data-zh-HK="排行榜">Leaderboard</h2>
+          <div id="settlementLeaderboard" class="settlement-leaderboard"></div>
+          <div class="settlement-stats">
+            <span data-en="Total records:" data-zh-HK="本局總紀錄次數：">Total records:</span>
+            <strong id="settlementTotalRecords">0</strong>
+          </div>
+        </div>
+        <div class="settlement-card card">
+          <h2 data-en="📝 Settlement Plan" data-zh-HK="📝 找數建議">📝 Settlement Plan</h2>
+          <div id="settlementPlan" class="settlement-plan"></div>
+        </div>
+        <div class="settlement-actions">
+          <button type="button" id="copyResultsBtn" class="btn btn-primary" data-en="📋 Copy results" data-zh-HK="📋 複製賽果">📋 Copy results</button>
+          <button type="button" id="confirmSettlementBtn" class="btn btn-primary" data-en="Confirm settlement & back to dashboard" data-zh-HK="確認結算 / 返回大廳">Confirm settlement & back to dashboard</button>
+          <button type="button" id="backFromSettlementBtn" class="btn btn-secondary" data-en="← Back to scoreboard" data-zh-HK="← 返回計分板">← Back to scoreboard</button>
+          <button type="button" id="deleteFromSettlementBtn" class="btn btn-secondary btn-danger" data-en="Delete game" data-zh-HK="刪除此局">Delete game</button>
         </div>
       </section>
     </main>
+
+    <!-- Zero-sum error modal -->
+    <div id="zeroSumErrorModal" class="modal-overlay" aria-hidden="true" hidden>
+      <div class="modal-content modal-error">
+        <p class="modal-message" id="zeroSumErrorText">⚠️ 分數不平衡！總分數與初始總分數不符，請檢查歷史紀錄是否有誤。</p>
+        <button type="button" id="closeZeroSumModalBtn" class="btn btn-primary" data-en="OK" data-zh-HK="確定">OK</button>
+      </div>
+    </div>
 
     <!-- Toast -->
     <div id="toast" class="toast" aria-live="polite" hidden></div>
