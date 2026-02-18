@@ -1,0 +1,630 @@
+/**
+ * General Scoreboard — styles
+ * Theme, RWD, Tabs, Numpad slide-up and grid
+ */
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body.light-mode {
+  background: #f0f0f0;
+  color: #222;
+}
+
+body.dark {
+  background: #181c1f;
+  color: #f0f0f0;
+}
+
+/* App container */
+.scoreboard-app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  padding-bottom: 120px; /* space above numpad when open */
+  box-sizing: border-box;
+}
+
+.scoreboard-heading {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.scoreboard-heading h1 {
+  font-size: 1.8em;
+  margin: 0.5em 0 0.25em;
+  color: #1976d2;
+}
+
+body.dark .scoreboard-heading h1 {
+  color: #90caf9;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 1em;
+  margin: 0;
+}
+
+body.dark .subtitle {
+  color: #bbb;
+}
+
+/* Cards */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid #eee;
+}
+
+body.dark .card {
+  background: #23272a;
+  border-color: #333;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.card h2 {
+  margin: 0 0 16px;
+  font-size: 1.2em;
+  color: #1976d2;
+}
+
+body.dark .card h2 {
+  color: #90caf9;
+}
+
+.card h3 {
+  margin: 0 0 12px;
+  font-size: 1em;
+  font-weight: 600;
+  color: #444;
+}
+
+body.dark .card h3 {
+  color: #bbb;
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 1em;
+  font-weight: 600;
+  border: 2px solid;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.btn-primary {
+  background: #1976d2;
+  color: #fff;
+  border-color: #1976d2;
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  background: #1565c0;
+  border-color: #1565c0;
+  outline: none;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #1976d2;
+  border-color: #1976d2;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus-visible {
+  background: rgba(25, 118, 210, 0.1);
+  outline: none;
+}
+
+body.dark .btn-primary {
+  background: #90caf9;
+  color: #111;
+  border-color: #90caf9;
+}
+
+body.dark .btn-primary:hover,
+body.dark .btn-primary:focus-visible {
+  background: #64b5f6;
+  border-color: #64b5f6;
+}
+
+body.dark .btn-secondary {
+  color: #90caf9;
+  border-color: #90caf9;
+}
+
+body.dark .btn-secondary:hover,
+body.dark .btn-secondary:focus-visible {
+  background: rgba(144, 202, 249, 0.15);
+}
+
+/* Form */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #333;
+}
+
+body.dark .form-group label {
+  color: #e0e0e0;
+}
+
+.form-group input[type="number"],
+.form-group input[type="text"],
+.form-group select {
+  width: 100%;
+  max-width: 280px;
+  padding: 10px 12px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1em;
+  background: #fff;
+  color: #222;
+  box-sizing: border-box;
+}
+
+body.dark .form-group input,
+body.dark .form-group select {
+  background: #2c2f33;
+  border-color: #444;
+  color: #f0f0f0;
+}
+
+.form-group input.score-input {
+  cursor: pointer;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.form-row .form-group {
+  flex: 1;
+  min-width: 140px;
+}
+
+/* Init section */
+.init-section .init-form {
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.player-names-container {
+  margin: 16px 0;
+}
+
+.player-names-container .form-group {
+  margin-bottom: 10px;
+}
+
+#startScoreboardBtn {
+  margin-top: 8px;
+}
+
+/* Player cards */
+.players-section .players-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.players-section .players-header h2 {
+  margin: 0;
+}
+
+.player-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.player-card {
+  padding: 16px;
+  border-radius: 10px;
+  border: 2px solid #e0e0e0;
+  background: #fafafa;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+body.dark .player-card {
+  background: #2a2e32;
+  border-color: #444;
+}
+
+.player-card:hover {
+  border-color: #b3e5fc;
+}
+
+body.dark .player-card:hover {
+  border-color: #64b5f6;
+}
+
+.player-card-name {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+body.dark .player-card-name {
+  color: #e0e0e0;
+}
+
+.player-card-score {
+  font-size: 1.5em;
+  font-weight: 700;
+  color: #1976d2;
+}
+
+body.dark .player-card-score {
+  color: #90caf9;
+}
+
+.player-card-score.score-update {
+  animation: scoreFlash 0.4s ease;
+}
+
+@keyframes scoreFlash {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); opacity: 0.9; }
+  100% { transform: scale(1); }
+}
+
+/* Tabs */
+.tabs-container {
+  overflow: hidden;
+}
+
+.tabs-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 0;
+}
+
+body.dark .tabs-header {
+  border-bottom-color: #444;
+}
+
+.tab-btn {
+  padding: 10px 14px;
+  font-size: 0.95em;
+  font-weight: 600;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+body.dark .tab-btn {
+  color: #999;
+}
+
+.tab-btn:hover {
+  color: #1976d2;
+}
+
+body.dark .tab-btn:hover {
+  color: #90caf9;
+}
+
+.tab-btn.active {
+  color: #1976d2;
+  border-bottom-color: #1976d2;
+}
+
+body.dark .tab-btn.active {
+  color: #90caf9;
+  border-bottom-color: #90caf9;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* Mode forms */
+.mode-losers,
+.mode-winners {
+  margin: 16px 0;
+}
+
+.mode-losers .form-group,
+.mode-winners .form-group {
+  margin-bottom: 12px;
+}
+
+.mode-a-form .btn,
+.mode-b-form .btn,
+.mode-c-form .btn,
+.mode-d-form .btn {
+  margin-top: 8px;
+}
+
+/* Main actions */
+.main-actions {
+  margin-top: 24px;
+  text-align: center;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 500;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: toastIn 0.25s ease;
+}
+
+body.light-mode .toast {
+  background: #333;
+  color: #fff;
+}
+
+body.dark .toast {
+  background: #90caf9;
+  color: #111;
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* ---------- Custom Numpad ---------- */
+.numpad-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.numpad-overlay[hidden] {
+  display: none;
+}
+
+.numpad-overlay.is-open {
+  pointer-events: auto;
+}
+
+.numpad-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.numpad-overlay.is-open .numpad-backdrop {
+  opacity: 1;
+}
+
+.numpad-panel {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(100%);
+  transition: transform 0.3s ease-out;
+  background: #f5f5f5;
+}
+
+body.dark .numpad-panel {
+  background: #2a2e32;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.numpad-overlay.is-open .numpad-panel {
+  transform: translateY(0);
+}
+
+/* Quick buttons */
+.numpad-quick {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.numpad-quick-btn {
+  flex: 1;
+  min-width: 64px;
+  padding: 10px 12px;
+  font-size: 0.95em;
+  font-weight: 600;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.dark .numpad-quick-btn {
+  background: #3a3e42;
+  border-color: #555;
+  color: #f0f0f0;
+}
+
+.numpad-quick-btn:active {
+  transform: scale(0.97);
+  background: #e0e0e0;
+  border-color: #1976d2;
+}
+
+body.dark .numpad-quick-btn:active {
+  background: #4a4e52;
+  border-color: #90caf9;
+}
+
+/* Numpad grid */
+.numpad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.numpad-key {
+  min-height: 52px;
+  padding: 12px;
+  font-size: 1.4em;
+  font-weight: 600;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  color: #222;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body.dark .numpad-key {
+  background: #3a3e42;
+  border-color: #555;
+  color: #f0f0f0;
+}
+
+.numpad-key:hover {
+  background: #f0f0f0;
+  border-color: #1976d2;
+}
+
+body.dark .numpad-key:hover {
+  background: #4a4e52;
+  border-color: #90caf9;
+}
+
+.numpad-key:active {
+  transform: scale(0.97);
+  background: #e0e0e0;
+  border-color: #1976d2;
+}
+
+body.dark .numpad-key:active {
+  background: #5a5e62;
+  border-color: #90caf9;
+}
+
+.numpad-backspace,
+.numpad-enter {
+  font-size: 1.2em;
+}
+
+.numpad-enter {
+  background: #1976d2;
+  color: #fff;
+  border-color: #1976d2;
+}
+
+body.dark .numpad-enter {
+  background: #90caf9;
+  color: #111;
+  border-color: #90caf9;
+}
+
+.numpad-enter:active {
+  background: #1565c0;
+}
+
+body.dark .numpad-enter:active {
+  background: #64b5f6;
+}
+
+/* RWD */
+@media (max-width: 640px) {
+  .scoreboard-app {
+    padding: 12px;
+    padding-bottom: 100px;
+  }
+
+  .scoreboard-heading h1 {
+    font-size: 1.5em;
+  }
+
+  .player-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .tabs-header {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    font-size: 0.9em;
+  }
+
+  .form-group input[type="number"],
+  .form-group input[type="text"],
+  .form-group select {
+    max-width: none;
+  }
+
+  .numpad-key {
+    min-height: 48px;
+    font-size: 1.25em;
+  }
+
+  .numpad-quick-btn {
+    min-width: 56px;
+    padding: 8px 10px;
+    font-size: 0.9em;
+  }
+}
+
+@media (min-width: 641px) {
+  .numpad-key {
+    min-height: 56px;
+  }
+}

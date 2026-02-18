@@ -6,6 +6,7 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 
 - `/tools/random-number-generator/` — Random Number Generator
 - `/tools/url-parser/` — URL Parser Tool
+- `/tools/general-scoreboard/` — General Scoreboard (PWA)
 - `/tools/magic-bridge-scorer/` — Magic Bridge Scorer
 - `/tools/piano/` — Piano Tool
 - `/tools/secret-santa/` — Secret Santa Generator
@@ -38,6 +39,7 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 
 - [Random Number Generator](https://im1person.github.io/playground/tools/random-number-generator/): Pick random numbers, exclude numbers, and more.
 - [URL Parser](https://im1person.github.io/playground/tools/url-parser/): Parse, analyze, and edit URLs with a modern interface. **(PWA: Works Offline & Installable)**
+- [General Scoreboard](https://im1person.github.io/playground/tools/general-scoreboard/): Universal scoreboard for poker, mahjong, and more. Four scoring modes, on-screen numpad, localStorage. **(PWA: Works Offline & Installable)**
 - [Magic Bridge Scorer](https://im1person.github.io/playground/tools/magic-bridge-scorer/): Score Magic Bridge games and track results.
 - [Piano](https://im1person.github.io/playground/tools/piano/): Interactive piano with MIDI support.
 - [Secret Santa Generator](https://im1person.github.io/playground/tools/secret-santa/): Generate Secret Santa assignments with exclusion rules.
