@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="General Scoreboard" data-zh-HK="通用計分板">
+      General Scoreboard
+    </title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#1976d2" />
+    <link rel="apple-touch-icon" href="icon-512.png" />
+  </head>
+  <body>
+    <header id="siteHeader" class="site-header"></header>
+
+    <main class="scoreboard-app">
+      <!-- Initial setup (shown when no saved data) -->
+      <section id="initSection" class="init-section">
+        <div class="scoreboard-heading">
+          <h1 data-en="General Scoreboard" data-zh-HK="通用計分板">
+            General Scoreboard
+          </h1>
+          <p class="subtitle" data-en="Track scores for card games, mahjong, and more" data-zh-HK="撲克、麻將等通用計分">
+            Track scores for card games, mahjong, and more
+          </p>
+        </div>
+        <div class="init-form card">
+          <h2 data-en="Setup" data-zh-HK="初始設定">Setup</h2>
+          <div class="form-group">
+            <label for="playerCount" data-en="Number of players:" data-zh-HK="玩家人數：">Number of players:</label>
+            <input type="number" id="playerCount" min="2" max="20" value="4" />
+          </div>
+          <div class="form-group">
+            <label data-en="Starting score (default 0):" data-zh-HK="起步底分（預設 0）：">Starting score (default 0):</label>
+            <input type="text" id="startingScore" class="score-input" value="0" readonly inputmode="none" placeholder="0" data-placeholder-en="0" data-placeholder-zh-Hant="0" />
+          </div>
+          <div id="playerNamesContainer" class="player-names-container"></div>
+          <button type="button" id="startScoreboardBtn" class="btn btn-primary" data-en="Start scoring" data-zh-HK="開始計分">
+            Start scoring
+          </button>
+        </div>
+      </section>
+
+      <!-- Main scoreboard (shown when data exists) -->
+      <section id="mainSection" class="main-section" hidden>
+        <div class="scoreboard-heading">
+          <h1 data-en="General Scoreboard" data-zh-HK="通用計分板">General Scoreboard</h1>
+        </div>
+
+        <!-- Player cards -->
+        <section class="players-section card">
+          <div class="players-header">
+            <h2 data-en="Players" data-zh-HK="玩家">Players</h2>
+            <button type="button" id="addPlayerBtn" class="btn btn-secondary" data-en="+ Add player" data-zh-HK="+ 新增玩家">+ Add player</button>
+          </div>
+          <div id="playerCards" class="player-cards"></div>
+        </section>
+
+        <!-- Mode Tabs -->
+        <div class="tabs-container card">
+          <div class="tabs-header" role="tablist">
+            <button type="button" class="tab-btn active" role="tab" data-mode="a" aria-selected="true" data-en="One wins, others pay" data-zh-HK="一贏多輸">One wins, others pay</button>
+            <button type="button" class="tab-btn" role="tab" data-mode="b" aria-selected="false" data-en="One pays all" data-zh-HK="一輸多贏">One pays all</button>
+            <button type="button" class="tab-btn" role="tab" data-mode="c" aria-selected="false" data-en="Transfer A→B" data-zh-HK="一對一過數">Transfer A→B</button>
+            <button type="button" class="tab-btn" role="tab" data-mode="d" aria-selected="false" data-en="Add/Subtract" data-zh-HK="單獨加減">Add/Subtract</button>
+          </div>
+
+          <!-- Mode A: One winner, others input loss -->
+          <div id="panelA" class="tab-panel active" role="tabpanel">
+            <h3 data-en="Select winner, enter amount each loser pays" data-zh-HK="選贏家，輸入各輸家付給贏家的分數">Select winner, enter amount each loser pays</h3>
+            <div class="mode-a-form">
+              <div class="form-group">
+                <label data-en="Winner:" data-zh-HK="贏家：">Winner:</label>
+                <select id="modeAWinner"></select>
+              </div>
+              <div id="modeALosers" class="mode-losers"></div>
+              <button type="button" id="modeACalcBtn" class="btn btn-primary" data-en="Calculate" data-zh-HK="計算">Calculate</button>
+            </div>
+          </div>
+
+          <!-- Mode B: One big loser, others input win -->
+          <div id="panelB" class="tab-panel" role="tabpanel" hidden>
+            <h3 data-en="Select big loser, enter amount each winner gets" data-zh-HK="選大輸家，輸入各贏家贏得的分數">Select big loser, enter amount each winner gets</h3>
+            <div class="mode-b-form">
+              <div class="form-group">
+                <label data-en="Big loser:" data-zh-HK="大輸家：">Big loser:</label>
+                <select id="modeBLoser"></select>
+              </div>
+              <div id="modeBWinners" class="mode-winners"></div>
+              <button type="button" id="modeBCalcBtn" class="btn btn-primary" data-en="Calculate" data-zh-HK="計算">Calculate</button>
+            </div>
+          </div>
+
+          <!-- Mode C: Transfer from A to B -->
+          <div id="panelC" class="tab-panel" role="tabpanel" hidden>
+            <h3 data-en="Transfer points from one player to another" data-zh-HK="玩家 A 過數給玩家 B">Transfer points from one player to another</h3>
+            <div class="mode-c-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label data-en="From:" data-zh-HK="從：">From:</label>
+                  <select id="modeCFrom"></select>
+                </div>
+                <div class="form-group">
+                  <label data-en="To:" data-zh-HK="給：">To:</label>
+                  <select id="modeCTo"></select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label data-en="Amount:" data-zh-HK="分數：">Amount:</label>
+                <input type="text" id="modeCAmount" class="score-input" readonly inputmode="none" placeholder="0" data-placeholder-en="0" data-placeholder-zh-Hant="0" />
+              </div>
+              <button type="button" id="modeCTransferBtn" class="btn btn-primary" data-en="Transfer" data-zh-HK="過數">Transfer</button>
+            </div>
+          </div>
+
+          <!-- Mode D: Single player add/subtract -->
+          <div id="panelD" class="tab-panel" role="tabpanel" hidden>
+            <h3 data-en="Add or subtract points for one player" data-zh-HK="單獨為一位玩家加減分">Add or subtract points for one player</h3>
+            <div class="mode-d-form">
+              <div class="form-group">
+                <label data-en="Player:" data-zh-HK="玩家：">Player:</label>
+                <select id="modeDPlayer"></select>
+              </div>
+              <div class="form-group">
+                <label data-en="Points (positive = add, negative = subtract):" data-zh-HK="分數（正數加分，負數扣分）：">Points (positive = add, negative = subtract):</label>
+                <input type="text" id="modeDPoints" class="score-input" readonly inputmode="none" placeholder="0" data-placeholder-en="0" data-placeholder-zh-Hant="0" />
+              </div>
+              <button type="button" id="modeDApplyBtn" class="btn btn-primary" data-en="Apply" data-zh-HK="套用">Apply</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="main-actions">
+          <button type="button" id="clearDataBtn" class="btn btn-secondary" data-en="Clear all & reset" data-zh-HK="清除紀錄並重置">Clear all & reset</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" aria-live="polite" hidden></div>
+
+    <!-- Custom Numpad -->
+    <div id="numpadOverlay" class="numpad-overlay" aria-hidden="true" hidden>
+      <div class="numpad-backdrop" id="numpadBackdrop"></div>
+      <div class="numpad-panel" id="numpadPanel">
+        <div class="numpad-quick">
+          <button type="button" class="numpad-quick-btn" data-quick="+10">+10</button>
+          <button type="button" class="numpad-quick-btn" data-quick="+50">+50</button>
+          <button type="button" class="numpad-quick-btn" data-quick="+100">+100</button>
+          <button type="button" class="numpad-quick-btn" data-quick="+/-" data-en="+/-" data-zh-HK="正負">+/-</button>
+        </div>
+        <div class="numpad-grid">
+          <button type="button" class="numpad-key" data-key="7">7</button>
+          <button type="button" class="numpad-key" data-key="8">8</button>
+          <button type="button" class="numpad-key" data-key="9">9</button>
+          <button type="button" class="numpad-key" data-key="4">4</button>
+          <button type="button" class="numpad-key" data-key="5">5</button>
+          <button type="button" class="numpad-key" data-key="6">6</button>
+          <button type="button" class="numpad-key" data-key="1">1</button>
+          <button type="button" class="numpad-key" data-key="2">2</button>
+          <button type="button" class="numpad-key" data-key="3">3</button>
+          <button type="button" class="numpad-key" data-key="0">0</button>
+          <button type="button" class="numpad-key numpad-backspace" data-key="backspace" aria-label="Backspace">⌫</button>
+          <button type="button" class="numpad-key numpad-enter" data-key="enter" data-en="Done" data-zh-HK="完成">Done</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu({
+        onLocaleChange: () => {
+          document.dispatchEvent(new Event("localechange"));
+        },
+      });
+    </script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("sw.js")
+            .then(() => {})
+            .catch((err) => console.warn("PWA: Service Worker registration failed", err));
+        });
+      }
+    </script>
+  </body>
+</html>
