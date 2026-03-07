@@ -18,6 +18,11 @@ const messages = {
     deleteConfirm: "Delete this game? This cannot be undone.",
     noSessions: "No games yet. Create one below.",
     zeroSumError: "Scores are not balanced! Total score does not match initial total. Please check the history for errors.",
+    edit: "Edit",
+    save: "Save",
+    cancel: "Cancel",
+    editRecord: "Edit record",
+    remark: "Remark",
   },
   "zh-HK": {
     scoreUpdated: "已更新分數",
@@ -31,6 +36,11 @@ const messages = {
     deleteConfirm: "確定刪除此局？無法復原。",
     noSessions: "尚無局次，請於下方建立。",
     zeroSumError: "分數不平衡！總分數與初始總分數不符，請檢查歷史紀錄是否有誤。",
+    edit: "編輯",
+    save: "儲存",
+    cancel: "取消",
+    editRecord: "編輯紀錄",
+    remark: "備註",
   },
 };
 
@@ -99,6 +109,19 @@ function getCurrentSession() {
   return state.sessions.find((s) => s.id === state.currentSessionId) || null;
 }
 
+/** In mode E we store scores ×10 (one decimal). Returns 10 or 1. */
+function getScoreScale(session) {
+  return session && session.scoreScale === 10 ? 10 : 1;
+}
+
+/** Format score for display (e.g. 85 → "8.5" when scale 10). */
+function formatScoreDisplay(score, session) {
+  const scale = getScoreScale(session);
+  const n = Number(score) || 0;
+  if (scale === 10) return (n / 10).toFixed(1);
+  return String(n);
+}
+
 // ---------- DOM refs ----------
 const dashboardSection = document.getElementById("dashboardSection");
 const initSection = document.getElementById("initSection");
@@ -129,6 +152,9 @@ let selectedModeBLoser = null;
 let selectedModeCFrom = null;
 let selectedModeCTo = null;
 let selectedModeDPlayer = null;
+let selectedModeEWinner = null;
+let selectedModeESelfDraw = true;
+let selectedModeEDiscarder = null;
 
 // ---------- Init section ----------
 function renderPlayerNameInputs(count) {
@@ -196,7 +222,9 @@ function startScoreboard() {
     state.sessions.push(session);
     state.currentSessionId = session.id;
   }
-  selectedModeAWinner = selectedModeBLoser = selectedModeCFrom = selectedModeCTo = selectedModeDPlayer = null;
+  selectedModeAWinner = selectedModeBLoser = selectedModeCFrom = selectedModeCTo = selectedModeDPlayer = selectedModeEWinner = null;
+  selectedModeESelfDraw = true;
+  selectedModeEDiscarder = null;
   saveData(state);
   if (sessionNameInput) sessionNameInput.value = "";
   showMain();
@@ -334,7 +362,9 @@ function resetSession() {
   session.players = [];
   session.history = [];
   saveData(state);
-  selectedModeAWinner = selectedModeBLoser = selectedModeCFrom = selectedModeCTo = selectedModeDPlayer = null;
+  selectedModeAWinner = selectedModeBLoser = selectedModeCFrom = selectedModeCTo = selectedModeDPlayer = selectedModeEWinner = null;
+  selectedModeESelfDraw = true;
+  selectedModeEDiscarder = null;
   showInit(session.id);
   renderPlayerNameInputs(4);
 }
@@ -367,16 +397,20 @@ function renderAll() {
   const session = getCurrentSession();
   const players = session ? session.players || [] : [];
   renderPlayerCards();
-  if (players.length && selectedModeAWinner == null && selectedModeBLoser == null && selectedModeCFrom == null && selectedModeCTo == null && selectedModeDPlayer == null) {
+  if (players.length && selectedModeAWinner == null && selectedModeBLoser == null && selectedModeCFrom == null && selectedModeCTo == null && selectedModeDPlayer == null && selectedModeEWinner == null) {
     selectedModeAWinner = players[0].id;
     selectedModeBLoser = players[0].id;
     selectedModeCFrom = players[0].id;
     selectedModeCTo = players.length > 1 ? players[1].id : null;
     selectedModeDPlayer = players[0].id;
+    selectedModeEWinner = players[0].id;
+    selectedModeESelfDraw = true;
+    selectedModeEDiscarder = null;
   }
   renderPlayerChipsAll();
   renderModeA();
   renderModeB();
+  renderModeE();
   renderHistory();
 }
 
@@ -385,14 +419,17 @@ function renderPlayerCards() {
   const session = getCurrentSession();
   const players = session ? session.players || [] : [];
   playerCardsEl.innerHTML = players
-    .map(
-      (p) => `
+    .map((p) => {
+      const scoreNum = Number(p.score) || 0;
+      const initialNum = Number(p.initialScore) ?? 0;
+      const scoreClass = scoreNum > initialNum ? "positive" : scoreNum < initialNum ? "negative" : "";
+      return `
     <div class="player-card" data-player-id="${p.id}">
       <div class="player-card-name">${escapeHtml(p.name)}</div>
-      <div class="player-card-score score-value" data-player-id="${p.id}">${p.score}</div>
+      <div class="player-card-score score-value ${scoreClass}" data-player-id="${p.id}">${formatScoreDisplay(p.score, session)}</div>
     </div>
-  `
-    )
+  `;
+    })
     .join("");
 }
 
@@ -401,6 +438,28 @@ function getPlayerName(id) {
   const players = session ? session.players || [] : [];
   const p = players.find((x) => x.id === id);
   return p ? p.name : "";
+}
+
+function renderPlayerChipsForPlayers(containerId, selectedId, role, players) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = (players || [])
+    .map(
+      (p) =>
+        `<button type="button" class="player-chip" data-player-id="${p.id}" data-role="${role}">${escapeHtml(p.name)}</button>`
+    )
+    .join("");
+  container.querySelectorAll(".player-chip").forEach((btn) => {
+    const id = btn.getAttribute("data-player-id");
+    btn.classList.toggle("selected", id === selectedId);
+    btn.addEventListener("click", () => {
+      if (role === "modeEDiscarder") {
+        selectedModeEDiscarder = id;
+        renderPlayerChipsForPlayers(containerId, selectedModeEDiscarder, role, players);
+        renderModeE();
+      }
+    });
+  });
 }
 
 function renderPlayerChips(containerId, selectedId, role) {
@@ -439,6 +498,15 @@ function renderPlayerChips(containerId, selectedId, role) {
       } else if (role === "modeDPlayer") {
         selectedModeDPlayer = id;
         renderPlayerChips("modeDPlayerChips", selectedModeDPlayer, "modeDPlayer");
+      } else if (role === "modeEWinner") {
+        selectedModeEWinner = id;
+        renderPlayerChips("modeEWinnerChips", selectedModeEWinner, "modeEWinner");
+        if (selectedModeEDiscarder === id) selectedModeEDiscarder = null;
+        renderModeE();
+      } else if (role === "modeEDiscarder") {
+        selectedModeEDiscarder = id;
+        renderPlayerChips("modeEDiscarderChips", selectedModeEDiscarder, "modeEDiscarder");
+        renderModeE();
       }
     });
   });
@@ -450,6 +518,14 @@ function renderPlayerChipsAll() {
   renderPlayerChips("modeCFromChips", selectedModeCFrom, "modeCFrom");
   renderPlayerChips("modeCToChips", selectedModeCTo, "modeCTo");
   renderPlayerChips("modeDPlayerChips", selectedModeDPlayer, "modeDPlayer");
+  renderPlayerChips("modeEWinnerChips", selectedModeEWinner, "modeEWinner");
+  const session = getCurrentSession();
+  const players = session ? session.players || [] : [];
+  if (!selectedModeESelfDraw && players.length > 0) {
+    const nonWinners = players.filter((p) => p.id !== selectedModeEWinner);
+    renderPlayerChipsForPlayers("modeEDiscarderChips", selectedModeEDiscarder, "modeEDiscarder", nonWinners);
+  }
+  renderModeE();
 }
 
 function renderModeA() {
@@ -490,6 +566,34 @@ function renderModeB() {
     .join("");
 }
 
+function renderModeE() {
+  const block = document.getElementById("modeEDiscarderBlock");
+  const radioSelf = document.querySelector('input[name="modeEWinType"][value="selfdraw"]');
+  const radioDiscard = document.querySelector('input[name="modeEWinType"][value="discard"]');
+  if (radioSelf) radioSelf.checked = selectedModeESelfDraw;
+  if (radioDiscard) radioDiscard.checked = !selectedModeESelfDraw;
+  if (block) block.hidden = selectedModeESelfDraw;
+  if (!selectedModeESelfDraw) {
+    const session = getCurrentSession();
+    const players = session ? session.players || [] : [];
+    const nonWinners = players.filter((p) => p.id !== selectedModeEWinner);
+    renderPlayerChipsForPlayers("modeEDiscarderChips", selectedModeEDiscarder, "modeEDiscarder", nonWinners);
+  }
+  if (radioSelf) {
+    radioSelf.onchange = () => {
+      selectedModeESelfDraw = true;
+      selectedModeEDiscarder = null;
+      renderModeE();
+    };
+  }
+  if (radioDiscard) {
+    radioDiscard.onchange = () => {
+      selectedModeESelfDraw = false;
+      renderModeE();
+    };
+  }
+}
+
 // ---------- Mode calculations ----------
 function parseScore(str) {
   if (str === "" || str === "-") return NaN;
@@ -518,11 +622,13 @@ function runModeA() {
     if (amount !== 0) parts.push(`${getPlayerName(pid)} ${amount > 0 ? "-" + amount : amount}`);
   }
   updates.push({ id: winnerId, delta: total });
+  const session = getCurrentSession();
+  const scaled = getScoreScale(session) === 10 ? updates.map((u) => ({ id: u.id, delta: (Number(u.delta) || 0) * 10 })) : updates;
   const remark = (document.getElementById("modeARemark")?.value || "").trim();
   const msg = getLocale() === "zh-HK"
     ? `${getPlayerName(winnerId)} 贏 ${total}（${parts.join("、") || "—"}）`
     : `${getPlayerName(winnerId)} won ${total} (from ${parts.join(", ") || "—"})`;
-  applyUpdates(updates, msg, remark);
+  applyUpdates(scaled, msg, remark);
   loserInputs.forEach((i) => (i.value = ""));
   if (document.getElementById("modeARemark")) document.getElementById("modeARemark").value = "";
   showToast(t("scoreUpdated"));
@@ -549,11 +655,13 @@ function runModeB() {
     if (amount !== 0) parts.push(`${getPlayerName(pid)} +${amount}`);
   }
   updates.push({ id: loserId, delta: -total });
+  const sessionB = getCurrentSession();
+  const scaledB = getScoreScale(sessionB) === 10 ? updates.map((u) => ({ id: u.id, delta: (Number(u.delta) || 0) * 10 })) : updates;
   const remark = (document.getElementById("modeBRemark")?.value || "").trim();
   const msg = getLocale() === "zh-HK"
     ? `${getPlayerName(loserId)} 付 ${total}（${parts.join("、") || "—"}）`
     : `${getPlayerName(loserId)} paid ${total} (to ${parts.join(", ") || "—"})`;
-  applyUpdates(updates, msg, remark);
+  applyUpdates(scaledB, msg, remark);
   winnerInputs.forEach((i) => (i.value = ""));
   if (document.getElementById("modeBRemark")) document.getElementById("modeBRemark").value = "";
   showToast(t("scoreUpdated"));
@@ -572,18 +680,18 @@ function runModeC() {
     showToast(t("invalidNumber"));
     return;
   }
+  const sessionC = getCurrentSession();
+  const scaleC = getScoreScale(sessionC);
+  const updatesC = [
+    { id: fromId, delta: -amount },
+    { id: toId, delta: amount },
+  ];
+  const scaledC = scaleC === 10 ? updatesC.map((u) => ({ id: u.id, delta: (Number(u.delta) || 0) * 10 })) : updatesC;
   const remark = (document.getElementById("modeCRemark")?.value || "").trim();
   const msg = getLocale() === "zh-HK"
     ? `${getPlayerName(fromId)} → ${getPlayerName(toId)}：${amount}`
     : `${getPlayerName(fromId)} → ${getPlayerName(toId)}: ${amount}`;
-  applyUpdates(
-    [
-      { id: fromId, delta: -amount },
-      { id: toId, delta: amount },
-    ],
-    msg,
-    remark
-  );
+  applyUpdates(scaledC, msg, remark);
   if (amountEl) amountEl.value = "";
   if (document.getElementById("modeCRemark")) document.getElementById("modeCRemark").value = "";
   showToast(t("scoreUpdated"));
@@ -601,13 +709,103 @@ function runModeD() {
     showToast(t("invalidNumber"));
     return;
   }
+  const sessionD = getCurrentSession();
+  const scaleD = getScoreScale(sessionD);
+  const deltaD = scaleD === 10 ? (Number(points) || 0) * 10 : (Number(points) || 0);
   const remark = (document.getElementById("modeDRemark")?.value || "").trim();
   const msg = getLocale() === "zh-HK"
     ? `${getPlayerName(playerId)} ${points >= 0 ? "+" : ""}${points}`
     : `${getPlayerName(playerId)} ${points >= 0 ? "+" : ""}${points}`;
-  applyUpdates([{ id: playerId, delta: points }], msg, remark);
+  applyUpdates([{ id: playerId, delta: deltaD }], msg, remark);
   if (pointsEl) pointsEl.value = "";
   if (document.getElementById("modeDRemark")) document.getElementById("modeDRemark").value = "";
+  showToast(t("scoreUpdated"));
+}
+
+function runModeE() {
+  const winnerId = selectedModeEWinner;
+  if (!winnerId) {
+    showToast(t("selectPlayer"));
+    return;
+  }
+  const faanEl = document.getElementById("modeEFaan");
+  const faanInput = parseScore(faanEl?.value ?? "");
+  if (!Number.isFinite(faanInput) || faanInput < 0) {
+    showToast(t("invalidNumber"));
+    return;
+  }
+  // Use actual radio selection so description always matches what user selected
+  const winTypeRadio = document.querySelector('input[name="modeEWinType"]:checked');
+  const isSelfDraw = winTypeRadio ? winTypeRadio.value === "selfdraw" : selectedModeESelfDraw;
+
+  if (!isSelfDraw && !selectedModeEDiscarder) {
+    showToast(getLocale() === "zh-HK" ? "請選擇出銃者" : "Please select who discarded");
+    return;
+  }
+  const session = getCurrentSession();
+  if (!session) return;
+  const players = session.players || [];
+  const losers = players.filter((p) => p.id !== winnerId);
+  const n = losers.length;
+
+  // Mode E uses ×10 internally (one decimal place, no floats in system)
+  const faanTenths = Math.round(faanInput * 10);
+  if (faanTenths < 0) {
+    showToast(t("invalidNumber"));
+    return;
+  }
+  const faanDisplay = faanTenths % 10 === 0 ? String(faanTenths / 10) : (faanTenths / 10).toFixed(1);
+
+  // First time using mode E in this session: switch to tenths (×10)
+  if (getScoreScale(session) !== 10) {
+    session.scoreScale = 10;
+    session.startingScore = Math.round((Number(session.startingScore) ?? 0) * 10);
+    players.forEach((p) => {
+      p.score = Math.round((Number(p.score) || 0) * 10);
+      p.initialScore = Math.round((Number(p.initialScore) ?? 0) * 10);
+    });
+  }
+
+  const isZh = getLocale() === "zh-HK";
+  let updates;
+  let msg;
+  if (isSelfDraw) {
+    // 自摸：每人付 1× 番，贏家收 n× 番
+    const totalWin = n * faanTenths;
+    updates = [
+      { id: winnerId, delta: totalWin },
+      ...losers.map((p) => ({ id: p.id, delta: -faanTenths })),
+    ];
+    const loserNames = losers.map((p) => getPlayerName(p.id)).join(isZh ? "、" : ", ");
+    const totalWinDisplay = formatScoreDisplay(totalWin, session);
+    const faanDisplayNeg = formatScoreDisplay(-faanTenths, session);
+    msg = isZh
+      ? `${getPlayerName(winnerId)} 自摸 ${faanDisplay}番 +${totalWinDisplay}（${loserNames} 各 ${faanDisplayNeg}）`
+      : `${getPlayerName(winnerId)} self-draw ${faanDisplay} faan +${totalWinDisplay} (${loserNames} each ${faanDisplayNeg})`;
+  } else {
+    // 出銃：出銃者付 1× 番，其餘兩人各付 0.5× 番（用 tenths 所以 0.5 = round(faanTenths/2)）
+    const halfTenths = Math.round(faanTenths / 2);
+    const otherLosers = losers.filter((p) => p.id !== selectedModeEDiscarder);
+    const totalWin = faanTenths + otherLosers.length * halfTenths;
+    updates = [
+      { id: winnerId, delta: totalWin },
+      { id: selectedModeEDiscarder, delta: -faanTenths },
+      ...otherLosers.map((p) => ({ id: p.id, delta: -halfTenths })),
+    ];
+    const discarderName = getPlayerName(selectedModeEDiscarder);
+    const otherNames = otherLosers.map((p) => getPlayerName(p.id)).join(isZh ? "、" : ", ");
+    const totalWinDisplay = formatScoreDisplay(totalWin, session);
+    const discarderPayDisplay = formatScoreDisplay(-faanTenths, session);
+    const halfDisplay = formatScoreDisplay(-halfTenths, session);
+    // 出銃：出銃者 1×，其餘 0.5× — describe clearly so not confused with 自摸
+    msg = isZh
+      ? `${getPlayerName(winnerId)} 食${discarderName} 出銃 ${faanDisplay}番 +${totalWinDisplay}（${discarderName} ${discarderPayDisplay}，${otherNames} 各 ${halfDisplay}）`
+      : `${getPlayerName(winnerId)} win by ${discarderName} discard ${faanDisplay} faan +${totalWinDisplay} (${discarderName} ${discarderPayDisplay}; ${otherNames} each ${halfDisplay})`;
+  }
+  const remark = (document.getElementById("modeERemark")?.value || "").trim();
+  applyUpdates(updates, msg, remark, { updates });
+  if (faanEl) faanEl.value = "";
+  if (document.getElementById("modeERemark")) document.getElementById("modeERemark").value = "";
   showToast(t("scoreUpdated"));
 }
 
@@ -619,17 +817,59 @@ function getTimeStamp() {
   return `${h}:${m}:${s}`;
 }
 
-function addHistory(message, remark) {
+function addHistory(message, remark, options) {
   const session = getCurrentSession();
   if (!session) return;
   session.history = session.history || [];
-  session.history.unshift({
+  const entry = {
     time: getTimeStamp(),
     message,
     remark: remark || "",
-  });
+  };
+  if (options && Array.isArray(options.updates)) entry.updates = options.updates;
+  session.history.unshift(entry);
   saveData(state);
   renderHistory();
+}
+
+let historyEditIndex = null;
+
+function openHistoryEditModal(index) {
+  const session = getCurrentSession();
+  if (!session || !session.history || !session.history[index]) return;
+  historyEditIndex = index;
+  const entry = session.history[index];
+  const remarkEl = document.getElementById("historyEditRemark");
+  if (remarkEl) remarkEl.value = entry.remark || "";
+  const modal = document.getElementById("historyEditModal");
+  if (modal) {
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+  }
+}
+
+function closeHistoryEditModal() {
+  historyEditIndex = null;
+  const modal = document.getElementById("historyEditModal");
+  if (modal) {
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+  }
+}
+
+function saveHistoryEdit() {
+  const session = getCurrentSession();
+  if (!session || historyEditIndex == null || !session.history || !session.history[historyEditIndex]) {
+    closeHistoryEditModal();
+    return;
+  }
+  const remarkEl = document.getElementById("historyEditRemark");
+  const remark = remarkEl ? remarkEl.value.trim() : "";
+  session.history[historyEditIndex].remark = remark;
+  saveData(state);
+  renderHistory();
+  closeHistoryEditModal();
+  showToast(t("scoreUpdated"));
 }
 
 function renderHistory() {
@@ -643,15 +883,22 @@ function renderHistory() {
   }
   list.innerHTML = history
     .map(
-      (entry) => `
-    <div class="history-item">
+      (entry, index) => `
+    <div class="history-item" data-history-index="${index}">
       <span class="history-item-time">${escapeHtml(entry.time)}</span>
       <span class="history-item-message">${escapeHtml(entry.message)}</span>
       ${entry.remark ? `<div class="history-item-remark">${escapeHtml(entry.remark)}</div>` : ""}
+      <button type="button" class="history-item-edit-btn btn btn-secondary" data-history-index="${index}" aria-label="${escapeHtml(t("edit"))}">${escapeHtml(t("edit"))}</button>
     </div>
   `
     )
     .join("");
+  list.querySelectorAll(".history-item-edit-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.getAttribute("data-history-index"), 10);
+      if (Number.isFinite(idx)) openHistoryEditModal(idx);
+    });
+  });
 }
 
 function clearHistory() {
@@ -663,15 +910,15 @@ function clearHistory() {
   showToast(getLocale() === "zh-HK" ? "已清空紀錄" : "History cleared");
 }
 
-function applyUpdates(updates, message, remark) {
+function applyUpdates(updates, message, remark, addHistoryOptions) {
   const session = getCurrentSession();
   if (!session) return;
   const players = session.players || [];
   for (const { id, delta } of updates) {
     const p = players.find((x) => x.id === id);
-    if (p) p.score += delta;
+    if (p) p.score += Number(delta) || 0;
   }
-  if (message) addHistory(message, remark || "");
+  if (message) addHistory(message, remark || "", addHistoryOptions);
   saveData(state);
   renderPlayerCards();
   flashScores(updates.map((u) => u.id));
@@ -799,7 +1046,7 @@ function renderSettlement() {
         const pct = maxAbs > 0 ? (Math.abs(row.net) / maxAbs) * 100 : 0;
         const barClass = row.net >= 0 ? "positive" : "negative";
         const crown = isWinner && idx === 0 ? " 👑" : "";
-        const netStr = row.net >= 0 ? `+${row.net}` : String(row.net);
+        const netStr = row.net >= 0 ? `+${formatScoreDisplay(row.net, session)}` : formatScoreDisplay(row.net, session);
         return `
           <div class="settlement-row ${isWinner ? "winner" : ""}">
             <span class="settlement-rank">${idx + 1}</span>
@@ -827,7 +1074,7 @@ function renderSettlement() {
       planEl.innerHTML = plan
         .map(
           (s) =>
-            `<div class="settlement-plan-item">${isZh ? `${escapeHtml(s.fromName)} 應付款給 ${escapeHtml(s.toName)}：${s.amount} 分` : `${escapeHtml(s.fromName)} pays ${escapeHtml(s.toName)}: ${s.amount}`}</div>`
+            `<div class="settlement-plan-item">${isZh ? `${escapeHtml(s.fromName)} 應付款給 ${escapeHtml(s.toName)}：${formatScoreDisplay(s.amount, session)} 分` : `${escapeHtml(s.fromName)} pays ${escapeHtml(s.toName)}: ${formatScoreDisplay(s.amount, session)}`}</div>`
         )
         .join("");
     }
@@ -851,7 +1098,7 @@ function copyResultsToClipboard() {
     "",
     isZh ? "【排行榜】" : "【Leaderboard】",
     ...sorted.map((row, i) => {
-      const netStr = row.net >= 0 ? `+${row.net}` : String(row.net);
+      const netStr = row.net >= 0 ? `+${formatScoreDisplay(row.net, session)}` : formatScoreDisplay(row.net, session);
       const crown = row.net > 0 && i === 0 ? " 👑" : "";
       return `${i + 1}. ${row.name}${crown}: ${netStr}`;
     }),
@@ -859,7 +1106,7 @@ function copyResultsToClipboard() {
     isZh ? "【找數建議】" : "【Settlement Plan】",
     ...(plan.length === 0
       ? [isZh ? "無需找數。" : "No transfers needed."]
-      : plan.map((s) => (isZh ? `${s.fromName} 應付款給 ${s.toName}：${s.amount} 分` : `${s.fromName} pays ${s.toName}: ${s.amount}`))),
+      : plan.map((s) => (isZh ? `${s.fromName} 應付款給 ${s.toName}：${formatScoreDisplay(s.amount, session)} 分` : `${s.fromName} pays ${s.toName}: ${formatScoreDisplay(s.amount, session)}`))),
     "",
     isZh ? `本局總紀錄次數：${history.length}` : `Total records: ${history.length}`,
   ];
@@ -903,12 +1150,14 @@ function bindTabs() {
         const isB = id === "panelB" && mode === "b";
         const isC = id === "panelC" && mode === "c";
         const isD = id === "panelD" && mode === "d";
-        const active = isA || isB || isC || isD;
+        const isE = id === "panelE" && mode === "e";
+        const active = isA || isB || isC || isD || isE;
         panel.classList.toggle("active", active);
         panel.hidden = !active;
       });
       if (mode === "a") renderModeA();
       if (mode === "b") renderModeB();
+      if (mode === "e") renderModeE();
     });
   });
 }
@@ -1066,6 +1315,12 @@ function bindButtons() {
   document.getElementById("modeBCalcBtn")?.addEventListener("click", runModeB);
   document.getElementById("modeCTransferBtn")?.addEventListener("click", runModeC);
   document.getElementById("modeDApplyBtn")?.addEventListener("click", runModeD);
+  document.getElementById("modeECalcBtn")?.addEventListener("click", runModeE);
+  document.getElementById("historyEditSaveBtn")?.addEventListener("click", saveHistoryEdit);
+  document.getElementById("historyEditCancelBtn")?.addEventListener("click", closeHistoryEditModal);
+  document.getElementById("historyEditModal")?.addEventListener("click", (e) => {
+    if (e.target.id === "historyEditModal") closeHistoryEditModal();
+  });
 }
 
 // ---------- Init ----------

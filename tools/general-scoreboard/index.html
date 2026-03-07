@@ -84,6 +84,7 @@
             <button type="button" class="tab-btn" role="tab" data-mode="b" aria-selected="false" data-en="One pays all" data-zh-HK="一輸多贏">One pays all</button>
             <button type="button" class="tab-btn" role="tab" data-mode="c" aria-selected="false" data-en="Transfer A→B" data-zh-HK="一對一過數">Transfer A→B</button>
             <button type="button" class="tab-btn" role="tab" data-mode="d" aria-selected="false" data-en="Add/Subtract" data-zh-HK="單獨加減">Add/Subtract</button>
+            <button type="button" class="tab-btn" role="tab" data-mode="e" aria-selected="false" data-en="HK Mahjong" data-zh-HK="香港麻雀">HK Mahjong</button>
           </div>
 
           <!-- Mode A: One winner, others input loss -->
@@ -163,6 +164,43 @@
               <button type="button" id="modeDApplyBtn" class="btn btn-primary" data-en="Apply" data-zh-HK="套用">Apply</button>
             </div>
           </div>
+
+          <!-- Mode E: 香港麻雀 -->
+          <div id="panelE" class="tab-panel" role="tabpanel" hidden>
+            <h3 data-en="Select winner, self-draw or win by discard, enter faan (1 score = 1 faan)" data-zh-HK="選贏家、自摸或出銃，輸入番（1 分 = 1 番）">Select winner, self-draw or win by discard, enter faan (1 score = 1 faan)</h3>
+            <div class="mode-e-form">
+              <div class="form-group">
+                <label data-en="Winner:" data-zh-HK="贏家：">Winner:</label>
+                <div id="modeEWinnerChips" class="player-chips" role="group"></div>
+              </div>
+              <div class="form-group">
+                <label data-en="Win type:" data-zh-HK="糊牌方式：">Win type:</label>
+                <div class="mode-e-win-type" role="group">
+                  <label class="mode-e-radio-label">
+                    <input type="radio" name="modeEWinType" value="selfdraw" checked />
+                    <span data-en="Self-draw (自摸)" data-zh-HK="自摸">Self-draw (自摸)</span>
+                  </label>
+                  <label class="mode-e-radio-label">
+                    <input type="radio" name="modeEWinType" value="discard" />
+                    <span data-en="Win by discard (出銃)" data-zh-HK="出銃">Win by discard (出銃)</span>
+                  </label>
+                </div>
+              </div>
+              <div id="modeEDiscarderBlock" class="form-group" hidden>
+                <label data-en="Who discarded?" data-zh-HK="誰出銃？">Who discarded?</label>
+                <div id="modeEDiscarderChips" class="player-chips" role="group"></div>
+              </div>
+              <div class="form-group">
+                <label data-en="Faan (番):" data-zh-HK="番：">Faan (番):</label>
+                <input type="text" id="modeEFaan" class="score-input" readonly inputmode="none" placeholder="0" data-placeholder-en="0" data-placeholder-zh-Hant="0" />
+              </div>
+              <div class="form-group remark-group">
+                <label for="modeERemark" data-en="Remark (optional):" data-zh-HK="備註（選填）：">Remark (optional):</label>
+                <input type="text" id="modeERemark" class="remark-input" placeholder="" data-placeholder-en="e.g. Round 1" data-placeholder-zh-Hant="例：第幾局" />
+              </div>
+              <button type="button" id="modeECalcBtn" class="btn btn-primary" data-en="Calculate" data-zh-HK="計算">Calculate</button>
+            </div>
+          </div>
         </div>
 
         <!-- History Log -->
@@ -207,6 +245,21 @@
         </div>
       </section>
     </main>
+
+    <!-- History edit modal -->
+    <div id="historyEditModal" class="modal-overlay" aria-hidden="true" hidden>
+      <div class="modal-content">
+        <h3 id="historyEditModalTitle" data-en="Edit record" data-zh-HK="編輯紀錄">Edit record</h3>
+        <div class="form-group">
+          <label for="historyEditRemark" data-en="Remark:" data-zh-HK="備註：">Remark:</label>
+          <input type="text" id="historyEditRemark" class="remark-input" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="historyEditSaveBtn" class="btn btn-primary" data-en="Save" data-zh-HK="儲存">Save</button>
+          <button type="button" id="historyEditCancelBtn" class="btn btn-secondary" data-en="Cancel" data-zh-HK="取消">Cancel</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Zero-sum error modal -->
     <div id="zeroSumErrorModal" class="modal-overlay" aria-hidden="true" hidden>
