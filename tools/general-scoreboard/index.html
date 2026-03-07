@@ -52,6 +52,10 @@
             <label data-en="Starting score (default 0):" data-zh-HK="起步底分（預設 0）：">Starting score (default 0):</label>
             <input type="text" id="startingScore" class="score-input" value="0" readonly inputmode="none" placeholder="0" data-placeholder-en="0" data-placeholder-zh-Hant="0" />
           </div>
+          <div id="initQuickFillGroup" class="form-group init-quick-fill-group">
+            <label data-en="Quick fill (click to fill first empty):" data-zh-HK="快速填入（點擊填入第一個空格）：">Quick fill (click to fill first empty):</label>
+            <div id="initQuickFillChips" class="player-chips init-quick-fill-chips" role="group"></div>
+          </div>
           <div id="playerNamesContainer" class="player-names-container"></div>
           <button type="button" id="startScoreboardBtn" class="btn btn-primary" data-en="Start scoring" data-zh-HK="開始計分">
             Start scoring
@@ -169,26 +173,46 @@
           <div id="panelE" class="tab-panel" role="tabpanel" hidden>
             <h3 data-en="Select winner, self-draw or win by discard, enter faan (1 score = 1 faan)" data-zh-HK="選贏家、自摸或出銃，輸入番（1 分 = 1 番）">Select winner, self-draw or win by discard, enter faan (1 score = 1 faan)</h3>
             <div class="mode-e-form">
+              <div id="modeEPlayingBlock" class="form-group" hidden>
+                <label data-en="Who's playing this hand? (Select 4)" data-zh-HK="本局邊四個打？選 4 位：">Who's playing this hand? (Select 4)</label>
+                <p class="mode-e-playing-hint" data-en="Click to toggle. Exactly 4 players for HK Mahjong." data-zh-HK="點擊切換。香港麻雀每局 4 人。">Click to toggle. Exactly 4 players.</p>
+                <div id="modeEPlayingChips" class="player-chips mode-e-playing-chips" role="group"></div>
+                <p id="modeEPlayingCount" class="mode-e-playing-count" aria-live="polite"></p>
+              </div>
+              <div id="modeEFormBody">
               <div class="form-group">
                 <label data-en="Winner:" data-zh-HK="贏家：">Winner:</label>
                 <div id="modeEWinnerChips" class="player-chips" role="group"></div>
               </div>
               <div class="form-group">
                 <label data-en="Win type:" data-zh-HK="糊牌方式：">Win type:</label>
+                <span class="mode-e-rules-hint" role="img" aria-label="Rules" data-tooltip-en="Rules: Self-draw = winner +3×, each pays 1×. Discard = winner +2×, discarder 1×, others 0.5× each. Pack self-draw = winner +3×, 包者 pays 3×. Pack discard = winner +2×, 包者 pays 2× (1+0.5+0.5), others 0." data-tooltip-zh-HK="規則：自摸 = 贏家 +3×，三家各付 1×。出銃 = 贏家 +2×，出銃者 1×，其餘各 0.5×。包自摸 = 贏家 +3×，包者付 3×。包出銃 = 贏家 +2×，包者付 2×（1+0.5+0.5），其餘 0。">ⓘ</span>
                 <div class="mode-e-win-type" role="group">
-                  <label class="mode-e-radio-label">
+                  <label class="mode-e-radio-label" data-tooltip-en="Winner +3× faan; each of the other three pays 1×." data-tooltip-zh-HK="贏家 +3× 番；其餘三家各付 1×。">
                     <input type="radio" name="modeEWinType" value="selfdraw" checked />
                     <span data-en="Self-draw (自摸)" data-zh-HK="自摸">Self-draw (自摸)</span>
                   </label>
-                  <label class="mode-e-radio-label">
+                  <label class="mode-e-radio-label" data-tooltip-en="Winner +2×; discarder pays 1×, other two pay 0.5× each." data-tooltip-zh-HK="贏家 +2×；出銃者付 1×，其餘兩人各付 0.5×。">
                     <input type="radio" name="modeEWinType" value="discard" />
                     <span data-en="Win by discard (出銃)" data-zh-HK="出銃">Win by discard (出銃)</span>
+                  </label>
+                  <label class="mode-e-radio-label" data-tooltip-en="Winner +3×; 包者 pays 3×, other two pay 0." data-tooltip-zh-HK="贏家 +3×；包者付 3×，其餘 0。">
+                    <input type="radio" name="modeEWinType" value="baauSelfDraw" />
+                    <span data-en="Pack self-draw (包自摸)" data-zh-HK="包自摸">Pack self-draw (包自摸)</span>
+                  </label>
+                  <label class="mode-e-radio-label" data-tooltip-en="Winner +2×; 包者 pays 2× (1+0.5+0.5), other two pay 0." data-tooltip-zh-HK="贏家 +2×；包者付 2×（1+0.5+0.5），其餘 0。">
+                    <input type="radio" name="modeEWinType" value="baauDiscard" />
+                    <span data-en="Pack discard (包出銃)" data-zh-HK="包出銃">Pack discard (包出銃)</span>
                   </label>
                 </div>
               </div>
               <div id="modeEDiscarderBlock" class="form-group" hidden>
                 <label data-en="Who discarded?" data-zh-HK="誰出銃？">Who discarded?</label>
                 <div id="modeEDiscarderChips" class="player-chips" role="group"></div>
+              </div>
+              <div id="modeEBaauBlock" class="form-group" hidden>
+                <label data-en="Who pays (包)?" data-zh-HK="誰包？">Who pays (包)?</label>
+                <div id="modeEBaauChips" class="player-chips" role="group"></div>
               </div>
               <div class="form-group">
                 <label data-en="Faan (番):" data-zh-HK="番：">Faan (番):</label>
@@ -199,6 +223,11 @@
                 <input type="text" id="modeERemark" class="remark-input" placeholder="" data-placeholder-en="e.g. Round 1" data-placeholder-zh-Hant="例：第幾局" />
               </div>
               <button type="button" id="modeECalcBtn" class="btn btn-primary" data-en="Calculate" data-zh-HK="計算">Calculate</button>
+              </div>
+            </div>
+            <div id="modeEStatsBlock" class="mode-e-stats" hidden>
+              <h4 class="mode-e-stats-title" data-en="🏮 Fun stats" data-zh-HK="🏮 趣味統計">🏮 Fun stats</h4>
+              <div id="modeEStatsList" class="mode-e-stats-grid"></div>
             </div>
           </div>
         </div>
@@ -250,6 +279,45 @@
     <div id="historyEditModal" class="modal-overlay" aria-hidden="true" hidden>
       <div class="modal-content">
         <h3 id="historyEditModalTitle" data-en="Edit record" data-zh-HK="編輯紀錄">Edit record</h3>
+        <div id="historyEditModeEBlock" class="history-edit-mode-e" hidden>
+          <div class="form-group">
+            <label data-en="Winner:" data-zh-HK="贏家：">Winner:</label>
+            <div id="historyEditWinnerChips" class="player-chips" role="group"></div>
+          </div>
+          <div class="form-group">
+            <label data-en="Win type:" data-zh-HK="糊牌方式：">Win type:</label>
+            <div class="mode-e-win-type" role="group">
+              <label class="mode-e-radio-label">
+                <input type="radio" name="historyEditWinType" value="selfdraw" />
+                <span data-en="Self-draw (自摸)" data-zh-HK="自摸">Self-draw (自摸)</span>
+              </label>
+              <label class="mode-e-radio-label">
+                <input type="radio" name="historyEditWinType" value="discard" />
+                <span data-en="Win by discard (出銃)" data-zh-HK="出銃">Win by discard (出銃)</span>
+              </label>
+              <label class="mode-e-radio-label">
+                <input type="radio" name="historyEditWinType" value="baauSelfDraw" />
+                <span data-en="Pack self-draw (包自摸)" data-zh-HK="包自摸">Pack self-draw (包自摸)</span>
+              </label>
+              <label class="mode-e-radio-label">
+                <input type="radio" name="historyEditWinType" value="baauDiscard" />
+                <span data-en="Pack discard (包出銃)" data-zh-HK="包出銃">Pack discard (包出銃)</span>
+              </label>
+            </div>
+          </div>
+          <div id="historyEditDiscarderBlock" class="form-group" hidden>
+            <label data-en="Who discarded?" data-zh-HK="誰出銃？">Who discarded?</label>
+            <div id="historyEditDiscarderChips" class="player-chips" role="group"></div>
+          </div>
+          <div id="historyEditBaauBlock" class="form-group" hidden>
+            <label data-en="Who pays (包)?" data-zh-HK="誰包？">Who pays (包)?</label>
+            <div id="historyEditBaauChips" class="player-chips" role="group"></div>
+          </div>
+          <div class="form-group">
+            <label for="historyEditFaan" data-en="Faan (番):" data-zh-HK="番：">Faan (番):</label>
+            <input type="text" id="historyEditFaan" class="score-input" inputmode="decimal" placeholder="0" />
+          </div>
+        </div>
         <div class="form-group">
           <label for="historyEditRemark" data-en="Remark:" data-zh-HK="備註：">Remark:</label>
           <input type="text" id="historyEditRemark" class="remark-input" />
@@ -257,6 +325,44 @@
         <div class="modal-actions">
           <button type="button" id="historyEditSaveBtn" class="btn btn-primary" data-en="Save" data-zh-HK="儲存">Save</button>
           <button type="button" id="historyEditCancelBtn" class="btn btn-secondary" data-en="Cancel" data-zh-HK="取消">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add player modal (quick-pick from past names or enter new) -->
+    <div id="addPlayerModal" class="modal-overlay" aria-hidden="true" hidden>
+      <div class="modal-content">
+        <h3 id="addPlayerModalTitle" data-en="Add player" data-zh-HK="新增玩家">Add player</h3>
+        <div class="form-group" id="addPlayerRecentGroup">
+          <label data-en="Pick a name (used before):" data-zh-HK="揀個名（曾用）：">Pick a name (used before):</label>
+          <div id="addPlayerRecentChips" class="player-chips add-player-recent-chips" role="group"></div>
+        </div>
+        <div class="form-group">
+          <label for="addPlayerNameInput" data-en="Or enter new name:" data-zh-HK="或輸入新名稱：">Or enter new name:</label>
+          <input type="text" id="addPlayerNameInput" class="remark-input" placeholder="" data-placeholder-en="e.g. Player 5" data-placeholder-zh-Hant="例：玩家 5" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="addPlayerConfirmBtn" class="btn btn-primary" data-en="Add" data-zh-HK="加入">Add</button>
+          <button type="button" id="addPlayerCancelBtn" class="btn btn-secondary" data-en="Cancel" data-zh-HK="取消">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit player name modal -->
+    <div id="editPlayerNameModal" class="modal-overlay" aria-hidden="true" hidden>
+      <div class="modal-content">
+        <h3 id="editPlayerNameModalTitle" data-en="Edit player name" data-zh-HK="編輯玩家名稱">Edit player name</h3>
+        <div class="form-group" id="editPlayerNameRecentGroup">
+          <label data-en="Pick a name (used before):" data-zh-HK="揀個名（曾用）：">Pick a name (used before):</label>
+          <div id="editPlayerNameRecentChips" class="player-chips add-player-recent-chips" role="group"></div>
+        </div>
+        <div class="form-group">
+          <label for="editPlayerNameInput" data-en="Or enter new name:" data-zh-HK="或輸入新名稱：">Or enter new name:</label>
+          <input type="text" id="editPlayerNameInput" class="remark-input" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="editPlayerNameSaveBtn" class="btn btn-primary" data-en="Save" data-zh-HK="儲存">Save</button>
+          <button type="button" id="editPlayerNameCancelBtn" class="btn btn-secondary" data-en="Cancel" data-zh-HK="取消">Cancel</button>
         </div>
       </div>
     </div>
