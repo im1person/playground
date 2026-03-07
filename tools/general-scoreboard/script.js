@@ -23,6 +23,8 @@ const messages = {
     cancel: "Cancel",
     editRecord: "Edit record",
     remark: "Remark",
+    deleteRecord: "Delete",
+    deleteRecordConfirm: "Delete this record? Score changes from this record will be reversed.",
   },
   "zh-HK": {
     scoreUpdated: "已更新分數",
@@ -41,6 +43,8 @@ const messages = {
     cancel: "取消",
     editRecord: "編輯紀錄",
     remark: "備註",
+    deleteRecord: "刪除",
+    deleteRecordConfirm: "確定刪除此筆紀錄？若有分數變動將會還原。",
   },
 };
 
@@ -94,7 +98,8 @@ function loadData() {
     if (data.sessions && Array.isArray(data.sessions)) {
       data.sessions.forEach(ensurePlayerInitialScores);
       const currentSessionId = data.currentSessionId || null;
-      return { sessions: data.sessions, currentSessionId };
+      const usedPlayerNames = Array.isArray(data.usedPlayerNames) ? data.usedPlayerNames : [];
+      return { sessions: data.sessions, currentSessionId, usedPlayerNames };
     }
   } catch (_) {}
   return null;
@@ -141,6 +146,8 @@ const numpadPanel = document.getElementById("numpadPanel");
 let state = {
   sessions: [],
   currentSessionId: null,
+  /** Recent player names for quick-pick when adding player (persisted). */
+  usedPlayerNames: [],
 };
 
 /** When starting from Init: if set, we update this session instead of creating new */
@@ -155,6 +162,21 @@ let selectedModeDPlayer = null;
 let selectedModeEWinner = null;
 let selectedModeESelfDraw = true;
 let selectedModeEDiscarder = null;
+let selectedModeEBaau = null;
+/** "selfdraw" | "discard" | "baauSelfDraw" | "baauDiscard" */
+let selectedModeEWinType = "selfdraw";
+/** For sessions with >4 players: which 4 are playing this hand. Length 4 or null (use all when session has 4). */
+let selectedModeEPlayingIds = null;
+
+/** Returns the 4 players for this Mode E hand (HK Mahjong is 4-player). Null if not yet selected when session has >4. */
+function getModeEPlayingPlayers(session) {
+  const all = session?.players || [];
+  if (all.length === 0) return [];
+  if (all.length <= 4) return all.slice(0, 4);
+  if (!selectedModeEPlayingIds || selectedModeEPlayingIds.length !== 4) return null;
+  const four = all.filter((p) => selectedModeEPlayingIds.includes(p.id));
+  return four.length === 4 ? four : null;
+}
 
 // ---------- Init section ----------
 function renderPlayerNameInputs(count) {
@@ -176,6 +198,40 @@ function renderPlayerNameInputs(count) {
     div.appendChild(input);
     playerNamesContainer.appendChild(div);
   }
+  renderInitQuickFillChips();
+}
+
+/** Fill first empty player name input (init form). */
+function fillFirstEmptyPlayerName(name) {
+  const count = Math.max(2, Math.min(20, parseInt(playerCountInput?.value, 10) || 2));
+  for (let i = 1; i <= count; i++) {
+    const input = document.getElementById(`playerName${i}`);
+    if (input && !(input.value || "").trim()) {
+      input.value = name;
+      input.focus();
+      break;
+    }
+  }
+}
+
+function renderInitQuickFillChips() {
+  const container = document.getElementById("initQuickFillChips");
+  const group = document.getElementById("initQuickFillGroup");
+  if (!container) return;
+  const recent = (state.usedPlayerNames || []).slice(0, 20).filter((n) => (n || "").trim());
+  if (recent.length === 0) {
+    if (group) group.hidden = true;
+    container.innerHTML = "";
+    return;
+  }
+  if (group) group.hidden = false;
+  container.innerHTML = recent
+    .map((n) => `<button type="button" class="player-chip init-quick-fill-chip" data-name="${escapeHtml(n)}">${escapeHtml(n)}</button>`)
+    .join("");
+  container.querySelectorAll(".init-quick-fill-chip").forEach((btn) => {
+    const name = btn.getAttribute("data-name");
+    btn.addEventListener("click", () => fillFirstEmptyPlayerName(name));
+  });
 }
 
 function startScoreboard() {
@@ -199,6 +255,8 @@ function startScoreboard() {
   }));
   const now = new Date().toISOString();
 
+  state.usedPlayerNames = state.usedPlayerNames || [];
+  names.forEach((n) => addToUsedPlayerNames(n));
   if (initResettingSessionId) {
     const session = state.sessions.find((s) => s.id === initResettingSessionId);
     if (session) {
@@ -225,6 +283,8 @@ function startScoreboard() {
   selectedModeAWinner = selectedModeBLoser = selectedModeCFrom = selectedModeCTo = selectedModeDPlayer = selectedModeEWinner = null;
   selectedModeESelfDraw = true;
   selectedModeEDiscarder = null;
+  selectedModeEBaau = null;
+  selectedModeEWinType = "selfdraw";
   saveData(state);
   if (sessionNameInput) sessionNameInput.value = "";
   showMain();
@@ -365,6 +425,9 @@ function resetSession() {
   selectedModeAWinner = selectedModeBLoser = selectedModeCFrom = selectedModeCTo = selectedModeDPlayer = selectedModeEWinner = null;
   selectedModeESelfDraw = true;
   selectedModeEDiscarder = null;
+  selectedModeEBaau = null;
+  selectedModeEWinType = "selfdraw";
+  selectedModeEPlayingIds = null;
   showInit(session.id);
   renderPlayerNameInputs(4);
 }
@@ -406,6 +469,8 @@ function renderAll() {
     selectedModeEWinner = players[0].id;
     selectedModeESelfDraw = true;
     selectedModeEDiscarder = null;
+    selectedModeEBaau = null;
+    selectedModeEWinType = "selfdraw";
   }
   renderPlayerChipsAll();
   renderModeA();
@@ -425,12 +490,22 @@ function renderPlayerCards() {
       const scoreClass = scoreNum > initialNum ? "positive" : scoreNum < initialNum ? "negative" : "";
       return `
     <div class="player-card" data-player-id="${p.id}">
-      <div class="player-card-name">${escapeHtml(p.name)}</div>
+      <div class="player-card-name-row">
+        <span class="player-card-name">${escapeHtml(p.name)}</span>
+        <button type="button" class="player-card-edit-name-btn" data-player-id="${p.id}" aria-label="${escapeHtml(t("edit"))}">✎</button>
+      </div>
       <div class="player-card-score score-value ${scoreClass}" data-player-id="${p.id}">${formatScoreDisplay(p.score, session)}</div>
     </div>
   `;
     })
     .join("");
+  playerCardsEl.querySelectorAll(".player-card-edit-name-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute("data-player-id");
+      if (id) openEditPlayerNameModal(id);
+    });
+  });
 }
 
 function getPlayerName(id) {
@@ -453,9 +528,19 @@ function renderPlayerChipsForPlayers(containerId, selectedId, role, players) {
     const id = btn.getAttribute("data-player-id");
     btn.classList.toggle("selected", id === selectedId);
     btn.addEventListener("click", () => {
-      if (role === "modeEDiscarder") {
+      if (role === "modeEWinner") {
+        selectedModeEWinner = id;
+        if (selectedModeEDiscarder === id) selectedModeEDiscarder = null;
+        if (selectedModeEBaau === id) selectedModeEBaau = null;
+        renderModeE();
+        renderPlayerChipsAll();
+      } else if (role === "modeEDiscarder") {
         selectedModeEDiscarder = id;
         renderPlayerChipsForPlayers(containerId, selectedModeEDiscarder, role, players);
+        renderModeE();
+      } else if (role === "modeEBaau") {
+        selectedModeEBaau = id;
+        renderPlayerChipsForPlayers(containerId, selectedModeEBaau, role, players);
         renderModeE();
       }
     });
@@ -502,10 +587,17 @@ function renderPlayerChips(containerId, selectedId, role) {
         selectedModeEWinner = id;
         renderPlayerChips("modeEWinnerChips", selectedModeEWinner, "modeEWinner");
         if (selectedModeEDiscarder === id) selectedModeEDiscarder = null;
+        if (selectedModeEBaau === id) selectedModeEBaau = null;
         renderModeE();
       } else if (role === "modeEDiscarder") {
         selectedModeEDiscarder = id;
-        renderPlayerChips("modeEDiscarderChips", selectedModeEDiscarder, "modeEDiscarder");
+        const nonWinnersD = (session?.players || []).filter((p) => p.id !== selectedModeEWinner);
+        renderPlayerChipsForPlayers("modeEDiscarderChips", selectedModeEDiscarder, "modeEDiscarder", nonWinnersD);
+        renderModeE();
+      } else if (role === "modeEBaau") {
+        selectedModeEBaau = id;
+        const nonWinnersB = (session?.players || []).filter((p) => p.id !== selectedModeEWinner);
+        renderPlayerChipsForPlayers("modeEBaauChips", selectedModeEBaau, "modeEBaau", nonWinnersB);
         renderModeE();
       }
     });
@@ -518,12 +610,25 @@ function renderPlayerChipsAll() {
   renderPlayerChips("modeCFromChips", selectedModeCFrom, "modeCFrom");
   renderPlayerChips("modeCToChips", selectedModeCTo, "modeCTo");
   renderPlayerChips("modeDPlayerChips", selectedModeDPlayer, "modeDPlayer");
-  renderPlayerChips("modeEWinnerChips", selectedModeEWinner, "modeEWinner");
   const session = getCurrentSession();
-  const players = session ? session.players || [] : [];
-  if (!selectedModeESelfDraw && players.length > 0) {
-    const nonWinners = players.filter((p) => p.id !== selectedModeEWinner);
+  const playingFour = session ? getModeEPlayingPlayers(session) : null;
+  const allPlayers = session ? session.players || [] : [];
+  const modeEPlayers = (playingFour && playingFour.length === 4) ? playingFour : (allPlayers.length <= 4 ? allPlayers : []);
+  if (modeEPlayers.length > 0) {
+    renderPlayerChipsForPlayers("modeEWinnerChips", selectedModeEWinner, "modeEWinner", modeEPlayers);
+  } else {
+    renderPlayerChips("modeEWinnerChips", selectedModeEWinner, "modeEWinner");
+  }
+  const winTypeRadio = document.querySelector('input[name="modeEWinType"]:checked');
+  const winType = winTypeRadio ? winTypeRadio.value : selectedModeEWinType;
+  const isBaau = winType === "baauSelfDraw" || winType === "baauDiscard";
+  if (winType === "discard" && modeEPlayers.length > 0) {
+    const nonWinners = modeEPlayers.filter((p) => p.id !== selectedModeEWinner);
     renderPlayerChipsForPlayers("modeEDiscarderChips", selectedModeEDiscarder, "modeEDiscarder", nonWinners);
+  }
+  if (isBaau && modeEPlayers.length > 0) {
+    const nonWinners = modeEPlayers.filter((p) => p.id !== selectedModeEWinner);
+    renderPlayerChipsForPlayers("modeEBaauChips", selectedModeEBaau, "modeEBaau", nonWinners);
   }
   renderModeE();
 }
@@ -567,31 +672,212 @@ function renderModeB() {
 }
 
 function renderModeE() {
-  const block = document.getElementById("modeEDiscarderBlock");
+  const session = getCurrentSession();
+  const all = session ? session.players || [] : [];
+  const playingBlock = document.getElementById("modeEPlayingBlock");
+  const playingChipsEl = document.getElementById("modeEPlayingChips");
+  const playingCountEl = document.getElementById("modeEPlayingCount");
+  const formBody = document.getElementById("modeEFormBody");
+  if (playingBlock) playingBlock.hidden = all.length <= 4;
+  if (all.length === 4) selectedModeEPlayingIds = all.map((p) => p.id);
+  if (all.length > 4) {
+    if (!selectedModeEPlayingIds || !Array.isArray(selectedModeEPlayingIds)) selectedModeEPlayingIds = [];
+    selectedModeEPlayingIds = selectedModeEPlayingIds.filter((id) => all.some((p) => p.id === id));
+    const count = selectedModeEPlayingIds.length;
+    if (playingCountEl) {
+      playingCountEl.textContent = count === 4 ? (getLocale() === "zh-HK" ? "已選 4 位" : "4 selected") : `${count}/4`;
+      playingCountEl.className = "mode-e-playing-count" + (count === 4 ? " mode-e-playing-ok" : "");
+    }
+    if (playingChipsEl) {
+      playingChipsEl.innerHTML = all
+        .map((p) => {
+          const selected = selectedModeEPlayingIds.includes(p.id);
+          return `<button type="button" class="player-chip${selected ? " selected" : ""}" data-mode-e-playing="${p.id}" data-role="modeEPlaying">${escapeHtml(p.name)}</button>`;
+        })
+        .join("");
+      playingChipsEl.querySelectorAll("[data-mode-e-playing]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const id = btn.getAttribute("data-mode-e-playing");
+          const idx = selectedModeEPlayingIds.indexOf(id);
+          if (idx >= 0) {
+            selectedModeEPlayingIds = selectedModeEPlayingIds.filter((_, i) => i !== idx);
+          } else if (selectedModeEPlayingIds.length < 4) {
+            selectedModeEPlayingIds = [...selectedModeEPlayingIds, id];
+          }
+          const playingFour = getModeEPlayingPlayers(session);
+          if (playingFour) {
+            if (selectedModeEWinner && !playingFour.some((p) => p.id === selectedModeEWinner)) selectedModeEWinner = null;
+            if (selectedModeEDiscarder && !playingFour.some((p) => p.id === selectedModeEDiscarder)) selectedModeEDiscarder = null;
+            if (selectedModeEBaau && !playingFour.some((p) => p.id === selectedModeEBaau)) selectedModeEBaau = null;
+          }
+          renderModeE();
+          renderPlayerChipsAll();
+        });
+      });
+    }
+  }
+  const playingFour = getModeEPlayingPlayers(session);
+  const hasFour = playingFour && playingFour.length === 4;
+  if (formBody) formBody.hidden = all.length > 4 && !hasFour;
+  const discarderBlock = document.getElementById("modeEDiscarderBlock");
+  const baauBlock = document.getElementById("modeEBaauBlock");
   const radioSelf = document.querySelector('input[name="modeEWinType"][value="selfdraw"]');
   const radioDiscard = document.querySelector('input[name="modeEWinType"][value="discard"]');
-  if (radioSelf) radioSelf.checked = selectedModeESelfDraw;
-  if (radioDiscard) radioDiscard.checked = !selectedModeESelfDraw;
-  if (block) block.hidden = selectedModeESelfDraw;
-  if (!selectedModeESelfDraw) {
-    const session = getCurrentSession();
-    const players = session ? session.players || [] : [];
-    const nonWinners = players.filter((p) => p.id !== selectedModeEWinner);
+  const radioBaauSelf = document.querySelector('input[name="modeEWinType"][value="baauSelfDraw"]');
+  const radioBaauDiscard = document.querySelector('input[name="modeEWinType"][value="baauDiscard"]');
+  if (radioSelf) radioSelf.checked = selectedModeEWinType === "selfdraw";
+  if (radioDiscard) radioDiscard.checked = selectedModeEWinType === "discard";
+  if (radioBaauSelf) radioBaauSelf.checked = selectedModeEWinType === "baauSelfDraw";
+  if (radioBaauDiscard) radioBaauDiscard.checked = selectedModeEWinType === "baauDiscard";
+  const isBaau = selectedModeEWinType === "baauSelfDraw" || selectedModeEWinType === "baauDiscard";
+  if (discarderBlock) discarderBlock.hidden = selectedModeEWinType !== "discard";
+  if (baauBlock) baauBlock.hidden = !isBaau;
+  const modeEPlayers = hasFour ? playingFour : (all.length <= 4 ? all : []);
+  if (selectedModeEWinType === "discard" && modeEPlayers.length > 0) {
+    const nonWinners = modeEPlayers.filter((p) => p.id !== selectedModeEWinner);
     renderPlayerChipsForPlayers("modeEDiscarderChips", selectedModeEDiscarder, "modeEDiscarder", nonWinners);
+  }
+  if (isBaau && modeEPlayers.length > 0) {
+    const nonWinners = modeEPlayers.filter((p) => p.id !== selectedModeEWinner);
+    renderPlayerChipsForPlayers("modeEBaauChips", selectedModeEBaau, "modeEBaau", nonWinners);
   }
   if (radioSelf) {
     radioSelf.onchange = () => {
+      selectedModeEWinType = "selfdraw";
       selectedModeESelfDraw = true;
       selectedModeEDiscarder = null;
+      selectedModeEBaau = null;
       renderModeE();
     };
   }
   if (radioDiscard) {
     radioDiscard.onchange = () => {
+      selectedModeEWinType = "discard";
       selectedModeESelfDraw = false;
+      selectedModeEBaau = null;
       renderModeE();
     };
   }
+  if (radioBaauSelf) {
+    radioBaauSelf.onchange = () => {
+      selectedModeEWinType = "baauSelfDraw";
+      selectedModeESelfDraw = false;
+      selectedModeEDiscarder = null;
+      renderModeE();
+    };
+  }
+  if (radioBaauDiscard) {
+    radioBaauDiscard.onchange = () => {
+      selectedModeEWinType = "baauDiscard";
+      selectedModeESelfDraw = false;
+      selectedModeEDiscarder = null;
+      renderModeE();
+    };
+  }
+  renderModeEStats();
+}
+
+/** Compute Mode E (mahjong) stats from history. Returns counts by player id. */
+function computeModeEStats(session) {
+  const history = session?.history || [];
+  const wins = {};
+  const selfdrawWins = {};
+  const discardCount = {};
+  const baauCount = {};
+  for (const entry of history) {
+    const p = entry.modeEPayload;
+    if (!p) continue;
+    wins[p.winnerId] = (wins[p.winnerId] || 0) + 1;
+    if (p.winType === "selfdraw") selfdrawWins[p.winnerId] = (selfdrawWins[p.winnerId] || 0) + 1;
+    if (p.discarderId) discardCount[p.discarderId] = (discardCount[p.discarderId] || 0) + 1;
+    if (p.baauId) baauCount[p.baauId] = (baauCount[p.baauId] || 0) + 1;
+  }
+  return { wins, selfdrawWins, discardCount, baauCount };
+}
+
+/** Get top player(s) by count; returns [{ id, count }, ...] with same max count. */
+function getTopByCount(countBy) {
+  const entries = Object.entries(countBy).filter(([, n]) => n > 0);
+  if (entries.length === 0) return [];
+  const max = Math.max(...entries.map(([, n]) => n));
+  return entries.filter(([, n]) => n === max).map(([id, count]) => ({ id, count }));
+}
+
+function renderModeEStats() {
+  const block = document.getElementById("modeEStatsBlock");
+  const listEl = document.getElementById("modeEStatsList");
+  if (!block || !listEl) return;
+  const session = getCurrentSession();
+  const history = session?.history || [];
+  const modeERecords = history.filter((e) => e.modeEPayload);
+  if (modeERecords.length === 0) {
+    block.hidden = true;
+    return;
+  }
+  block.hidden = false;
+  const { wins, selfdrawWins, discardCount, baauCount } = computeModeEStats(session);
+  const isZh = getLocale() === "zh-HK";
+  const items = [];
+  const topWins = getTopByCount(wins);
+  if (topWins.length) {
+    const names = topWins.map(({ id }) => getPlayerName(id)).join(isZh ? "、" : ", ");
+    const n = topWins[0].count;
+    items.push({
+      type: "wins",
+      icon: "👑",
+      label: isZh ? "大贏家" : "Crown champion",
+      names,
+      n,
+    });
+  }
+  const topSelfdraw = getTopByCount(selfdrawWins);
+  if (topSelfdraw.length) {
+    const names = topSelfdraw.map(({ id }) => getPlayerName(id)).join(isZh ? "、" : ", ");
+    const n = topSelfdraw[0].count;
+    items.push({
+      type: "selfdraw",
+      icon: "🎲",
+      label: isZh ? "自摸王" : "Self-draw king",
+      names,
+      n,
+    });
+  }
+  const topDiscard = getTopByCount(discardCount);
+  if (topDiscard.length) {
+    const names = topDiscard.map(({ id }) => getPlayerName(id)).join(isZh ? "、" : ", ");
+    const n = topDiscard[0].count;
+    items.push({
+      type: "discard",
+      icon: "🐟",
+      label: isZh ? "魚腩王（放銃最多）" : "Fish of the day (fed most)",
+      names,
+      n,
+    });
+  }
+  const topBaau = getTopByCount(baauCount);
+  if (topBaau.length) {
+    const names = topBaau.map(({ id }) => getPlayerName(id)).join(isZh ? "、" : ", ");
+    const n = topBaau[0].count;
+    items.push({
+      type: "baau",
+      icon: "💸",
+      label: isZh ? "包王（包到盡）" : "Pack master (paid the most)",
+      names,
+      n,
+    });
+  }
+  listEl.innerHTML = items
+    .map(
+      (item) => `
+    <div class="mode-e-stat-item mode-e-stat-${item.type}" data-stat="${item.type}">
+      <span class="mode-e-stat-icon" aria-hidden="true">${escapeHtml(item.icon)}</span>
+      <div class="mode-e-stat-body">
+        <span class="mode-e-stat-label">${escapeHtml(item.label)}</span>
+        <span class="mode-e-stat-value">${escapeHtml(item.names)} <strong>×${item.n}</strong></span>
+      </div>
+    </div>`
+    )
+    .join("");
 }
 
 // ---------- Mode calculations ----------
@@ -722,6 +1008,80 @@ function runModeD() {
   showToast(t("scoreUpdated"));
 }
 
+/**
+ * Build Mode E updates and message from payload (for runModeE and history edit).
+ * @param {object} session
+ * @param {string} winnerId
+ * @param {string} winType "selfdraw"|"discard"|"baauSelfDraw"|"baauDiscard"
+ * @param {number} faanTenths
+ * @param {string|null} discarderId
+ * @param {string|null} baauId
+ * @param {Array<{id:string,name:string}>|null} [playingPlayers] - For HK Mahjong, the 4 players in this hand. If omitted, uses session.players.
+ * @returns {{ updates: Array<{id:string,delta:number}>, message: string }}
+ */
+function buildModeEUpdatesAndMessage(session, winnerId, winType, faanTenths, discarderId, baauId, playingPlayers) {
+  const players = (playingPlayers && playingPlayers.length === 4) ? playingPlayers : (session.players || []);
+  const losers = players.filter((p) => p.id !== winnerId);
+  const n = losers.length;
+  const faanDisplay = faanTenths % 10 === 0 ? String(faanTenths / 10) : (faanTenths / 10).toFixed(1);
+  const isZh = getLocale() === "zh-HK";
+  let updates;
+  let msg;
+  if (winType === "selfdraw") {
+    const totalWin = n * faanTenths;
+    updates = [
+      { id: winnerId, delta: totalWin },
+      ...losers.map((p) => ({ id: p.id, delta: -faanTenths })),
+    ];
+    const loserNames = losers.map((p) => getPlayerName(p.id)).join(isZh ? "、" : ", ");
+    const totalWinDisplay = formatScoreDisplay(totalWin, session);
+    const faanDisplayNeg = formatScoreDisplay(-faanTenths, session);
+    msg = isZh
+      ? `${getPlayerName(winnerId)} 自摸 ${faanDisplay}番 +${totalWinDisplay}（${loserNames} 各 ${faanDisplayNeg}）`
+      : `${getPlayerName(winnerId)} self-draw ${faanDisplay} faan +${totalWinDisplay} (${loserNames} each ${faanDisplayNeg})`;
+  } else if (winType === "discard" && discarderId) {
+    const halfTenths = Math.round(faanTenths / 2);
+    const otherLosers = losers.filter((p) => p.id !== discarderId);
+    const totalWin = faanTenths + otherLosers.length * halfTenths;
+    updates = [
+      { id: winnerId, delta: totalWin },
+      { id: discarderId, delta: -faanTenths },
+      ...otherLosers.map((p) => ({ id: p.id, delta: -halfTenths })),
+    ];
+    const discarderName = getPlayerName(discarderId);
+    const otherNames = otherLosers.map((p) => getPlayerName(p.id)).join(isZh ? "、" : ", ");
+    const totalWinDisplay = formatScoreDisplay(totalWin, session);
+    const discarderPayDisplay = formatScoreDisplay(-faanTenths, session);
+    const halfDisplay = formatScoreDisplay(-halfTenths, session);
+    msg = isZh
+      ? `${getPlayerName(winnerId)} 食${discarderName} 出銃 ${faanDisplay}番 +${totalWinDisplay}（${discarderName} ${discarderPayDisplay}，${otherNames} 各 ${halfDisplay}）`
+      : `${getPlayerName(winnerId)} win by ${discarderName} discard ${faanDisplay} faan +${totalWinDisplay} (${discarderName} ${discarderPayDisplay}; ${otherNames} each ${halfDisplay})`;
+  } else if ((winType === "baauSelfDraw" || winType === "baauDiscard") && baauId) {
+    const isBaauSelf = winType === "baauSelfDraw";
+    const totalWin = isBaauSelf ? n * faanTenths : (faanTenths + 2 * Math.round(faanTenths / 2));
+    updates = [
+      { id: winnerId, delta: totalWin },
+      { id: baauId, delta: -totalWin },
+    ];
+    const baauName = getPlayerName(baauId);
+    const totalWinDisplay = formatScoreDisplay(totalWin, session);
+    const baauPayDisplay = formatScoreDisplay(-totalWin, session);
+    if (isBaauSelf) {
+      msg = isZh
+        ? `${getPlayerName(winnerId)} 包自摸 ${faanDisplay}番 +${totalWinDisplay}（${baauName} 包 ${baauPayDisplay}）`
+        : `${getPlayerName(winnerId)} pack self-draw (包自摸) ${faanDisplay} faan +${totalWinDisplay} (${baauName} pays ${baauPayDisplay})`;
+    } else {
+      msg = isZh
+        ? `${getPlayerName(winnerId)} 包出銃 ${faanDisplay}番 +${totalWinDisplay}（${baauName} 包 ${baauPayDisplay}）`
+        : `${getPlayerName(winnerId)} pack discard (包出銃) ${faanDisplay} faan +${totalWinDisplay} (${baauName} pays ${baauPayDisplay})`;
+    }
+  } else {
+    updates = [];
+    msg = "";
+  }
+  return { updates, message: msg };
+}
+
 function runModeE() {
   const winnerId = selectedModeEWinner;
   if (!winnerId) {
@@ -734,29 +1094,32 @@ function runModeE() {
     showToast(t("invalidNumber"));
     return;
   }
-  // Use actual radio selection so description always matches what user selected
   const winTypeRadio = document.querySelector('input[name="modeEWinType"]:checked');
-  const isSelfDraw = winTypeRadio ? winTypeRadio.value === "selfdraw" : selectedModeESelfDraw;
+  const winType = winTypeRadio ? winTypeRadio.value : (selectedModeEWinType || "selfdraw");
 
-  if (!isSelfDraw && !selectedModeEDiscarder) {
+  if (winType === "discard" && !selectedModeEDiscarder) {
     showToast(getLocale() === "zh-HK" ? "請選擇出銃者" : "Please select who discarded");
+    return;
+  }
+  if ((winType === "baauSelfDraw" || winType === "baauDiscard") && !selectedModeEBaau) {
+    showToast(getLocale() === "zh-HK" ? "請選擇誰包" : "Please select who pays (包)");
     return;
   }
   const session = getCurrentSession();
   if (!session) return;
   const players = session.players || [];
-  const losers = players.filter((p) => p.id !== winnerId);
-  const n = losers.length;
+  const playingFour = getModeEPlayingPlayers(session);
+  if (players.length > 4 && !playingFour) {
+    showToast(getLocale() === "zh-HK" ? "請選擇 4 位本局玩家" : "Please select 4 players for this hand");
+    return;
+  }
 
-  // Mode E uses ×10 internally (one decimal place, no floats in system)
   const faanTenths = Math.round(faanInput * 10);
   if (faanTenths < 0) {
     showToast(t("invalidNumber"));
     return;
   }
-  const faanDisplay = faanTenths % 10 === 0 ? String(faanTenths / 10) : (faanTenths / 10).toFixed(1);
 
-  // First time using mode E in this session: switch to tenths (×10)
   if (getScoreScale(session) !== 10) {
     session.scoreScale = 10;
     session.startingScore = Math.round((Number(session.startingScore) ?? 0) * 10);
@@ -766,44 +1129,13 @@ function runModeE() {
     });
   }
 
-  const isZh = getLocale() === "zh-HK";
-  let updates;
-  let msg;
-  if (isSelfDraw) {
-    // 自摸：每人付 1× 番，贏家收 n× 番
-    const totalWin = n * faanTenths;
-    updates = [
-      { id: winnerId, delta: totalWin },
-      ...losers.map((p) => ({ id: p.id, delta: -faanTenths })),
-    ];
-    const loserNames = losers.map((p) => getPlayerName(p.id)).join(isZh ? "、" : ", ");
-    const totalWinDisplay = formatScoreDisplay(totalWin, session);
-    const faanDisplayNeg = formatScoreDisplay(-faanTenths, session);
-    msg = isZh
-      ? `${getPlayerName(winnerId)} 自摸 ${faanDisplay}番 +${totalWinDisplay}（${loserNames} 各 ${faanDisplayNeg}）`
-      : `${getPlayerName(winnerId)} self-draw ${faanDisplay} faan +${totalWinDisplay} (${loserNames} each ${faanDisplayNeg})`;
-  } else {
-    // 出銃：出銃者付 1× 番，其餘兩人各付 0.5× 番（用 tenths 所以 0.5 = round(faanTenths/2)）
-    const halfTenths = Math.round(faanTenths / 2);
-    const otherLosers = losers.filter((p) => p.id !== selectedModeEDiscarder);
-    const totalWin = faanTenths + otherLosers.length * halfTenths;
-    updates = [
-      { id: winnerId, delta: totalWin },
-      { id: selectedModeEDiscarder, delta: -faanTenths },
-      ...otherLosers.map((p) => ({ id: p.id, delta: -halfTenths })),
-    ];
-    const discarderName = getPlayerName(selectedModeEDiscarder);
-    const otherNames = otherLosers.map((p) => getPlayerName(p.id)).join(isZh ? "、" : ", ");
-    const totalWinDisplay = formatScoreDisplay(totalWin, session);
-    const discarderPayDisplay = formatScoreDisplay(-faanTenths, session);
-    const halfDisplay = formatScoreDisplay(-halfTenths, session);
-    // 出銃：出銃者 1×，其餘 0.5× — describe clearly so not confused with 自摸
-    msg = isZh
-      ? `${getPlayerName(winnerId)} 食${discarderName} 出銃 ${faanDisplay}番 +${totalWinDisplay}（${discarderName} ${discarderPayDisplay}，${otherNames} 各 ${halfDisplay}）`
-      : `${getPlayerName(winnerId)} win by ${discarderName} discard ${faanDisplay} faan +${totalWinDisplay} (${discarderName} ${discarderPayDisplay}; ${otherNames} each ${halfDisplay})`;
-  }
+  const discarderId = winType === "discard" ? selectedModeEDiscarder : null;
+  const baauId = (winType === "baauSelfDraw" || winType === "baauDiscard") ? selectedModeEBaau : null;
+  const { updates, message: msg } = buildModeEUpdatesAndMessage(session, winnerId, winType, faanTenths, discarderId, baauId, playingFour || undefined);
   const remark = (document.getElementById("modeERemark")?.value || "").trim();
-  applyUpdates(updates, msg, remark, { updates });
+  const modeEPayload = { winnerId, winType, faanTenths, discarderId, baauId };
+  if (players.length > 4 && playingFour && playingFour.length === 4) modeEPayload.playingIds = playingFour.map((p) => p.id);
+  applyUpdates(updates, msg, remark, { updates, modeEPayload });
   if (faanEl) faanEl.value = "";
   if (document.getElementById("modeERemark")) document.getElementById("modeERemark").value = "";
   showToast(t("scoreUpdated"));
@@ -827,12 +1159,95 @@ function addHistory(message, remark, options) {
     remark: remark || "",
   };
   if (options && Array.isArray(options.updates)) entry.updates = options.updates;
+  if (options && options.modeEPayload) entry.modeEPayload = options.modeEPayload;
   session.history.unshift(entry);
   saveData(state);
   renderHistory();
 }
 
 let historyEditIndex = null;
+/** Selected 贏家 / 出銃者 / 包者 in edit modal (Mode E). */
+let historyEditWinnerId = null;
+let historyEditDiscarderId = null;
+let historyEditBaauId = null;
+
+function getHistoryEditWinType() {
+  const radio = document.querySelector('input[name="historyEditWinType"]:checked');
+  return radio ? radio.value : null;
+}
+
+function setHistoryEditWinType(value) {
+  const radio = document.querySelector(`input[name="historyEditWinType"][value="${value}"]`);
+  if (radio) radio.checked = true;
+}
+
+/** Render winner chips in edit modal. If playingPlayers is provided (e.g. from payload.playingIds), only those shown. */
+function renderHistoryEditWinnerChips(session, playingPlayers) {
+  const container = document.getElementById("historyEditWinnerChips");
+  if (!container) return;
+  const players = (playingPlayers && playingPlayers.length > 0) ? playingPlayers : (session?.players || []);
+  container.innerHTML = players
+    .map((p) => `<button type="button" class="player-chip" data-player-id="${escapeHtml(p.id)}">${escapeHtml(p.name)}</button>`)
+    .join("");
+  container.querySelectorAll(".player-chip").forEach((btn) => {
+    const id = btn.getAttribute("data-player-id");
+    btn.classList.toggle("selected", id === historyEditWinnerId);
+    btn.addEventListener("click", () => {
+      historyEditWinnerId = id;
+      if (historyEditDiscarderId === id) historyEditDiscarderId = null;
+      if (historyEditBaauId === id) historyEditBaauId = null;
+      renderHistoryEditWinnerChips(session, players);
+      renderHistoryEditModeEWho(session, historyEditWinnerId, getHistoryEditWinType() || "selfdraw", players);
+    });
+  });
+}
+
+/** Render 誰出銃？/ 誰包？ chips in edit modal and show/hide blocks by win type. playingPlayers: optional 4 for this hand. */
+function renderHistoryEditModeEWho(session, winnerId, winType, playingPlayers) {
+  const discarderBlock = document.getElementById("historyEditDiscarderBlock");
+  const baauBlock = document.getElementById("historyEditBaauBlock");
+  const discarderChips = document.getElementById("historyEditDiscarderChips");
+  const baauChips = document.getElementById("historyEditBaauChips");
+  const players = (playingPlayers && playingPlayers.length > 0) ? playingPlayers : (session?.players || []);
+  const nonWinners = players.filter((p) => p.id !== winnerId);
+
+  if (winType === "discard") {
+    if (discarderBlock) discarderBlock.hidden = false;
+    if (baauBlock) baauBlock.hidden = true;
+    if (discarderChips) {
+      discarderChips.innerHTML = nonWinners
+        .map((p) => `<button type="button" class="player-chip" data-player-id="${escapeHtml(p.id)}">${escapeHtml(p.name)}</button>`)
+        .join("");
+      discarderChips.querySelectorAll(".player-chip").forEach((btn) => {
+        const id = btn.getAttribute("data-player-id");
+        btn.classList.toggle("selected", id === historyEditDiscarderId);
+        btn.addEventListener("click", () => {
+          historyEditDiscarderId = id;
+          renderHistoryEditModeEWho(session, winnerId, winType);
+        });
+      });
+    }
+  } else if (winType === "baauSelfDraw" || winType === "baauDiscard") {
+    if (discarderBlock) discarderBlock.hidden = true;
+    if (baauBlock) baauBlock.hidden = false;
+    if (baauChips) {
+      baauChips.innerHTML = nonWinners
+        .map((p) => `<button type="button" class="player-chip" data-player-id="${escapeHtml(p.id)}">${escapeHtml(p.name)}</button>`)
+        .join("");
+      baauChips.querySelectorAll(".player-chip").forEach((btn) => {
+        const id = btn.getAttribute("data-player-id");
+        btn.classList.toggle("selected", id === historyEditBaauId);
+        btn.addEventListener("click", () => {
+          historyEditBaauId = id;
+          renderHistoryEditModeEWho(session, winnerId, winType);
+        });
+      });
+    }
+  } else {
+    if (discarderBlock) discarderBlock.hidden = true;
+    if (baauBlock) baauBlock.hidden = true;
+  }
+}
 
 function openHistoryEditModal(index) {
   const session = getCurrentSession();
@@ -841,6 +1256,35 @@ function openHistoryEditModal(index) {
   const entry = session.history[index];
   const remarkEl = document.getElementById("historyEditRemark");
   if (remarkEl) remarkEl.value = entry.remark || "";
+  const modeEBlock = document.getElementById("historyEditModeEBlock");
+  const faanInput = document.getElementById("historyEditFaan");
+  const discarderBlock = document.getElementById("historyEditDiscarderBlock");
+  const baauBlock = document.getElementById("historyEditBaauBlock");
+  if (entry.modeEPayload) {
+    if (modeEBlock) modeEBlock.hidden = false;
+    const payload = entry.modeEPayload;
+    historyEditWinnerId = payload.winnerId || null;
+    historyEditDiscarderId = payload.discarderId || null;
+    historyEditBaauId = payload.baauId || null;
+    const editPlayingFour = (payload.playingIds && payload.playingIds.length === 4)
+      ? (session.players || []).filter((p) => payload.playingIds.includes(p.id))
+      : null;
+    renderHistoryEditWinnerChips(session, editPlayingFour && editPlayingFour.length === 4 ? editPlayingFour : undefined);
+    setHistoryEditWinType(payload.winType || "selfdraw");
+    const whoPlayers = editPlayingFour && editPlayingFour.length === 4 ? editPlayingFour : undefined;
+    document.querySelectorAll('input[name="historyEditWinType"]').forEach((radio) => {
+      radio.onchange = () => {
+        renderHistoryEditModeEWho(session, historyEditWinnerId, getHistoryEditWinType() || "selfdraw", whoPlayers);
+      };
+    });
+    if (faanInput) faanInput.value = (payload.faanTenths / 10).toFixed(payload.faanTenths % 10 === 0 ? 0 : 1);
+    renderHistoryEditModeEWho(session, historyEditWinnerId, payload.winType || "selfdraw", whoPlayers);
+  } else {
+    if (modeEBlock) modeEBlock.hidden = true;
+    if (discarderBlock) discarderBlock.hidden = true;
+    if (baauBlock) baauBlock.hidden = true;
+    if (faanInput) faanInput.value = "";
+  }
   const modal = document.getElementById("historyEditModal");
   if (modal) {
     modal.hidden = false;
@@ -863,13 +1307,104 @@ function saveHistoryEdit() {
     closeHistoryEditModal();
     return;
   }
+  const entry = session.history[historyEditIndex];
   const remarkEl = document.getElementById("historyEditRemark");
   const remark = remarkEl ? remarkEl.value.trim() : "";
-  session.history[historyEditIndex].remark = remark;
+  entry.remark = remark;
+
+  if (entry.modeEPayload) {
+    const faanInputEl = document.getElementById("historyEditFaan");
+    const newWinnerId = historyEditWinnerId || entry.modeEPayload.winnerId;
+    const newWinType = getHistoryEditWinType() || entry.modeEPayload.winType;
+    const faanParsed = parseScore(faanInputEl?.value ?? "");
+    const newFaanTenths = Number.isFinite(faanParsed) && faanParsed >= 0 ? Math.round(faanParsed * 10) : entry.modeEPayload.faanTenths;
+    const newDiscarderId = newWinType === "discard" ? historyEditDiscarderId : null;
+    const newBaauId = (newWinType === "baauSelfDraw" || newWinType === "baauDiscard") ? historyEditBaauId : null;
+    if (!newWinnerId) {
+      showToast(getLocale() === "zh-HK" ? "請選擇贏家" : "Please select winner");
+      return;
+    }
+    if (newWinType === "discard" && !newDiscarderId) {
+      showToast(getLocale() === "zh-HK" ? "請選擇出銃者" : "Please select who discarded");
+      return;
+    }
+    if ((newWinType === "baauSelfDraw" || newWinType === "baauDiscard") && !newBaauId) {
+      showToast(getLocale() === "zh-HK" ? "請選擇誰包" : "Please select who pays (包)");
+      return;
+    }
+    const payload = entry.modeEPayload;
+    const typeFaanOrWhoChanged =
+      newWinnerId !== (payload.winnerId || null) ||
+      newWinType !== payload.winType ||
+      newFaanTenths !== payload.faanTenths ||
+      newDiscarderId !== (payload.discarderId || null) ||
+      newBaauId !== (payload.baauId || null);
+
+    if (typeFaanOrWhoChanged && entry.updates && Array.isArray(entry.updates)) {
+      const players = session.players || [];
+      for (const { id, delta } of entry.updates) {
+        const p = players.find((x) => x.id === id);
+        if (p) p.score -= Number(delta) || 0;
+      }
+      const playingIds = payload.playingIds && Array.isArray(payload.playingIds) && payload.playingIds.length === 4
+        ? payload.playingIds
+        : null;
+      const editPlayingFour = playingIds
+        ? players.filter((p) => playingIds.includes(p.id))
+        : (getModeEPlayingPlayers(session) || undefined);
+      const playingFourForEdit = (editPlayingFour && editPlayingFour.length === 4) ? editPlayingFour : undefined;
+      const { updates: newUpdates, message: newMessage } = buildModeEUpdatesAndMessage(
+        session,
+        newWinnerId,
+        newWinType,
+        newFaanTenths,
+        newDiscarderId,
+        newBaauId,
+        playingFourForEdit
+      );
+      for (const { id, delta } of newUpdates) {
+        const p = players.find((x) => x.id === id);
+        if (p) p.score += Number(delta) || 0;
+      }
+      entry.updates = newUpdates;
+      entry.message = newMessage;
+      entry.modeEPayload = {
+        winnerId: newWinnerId,
+        winType: newWinType,
+        faanTenths: newFaanTenths,
+        discarderId: newDiscarderId,
+        baauId: newBaauId,
+      };
+      if (playingIds) entry.modeEPayload.playingIds = playingIds;
+      else if (session.players.length > 4 && playingFourForEdit && playingFourForEdit.length === 4)
+        entry.modeEPayload.playingIds = playingFourForEdit.map((p) => p.id);
+    }
+  }
+
   saveData(state);
   renderHistory();
+  renderPlayerCards();
   closeHistoryEditModal();
   showToast(t("scoreUpdated"));
+}
+
+function deleteHistoryEntry(index) {
+  const session = getCurrentSession();
+  if (!session || !session.history || !session.history[index]) return;
+  if (!confirm(t("deleteRecordConfirm"))) return;
+  const entry = session.history[index];
+  if (entry.updates && Array.isArray(entry.updates)) {
+    const players = session.players || [];
+    for (const { id, delta } of entry.updates) {
+      const p = players.find((x) => x.id === id);
+      if (p) p.score -= Number(delta) || 0;
+    }
+  }
+  session.history.splice(index, 1);
+  saveData(state);
+  renderHistory();
+  renderPlayerCards();
+  showToast(getLocale() === "zh-HK" ? "已刪除此筆紀錄" : "Record deleted");
 }
 
 function renderHistory() {
@@ -886,9 +1421,12 @@ function renderHistory() {
       (entry, index) => `
     <div class="history-item" data-history-index="${index}">
       <span class="history-item-time">${escapeHtml(entry.time)}</span>
-      <span class="history-item-message">${escapeHtml(entry.message)}</span>
+      <span class="history-item-message">${styleHistoryMessage(escapeHtml(entry.message))}</span>
       ${entry.remark ? `<div class="history-item-remark">${escapeHtml(entry.remark)}</div>` : ""}
-      <button type="button" class="history-item-edit-btn btn btn-secondary" data-history-index="${index}" aria-label="${escapeHtml(t("edit"))}">${escapeHtml(t("edit"))}</button>
+      <div class="history-item-actions">
+        <button type="button" class="history-item-edit-btn btn btn-secondary history-item-icon-btn" data-history-index="${index}" aria-label="${escapeHtml(t("edit"))}" title="${escapeHtml(t("edit"))}"><span aria-hidden="true">✎</span></button>
+        <button type="button" class="history-item-delete-btn btn btn-secondary btn-danger history-item-icon-btn" data-history-index="${index}" aria-label="${escapeHtml(t("deleteRecord"))}" title="${escapeHtml(t("deleteRecord"))}"><span aria-hidden="true">🗑</span></button>
+      </div>
     </div>
   `
     )
@@ -899,6 +1437,13 @@ function renderHistory() {
       if (Number.isFinite(idx)) openHistoryEditModal(idx);
     });
   });
+  list.querySelectorAll(".history-item-delete-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.getAttribute("data-history-index"), 10);
+      if (Number.isFinite(idx)) deleteHistoryEntry(idx);
+    });
+  });
+  renderModeEStats();
 }
 
 function clearHistory() {
@@ -918,7 +1463,11 @@ function applyUpdates(updates, message, remark, addHistoryOptions) {
     const p = players.find((x) => x.id === id);
     if (p) p.score += Number(delta) || 0;
   }
-  if (message) addHistory(message, remark || "", addHistoryOptions);
+  if (message) {
+    const options = addHistoryOptions && typeof addHistoryOptions === "object" ? { ...addHistoryOptions } : {};
+    options.updates = updates;
+    addHistory(message, remark || "", options);
+  }
   saveData(state);
   renderPlayerCards();
   flashScores(updates.map((u) => u.id));
@@ -938,24 +1487,178 @@ function flashScores(playerIds) {
   });
 }
 
-// ---------- Add player ----------
-function addPlayer() {
+// ---------- Add player (quick-pick from past names or enter new) ----------
+const USED_PLAYER_NAMES_MAX = 40;
+
+function addToUsedPlayerNames(name) {
+  const n = (name && name.trim()) || "";
+  if (!n) return;
+  state.usedPlayerNames = state.usedPlayerNames || [];
+  state.usedPlayerNames = [n, ...state.usedPlayerNames.filter((x) => x.trim() !== n)].slice(0, USED_PLAYER_NAMES_MAX);
+}
+
+function openAddPlayerModal() {
   const session = getCurrentSession();
   if (!session) return;
-  const players = session.players || [];
+  const currentNames = (session.players || []).map((p) => (p.name || "").trim().toLowerCase());
+  const recent = (state.usedPlayerNames || []).filter((n) => n.trim() && !currentNames.includes(n.trim().toLowerCase()));
+  const chipsEl = document.getElementById("addPlayerRecentChips");
+  const groupEl = document.getElementById("addPlayerRecentGroup");
+  if (chipsEl) {
+    if (recent.length === 0) {
+      if (groupEl) groupEl.hidden = true;
+      chipsEl.innerHTML = "";
+    } else {
+      if (groupEl) groupEl.hidden = false;
+      chipsEl.innerHTML = recent
+        .slice(0, 20)
+        .map((n) => `<button type="button" class="player-chip add-player-recent-chip" data-name="${escapeHtml(n)}">${escapeHtml(n)}</button>`)
+        .join("");
+      chipsEl.querySelectorAll(".add-player-recent-chip").forEach((btn) => {
+        const name = btn.getAttribute("data-name");
+        btn.addEventListener("click", () => {
+          addPlayerByName(name);
+          closeAddPlayerModal();
+        });
+      });
+    }
+  }
+  const input = document.getElementById("addPlayerNameInput");
+  if (input) {
+    input.value = "";
+    input.placeholder = getLocale() === "zh-HK" ? "例：玩家 " + ((session.players || []).length + 1) : "e.g. Player " + ((session.players || []).length + 1);
+    input.focus();
+  }
+  const modal = document.getElementById("addPlayerModal");
+  if (modal) {
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+  }
+}
+
+function closeAddPlayerModal() {
+  const modal = document.getElementById("addPlayerModal");
+  if (modal) {
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+  }
+}
+
+function addPlayerByName(name) {
+  const session = getCurrentSession();
+  if (!session) return;
+  const n = (name && name.trim()) || "";
+  if (!n) {
+    showToast(getLocale() === "zh-HK" ? "請輸入名稱" : "Please enter a name");
+    return;
+  }
   const startingScore = session.startingScore ?? 0;
-  const name = prompt(getLocale() === "zh-HK" ? "新玩家名稱：" : "New player name:", "Player " + (players.length + 1));
-  if (name == null || !name.trim()) return;
   session.players = session.players || [];
   session.players.push({
     id: `p${Date.now()}_${session.players.length}`,
-    name: name.trim(),
+    name: n,
     score: startingScore,
     initialScore: startingScore,
   });
+  addToUsedPlayerNames(n);
   saveData(state);
   renderAll();
   showToast(getLocale() === "zh-HK" ? "已新增玩家" : "Player added");
+}
+
+function confirmAddPlayerFromInput() {
+  const input = document.getElementById("addPlayerNameInput");
+  const name = input ? input.value.trim() : "";
+  if (!name) {
+    showToast(getLocale() === "zh-HK" ? "請輸入名稱" : "Please enter a name");
+    return;
+  }
+  addPlayerByName(name);
+  closeAddPlayerModal();
+}
+
+// ---------- Edit player name ----------
+let editPlayerNameModalPlayerId = null;
+
+function openEditPlayerNameModal(playerId) {
+  const session = getCurrentSession();
+  if (!session) return;
+  const p = (session.players || []).find((x) => x.id === playerId);
+  if (!p) return;
+  editPlayerNameModalPlayerId = playerId;
+  const input = document.getElementById("editPlayerNameInput");
+  if (input) {
+    input.value = p.name || "";
+    input.focus();
+  }
+  const currentNameLower = (p.name || "").trim().toLowerCase();
+  const othersLower = (session.players || [])
+    .filter((x) => x.id !== playerId)
+    .map((x) => (x.name || "").trim().toLowerCase());
+  const suggested = (state.usedPlayerNames || [])
+    .filter((n) => {
+      const t = (n || "").trim().toLowerCase();
+      if (!t) return false;
+      return t === currentNameLower || !othersLower.includes(t);
+    })
+    .slice(0, 20);
+  const chipsEl = document.getElementById("editPlayerNameRecentChips");
+  const groupEl = document.getElementById("editPlayerNameRecentGroup");
+  if (chipsEl) {
+    if (suggested.length === 0) {
+      if (groupEl) groupEl.hidden = true;
+      chipsEl.innerHTML = "";
+    } else {
+      if (groupEl) groupEl.hidden = false;
+      chipsEl.innerHTML = suggested
+        .map((n) => `<button type="button" class="player-chip add-player-recent-chip edit-name-chip" data-name="${escapeHtml(n)}">${escapeHtml(n)}</button>`)
+        .join("");
+      chipsEl.querySelectorAll(".edit-name-chip").forEach((btn) => {
+        const name = btn.getAttribute("data-name");
+        btn.addEventListener("click", () => {
+          if (input) input.value = name;
+          input?.focus();
+        });
+      });
+    }
+  }
+  const modal = document.getElementById("editPlayerNameModal");
+  if (modal) {
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+  }
+}
+
+function closeEditPlayerNameModal() {
+  editPlayerNameModalPlayerId = null;
+  const modal = document.getElementById("editPlayerNameModal");
+  if (modal) {
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+  }
+}
+
+function saveEditPlayerName() {
+  const session = getCurrentSession();
+  if (!session || !editPlayerNameModalPlayerId) {
+    closeEditPlayerNameModal();
+    return;
+  }
+  const input = document.getElementById("editPlayerNameInput");
+  const name = input ? input.value.trim() : "";
+  if (!name) {
+    showToast(getLocale() === "zh-HK" ? "請輸入名稱" : "Please enter a name");
+    return;
+  }
+  const p = (session.players || []).find((x) => x.id === editPlayerNameModalPlayerId);
+  if (p) {
+    p.name = name;
+    addToUsedPlayerNames(name);
+    saveData(state);
+    renderAll();
+    showToast(getLocale() === "zh-HK" ? "已更新玩家名稱" : "Player name updated");
+  }
+  closeEditPlayerNameModal();
 }
 
 // ---------- Settlement (View C) & Zero-sum check ----------
@@ -1283,7 +1986,21 @@ function bindButtons() {
     startScoreboardBtn.addEventListener("click", startScoreboard);
   }
   if (addPlayerBtn) {
-    addPlayerBtn.addEventListener("click", addPlayer);
+    addPlayerBtn.addEventListener("click", openAddPlayerModal);
+  }
+  document.getElementById("addPlayerConfirmBtn")?.addEventListener("click", confirmAddPlayerFromInput);
+  document.getElementById("addPlayerCancelBtn")?.addEventListener("click", closeAddPlayerModal);
+  document.getElementById("addPlayerModal")?.addEventListener("click", (e) => {
+    if (e.target.id === "addPlayerModal") closeAddPlayerModal();
+  });
+  const addPlayerInput = document.getElementById("addPlayerNameInput");
+  if (addPlayerInput) {
+    addPlayerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (document.getElementById("addPlayerModal") && !document.getElementById("addPlayerModal").hidden) confirmAddPlayerFromInput();
+      }
+    });
   }
   document.getElementById("backToDashboardBtn")?.addEventListener("click", backToDashboard);
   document.getElementById("newGameBtn")?.addEventListener("click", newGame);
@@ -1321,6 +2038,11 @@ function bindButtons() {
   document.getElementById("historyEditModal")?.addEventListener("click", (e) => {
     if (e.target.id === "historyEditModal") closeHistoryEditModal();
   });
+  document.getElementById("editPlayerNameSaveBtn")?.addEventListener("click", saveEditPlayerName);
+  document.getElementById("editPlayerNameCancelBtn")?.addEventListener("click", closeEditPlayerNameModal);
+  document.getElementById("editPlayerNameModal")?.addEventListener("click", (e) => {
+    if (e.target.id === "editPlayerNameModal") closeEditPlayerNameModal();
+  });
 }
 
 // ---------- Init ----------
@@ -1330,11 +2052,29 @@ function escapeHtml(s) {
   return div.innerHTML;
 }
 
+/** Wrap +N and -N in spans for history message styling (green/red). */
+function styleHistoryMessage(escapedText) {
+  return escapedText
+    .replace(/\+(\d+\.?\d*)/g, "<span class=\"history-msg-positive\">+$1</span>")
+    .replace(/-(\d+\.?\d*)/g, "<span class=\"history-msg-negative\">-$1</span>");
+}
+
+/** Set title (tooltip) on elements with data-tooltip-en / data-tooltip-zh-HK from current locale. */
+function applyModeETooltips() {
+  const locale = getLocale();
+  const key = locale === "zh-HK" ? "data-tooltip-zh-HK" : "data-tooltip-en";
+  document.querySelectorAll("[data-tooltip-en]").forEach((el) => {
+    const text = el.getAttribute(key) || el.getAttribute("data-tooltip-en");
+    if (text) el.setAttribute("title", text);
+  });
+}
+
 function init() {
   const data = loadData();
   if (data && data.sessions && data.sessions.length > 0) {
     state.sessions = data.sessions;
     state.currentSessionId = data.currentSessionId || null;
+    state.usedPlayerNames = data.usedPlayerNames || [];
     if (state.currentSessionId && state.sessions.some((s) => s.id === state.currentSessionId)) {
       showMain();
       renderAll();
@@ -1342,13 +2082,15 @@ function init() {
       showDashboard();
     }
   } else {
-    state = { sessions: [], currentSessionId: null };
+    state = { sessions: [], currentSessionId: null, usedPlayerNames: [] };
     showInit();
     renderPlayerNameInputs(4);
   }
   bindTabs();
   bindButtons();
   bindNumpad();
+  applyModeETooltips();
+  document.addEventListener("localechange", applyModeETooltips);
 }
 
 init();

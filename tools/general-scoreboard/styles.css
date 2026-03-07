@@ -486,14 +486,57 @@ body.dark .player-card:hover {
   box-shadow: 0 2px 12px rgba(144, 202, 249, 0.15);
 }
 
+.player-card-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
 .player-card-name {
   font-weight: 600;
-  margin-bottom: 8px;
   color: #333;
+  flex: 1;
+  min-width: 0;
 }
 
 body.dark .player-card-name {
   color: #e0e0e0;
+}
+
+.player-card-edit-name-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  color: #666;
+  font-size: 0.95em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.player-card-edit-name-btn:hover {
+  border-color: #1976d2;
+  background: rgba(25, 118, 210, 0.08);
+  color: #1976d2;
+}
+
+body.dark .player-card-edit-name-btn {
+  background: #2a2e32;
+  border-color: #555;
+  color: #aaa;
+}
+
+body.dark .player-card-edit-name-btn:hover {
+  border-color: #90caf9;
+  background: rgba(144, 202, 249, 0.12);
+  color: #90caf9;
 }
 
 .player-card-score {
@@ -624,10 +667,60 @@ body.dark .tab-btn[data-mode="e"].active {
   margin-top: 8px;
 }
 
+/* Win type label + rules hint on one line */
+.mode-e-form .form-group:has(.mode-e-rules-hint) > label {
+  display: inline;
+}
+.mode-e-rules-hint {
+  display: inline;
+  margin-left: 6px;
+  cursor: help;
+  font-size: 1rem;
+  opacity: 0.75;
+  color: #666;
+  font-style: normal;
+}
+body.dark .mode-e-rules-hint {
+  color: #aaa;
+}
+
+/* Who's playing this hand? (Select 4) - when session has >4 players */
+.mode-e-playing-hint {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 4px 0 8px;
+}
+body.dark .mode-e-playing-hint {
+  color: #aaa;
+}
+.mode-e-playing-chips .player-chip.selected {
+  border-color: #f57c00;
+  background: rgba(245, 124, 0, 0.2);
+}
+body.dark .mode-e-playing-chips .player-chip.selected {
+  border-color: #ffb74d;
+  background: rgba(255, 183, 77, 0.2);
+}
+.mode-e-playing-count {
+  font-size: 0.9rem;
+  margin-top: 6px;
+  color: #666;
+}
+body.dark .mode-e-playing-count {
+  color: #aaa;
+}
+.mode-e-playing-count.mode-e-playing-ok {
+  font-weight: 600;
+  color: #2e7d32;
+}
+body.dark .mode-e-playing-count.mode-e-playing-ok {
+  color: #81c784;
+}
+
 .mode-e-win-type {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 20px;
+  gap: 10px;
 }
 
 .mode-e-radio-label {
@@ -635,11 +728,50 @@ body.dark .tab-btn[data-mode="e"].active {
   align-items: center;
   gap: 6px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 2px solid #ccc;
+  background: #fff;
+  color: #333;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .mode-e-radio-label input {
-  margin: 0;
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mode-e-radio-label:hover {
+  border-color: #1976d2;
+  background: rgba(25, 118, 210, 0.08);
+}
+
+.mode-e-radio-label:has(input:checked) {
+  border-color: #1976d2;
+  background: #1976d2;
+  color: #fff;
+}
+
+body.dark .mode-e-radio-label {
+  background: #2a2e32;
+  border-color: #555;
+  color: #e0e0e0;
+}
+
+body.dark .mode-e-radio-label:hover {
+  border-color: #90caf9;
+  background: rgba(144, 202, 249, 0.12);
+}
+
+body.dark .mode-e-radio-label:has(input:checked) {
+  border-color: #90caf9;
+  background: #90caf9;
+  color: #111;
 }
 
 /* Mode E panel: light warm accent */
@@ -651,6 +783,119 @@ body.dark .tab-btn[data-mode="e"].active {
 
 body.dark #panelE .mode-e-form {
   background: linear-gradient(180deg, rgba(255, 183, 77, 0.08) 0%, transparent 120%);
+}
+
+/* Mode E mahjong stats - fun cards */
+.mode-e-stats {
+  margin-top: 20px;
+  padding: 16px;
+  background: linear-gradient(145deg, rgba(255, 152, 0, 0.06) 0%, rgba(255, 193, 7, 0.04) 100%);
+  border-radius: 14px;
+  border: 1px dashed rgba(255, 152, 0, 0.35);
+}
+body.dark .mode-e-stats {
+  background: linear-gradient(145deg, rgba(255, 183, 77, 0.08) 0%, rgba(255, 152, 0, 0.04) 100%);
+  border-color: rgba(255, 183, 77, 0.4);
+}
+.mode-e-stats-title {
+  margin: 0 0 14px 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e65100;
+  letter-spacing: 0.02em;
+}
+body.dark .mode-e-stats-title {
+  color: #ffb74d;
+}
+.mode-e-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+.mode-e-stat-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 2px solid;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.mode-e-stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.mode-e-stat-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.mode-e-stat-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mode-e-stat-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.9;
+}
+.mode-e-stat-value {
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+.mode-e-stat-value strong {
+  font-weight: 700;
+  opacity: 0.95;
+}
+/* Crown champion - gold */
+.mode-e-stat-wins {
+  border-color: #f9a825;
+  background: linear-gradient(135deg, #fffde7 0%, #fff8e1 100%);
+  color: #f57f17;
+}
+body.dark .mode-e-stat-wins {
+  border-color: #ffb300;
+  background: linear-gradient(135deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 152, 0, 0.1) 100%);
+  color: #ffb74d;
+}
+/* Self-draw king - green */
+.mode-e-stat-selfdraw {
+  border-color: #66bb6a;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  color: #2e7d32;
+}
+body.dark .mode-e-stat-selfdraw {
+  border-color: #81c784;
+  background: linear-gradient(135deg, rgba(129, 199, 132, 0.2) 0%, rgba(102, 187, 106, 0.1) 100%);
+  color: #a5d6a7;
+}
+/* Fish of the day - warm orange/red */
+.mode-e-stat-discard {
+  border-color: #ff8a65;
+  background: linear-gradient(135deg, #fbe9e7 0%, #ffccbc 100%);
+  color: #bf360c;
+}
+body.dark .mode-e-stat-discard {
+  border-color: #ffab91;
+  background: linear-gradient(135deg, rgba(255, 138, 101, 0.2) 0%, rgba(255, 171, 145, 0.1) 100%);
+  color: #ffab91;
+}
+/* Pack master - purple */
+.mode-e-stat-baau {
+  border-color: #ba68c8;
+  background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+  color: #6a1b9a;
+}
+body.dark .mode-e-stat-baau {
+  border-color: #ce93d8;
+  background: linear-gradient(135deg, rgba(186, 104, 200, 0.2) 0%, rgba(206, 147, 216, 0.1) 100%);
+  color: #e1bee7;
 }
 
 /* History Log */
@@ -733,6 +978,24 @@ body.dark .history-item-message {
   color: #e0e0e0;
 }
 
+.history-item-message .history-msg-positive {
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+body.dark .history-item-message .history-msg-positive {
+  color: #81c784;
+}
+
+.history-item-message .history-msg-negative {
+  color: #c62828;
+  font-weight: 700;
+}
+
+body.dark .history-item-message .history-msg-negative {
+  color: #ef5350;
+}
+
 .history-item-remark {
   width: 100%;
   margin-top: 4px;
@@ -744,16 +1007,51 @@ body.dark .history-item-remark {
   color: #90caf9;
 }
 
-.history-item-edit-btn {
+.history-item-actions {
   margin-left: auto;
-  padding: 4px 10px;
-  font-size: 0.8em;
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.history-item-edit-btn,
+.history-item-delete-btn {
+  box-sizing: border-box;
+  line-height: 1.25;
+}
+
+/* Icon-only buttons for history row - compact on mobile */
+.history-item-icon-btn {
+  padding: 8px 10px;
+  font-size: 1.1em;
+  font-weight: 600;
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.history-item-icon-btn span {
+  line-height: 1;
+  pointer-events: none;
+}
+
+.history-item-edit-btn {
+  background: transparent;
   border-color: #7b1fa2;
   color: #7b1fa2;
 }
 
-.history-item-edit-btn:hover {
+.history-item-edit-btn:hover,
+.history-item-edit-btn:focus-visible {
   background: rgba(123, 31, 162, 0.1);
+  outline: none;
+}
+
+.history-item-delete-btn {
+  background: transparent;
 }
 
 body.dark .history-item-edit-btn {
@@ -761,8 +1059,13 @@ body.dark .history-item-edit-btn {
   color: #ce93d8;
 }
 
-body.dark .history-item-edit-btn:hover {
+body.dark .history-item-edit-btn:hover,
+body.dark .history-item-edit-btn:focus-visible {
   background: rgba(206, 147, 216, 0.15);
+}
+
+body.dark .history-item-delete-btn {
+  background: transparent;
 }
 
 .modal-actions {
@@ -1011,8 +1314,15 @@ body.dark .numpad-enter:active {
 
   .tabs-header {
     overflow-x: auto;
+    overflow-y: hidden;
     flex-wrap: nowrap;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox: hide scrollbar */
+    -ms-overflow-style: none; /* IE/Edge: hide scrollbar */
+  }
+
+  .tabs-header::-webkit-scrollbar {
+    display: none; /* Chrome/Safari: hide scrollbar */
   }
 
   .tab-btn {
@@ -1072,6 +1382,55 @@ body.dark .numpad-enter:active {
 
 body.dark .modal-content {
   background: #2a2e32;
+}
+
+.modal-content .form-select {
+  width: 100%;
+  max-width: 280px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+}
+body.dark .modal-content .form-select {
+  background: #2a2e32;
+  border-color: #555;
+  color: #e0e0e0;
+}
+
+.history-edit-mode-e {
+  margin-bottom: 12px;
+}
+.history-edit-mode-e .form-group {
+  margin-bottom: 10px;
+}
+.history-edit-mode-e .player-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Add player modal: quick-pick chips */
+.add-player-recent-chips {
+  max-height: 140px;
+  overflow-y: auto;
+  margin-bottom: 4px;
+}
+.add-player-recent-chips .player-chip {
+  cursor: pointer;
+}
+
+/* Init form: quick fill chips */
+.init-quick-fill-group {
+  margin-bottom: 12px;
+}
+.init-quick-fill-chips {
+  max-height: 100px;
+  overflow-y: auto;
+}
+.init-quick-fill-chips .player-chip {
+  cursor: pointer;
 }
 
 .modal-content.modal-error {
