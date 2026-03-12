@@ -19,7 +19,7 @@
         color: #e5e7eb;
       }
       .page {
-        max-width: 1100px;
+        max-width: 1600px;
         margin: 0 auto;
         padding: 10px 0 32px;
       }
@@ -176,12 +176,16 @@
         position: relative;
         height: 210px;
         user-select: none;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
       }
       .white-keys {
         display: grid;
-        grid-template-columns: repeat(var(--white-count), 1fr);
+        grid-template-columns: repeat(var(--white-count), var(--white-key-width));
         height: 100%;
         gap: 2px;
+        width: max-content;
       }
       .piano-key {
         border: 1px solid #d1d5db;
@@ -213,10 +217,11 @@
         position: absolute;
         inset: 0;
         pointer-events: none;
+        width: max-content;
       }
       .piano-key.black {
         position: absolute;
-        width: calc(100% / var(--white-count) * 0.65);
+        width: calc(var(--white-key-width) * 0.65);
         height: 62%;
         left: var(--offset, 0%);
         top: 0;
@@ -318,6 +323,20 @@
             for upper octave.
           </div>
           <div class="midi-controls">
+            <select id="layoutSelect" aria-label="Keyboard layout">
+              <option value="auto" selected>Layout: Auto</option>
+              <option value="compact">Layout: Compact (1 octave)</option>
+              <option value="extended">Layout: Extended (2 octaves)</option>
+              <option value="full">Layout: Full (88 keys)</option>
+            </select>
+            <select id="engineSelect" aria-label="Sound engine">
+              <option value="synth" selected>Sound: Synth</option>
+              <option value="samples">Sound: Samples (if available)</option>
+            </select>
+            <select id="samplePackSelect" aria-label="Sample pack" disabled>
+              <option value="" selected>Samples: Built-in (wav)</option>
+              <option value="bright">Samples: Bright (folder)</option>
+            </select>
             <select id="exampleSelect">
               <option value="" disabled selected>📂 Load Example...</option>
               <option value="midi-examples/twinkle.mid">Twinkle Star</option>
@@ -355,7 +374,8 @@
             <div class="progress-inner" id="midiProgress"></div>
           </div>
           <div class="piano-hint">
-            Tip: Uses synthetic piano-like tone (layered oscillators).
+            Tip: Samples use pitch-shifting from a small set of base notes; if
+            sample files aren’t present, it falls back to the synth.
           </div>
         </div>
       </section>
@@ -370,34 +390,51 @@
       initThemeToggle();
       initLocaleMenu();
 
-      const PIANO_NOTES = [
-        "C4",
-        "C#4",
-        "D4",
-        "D#4",
-        "E4",
-        "F4",
-        "F#4",
-        "G4",
-        "G#4",
-        "A4",
-        "A#4",
-        "B4",
-        "C5",
-        "C#5",
-        "D5",
-        "D#5",
-        "E5",
-        "F5",
-        "F#5",
-        "G5",
-        "G#5",
-        "A5",
-        "A#5",
-        "B5",
-        "C6",
-      ];
-      const COMPACT_NOTES = PIANO_NOTES.slice(0, 13);
+      const MIDI_RANGE = {
+        // Standard 88-key piano.
+        min: 21, // A0
+        max: 108, // C8
+      };
+
+      const NATURAL_PCS = new Set([0, 2, 4, 5, 7, 9, 11]);
+
+      const midiToNoteName = (midi) => {
+        const names = [
+          "C",
+          "C#",
+          "D",
+          "D#",
+          "E",
+          "F",
+          "F#",
+          "G",
+          "G#",
+          "A",
+          "A#",
+          "B",
+        ];
+        const octave = Math.floor(midi / 12) - 1;
+        return `${names[midi % 12]}${octave}`;
+      };
+
+      const noteNameToMidi = (note) => {
+        const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+        const sharp = note.includes("#") ? 1 : 0;
+        const octave = parseInt(note.slice(-1), 10);
+        return base[note[0]] + sharp + (octave + 1) * 12;
+      };
+
+      const isBlackMidi = (midi) => !NATURAL_PCS.has(midi % 12);
+
+      const buildNotesFromMidi = (min, max) => {
+        const out = [];
+        for (let m = min; m <= max; m += 1) out.push(midiToNoteName(m));
+        return out;
+      };
+
+      const FULL_NOTES = buildNotesFromMidi(MIDI_RANGE.min, MIDI_RANGE.max);
+      const EXTENDED_NOTES = buildNotesFromMidi(noteNameToMidi("C4"), noteNameToMidi("C6"));
+      const COMPACT_NOTES = buildNotesFromMidi(noteNameToMidi("C4"), noteNameToMidi("C5"));
       const KEYBOARD_MAP = {
         z: "C4",
         s: "C#4",
@@ -432,13 +469,16 @@
       const pianoEl = document.getElementById("pianoKeys");
       const whiteKeysEl = document.getElementById("whiteKeys");
       const blackKeysEl = document.getElementById("blackKeys");
+      const layoutSelect = document.getElementById("layoutSelect");
+      const engineSelect = document.getElementById("engineSelect");
+      const samplePackSelect = document.getElementById("samplePackSelect");
       const midiFileInput = document.getElementById("midiFile");
       const exampleSelect = document.getElementById("exampleSelect");
       const midiStatus = document.getElementById("midiStatus");
       const midiProgress = document.getElementById("midiProgress");
       const playMidiBtn = document.getElementById("playMidi");
       const stopMidiBtn = document.getElementById("stopMidi");
-      const SAMPLE_ROOT = "./piano-samples"; // Kept for reference or future use
+      const SAMPLE_ROOT = "./piano-samples";
 
       let currentLayout = null;
       let activeKeys = new Map();
@@ -449,42 +489,51 @@
       let midiStopRequested = false;
       const pointerNotes = new Map();
 
-      const noteToMidi = (note) => {
-        const base = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
-        const sharp = note.includes("#") ? 1 : 0;
-        const octave = parseInt(note.slice(-1), 10);
-        return base[note[0]] + sharp + (octave + 1) * 12;
+      const computeLayout = () => {
+        const chosen = layoutSelect?.value || "auto";
+        if (chosen !== "auto") return chosen;
+        if (window.innerWidth < 760) return "compact";
+        if (window.innerWidth < 1100) return "extended";
+        return "full";
       };
 
-      const midiToNoteName = (midi) => {
-        const names = [
-          "C",
-          "C#",
-          "D",
-          "D#",
-          "E",
-          "F",
-          "F#",
-          "G",
-          "G#",
-          "A",
-          "A#",
-          "B",
-        ];
-        const octave = Math.floor(midi / 12) - 1;
-        return `${names[midi % 12]}${octave}`;
+      const getNotesForLayout = (layout) => {
+        if (layout === "compact") return COMPACT_NOTES;
+        if (layout === "extended") return EXTENDED_NOTES;
+        if (layout === "full") return FULL_NOTES;
+        return EXTENDED_NOTES;
       };
-
-      const computeLayout = () =>
-        window.innerWidth < 760 ? "compact" : "extended";
 
       const renderKeys = (layout) => {
-        const notes = layout === "compact" ? COMPACT_NOTES : PIANO_NOTES;
+        const notes = getNotesForLayout(layout);
         pianoEl.dataset.layout = layout;
-        pianoEl.style.setProperty(
-          "--white-count",
-          notes.filter((n) => !n.includes("#")).length
-        );
+        const whiteCount = notes.filter((n) => !n.includes("#")).length;
+        pianoEl.style.setProperty("--white-count", whiteCount);
+        // Key widths:
+        // - compact/extended: fixed, friendly touch targets
+        // - full: scale to available width to minimize (or eliminate) scrolling
+        let keyWidth = layout === "extended" ? 56 : 62;
+        if (layout === "full") {
+          const gap = 2;
+          const available = pianoEl.clientWidth || 0;
+          const fit =
+            available > 0
+              ? (available - gap * (whiteCount - 1)) / whiteCount
+              : 42;
+          // If "fit" would make keys too skinny, prefer a comfy fixed width
+          // and allow horizontal scroll instead.
+          const minComfort = 32;
+          const comfy = 42;
+          keyWidth =
+            fit >= minComfort
+              ? Math.max(minComfort, Math.min(60, Math.floor(fit)))
+              : comfy;
+        }
+        pianoEl.style.setProperty("--white-key-width", `${keyWidth}px`);
+        // Make overlay match the scrollable width.
+        const totalWidth = whiteCount * keyWidth + (whiteCount - 1) * 2; // include grid gap
+        whiteKeysEl.style.width = `${totalWidth}px`;
+        blackKeysEl.style.width = `${totalWidth}px`;
         whiteKeysEl.innerHTML = "";
         blackKeysEl.innerHTML = "";
 
@@ -501,23 +550,31 @@
           whiteKeysEl.appendChild(btn);
         });
 
-        const stepPercent = 100 / whites.length;
-        notes.forEach((note, idx) => {
+        // For black keys: position using pixels so it stays correct with scroll.
+        // Must include the grid gap, otherwise the error accumulates and blacks drift.
+        const gapPx = 2;
+        const colStep = keyWidth + gapPx;
+        const blackWidth = keyWidth * 0.65;
+        notes.forEach((note) => {
           if (!note.includes("#")) return;
-          let prevWhite = null;
-          for (let i = idx - 1; i >= 0; i -= 1) {
-            if (!notes[i].includes("#")) {
-              prevWhite = notes[i];
-              break;
-            }
-          }
-          if (!prevWhite) return;
-          const whiteIndex = whites.indexOf(prevWhite);
-          const left = (whiteIndex + 1) * stepPercent - stepPercent * 0.35;
+          const midi = noteNameToMidi(note);
+          // Find the white key immediately below (previous natural).
+          let prevMidi = midi - 1;
+          while (prevMidi >= MIDI_RANGE.min && isBlackMidi(prevMidi)) prevMidi -= 1;
+          const prevNote = midiToNoteName(prevMidi);
+          const whiteIndex = whites.indexOf(prevNote);
+          if (whiteIndex < 0) return;
+          // Place centered between the two adjacent whites.
+          // Right edge of previous white: (whiteIndex+1)*keyWidth + whiteIndex*gap
+          // Midpoint between whites: + gap/2
+          // Center black key on that midpoint.
+          const prevRightEdge = (whiteIndex + 1) * keyWidth + whiteIndex * gapPx;
+          const midpoint = prevRightEdge + gapPx / 2;
+          const leftPx = midpoint - blackWidth / 2;
           const btn = document.createElement("button");
           btn.className = "piano-key black";
           btn.dataset.note = note;
-          btn.style.setProperty("--offset", `${left}%`);
+          btn.style.left = `${leftPx}px`;
           btn.innerHTML = `<span>${note}</span>`;
           blackKeysEl.appendChild(btn);
         });
@@ -531,7 +588,9 @@
 
         async ensureContext() {
           if (!this.context) {
-            this.context = new AudioContext();
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) throw new Error("AudioContext not supported");
+            this.context = new Ctx();
           }
           if (this.context.state === "suspended") {
             await this.context.resume();
@@ -653,7 +712,161 @@
         }
       }
 
-      const player = new SynthPlayer();
+      class SamplePlayer {
+        constructor({ root, packId }) {
+          this.root = root;
+          this.packId = packId; // optional subfolder
+          this.context = null;
+          this.buffers = new Map(); // baseMidi -> AudioBuffer
+          this.voices = new Map(); // midi -> Array<{source, gain}>
+          this.loaded = false;
+        }
+
+        async ensureContext() {
+          if (!this.context) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (!Ctx) throw new Error("AudioContext not supported");
+            this.context = new Ctx();
+          }
+          if (this.context.state === "suspended") await this.context.resume();
+          return this.context;
+        }
+
+        getCandidateNoteNames() {
+          // Matches the repo’s current sample set in `tools/piano/piano-samples/`.
+          // Example files: C4.wav, C#4.wav, ... , B5.wav, C6.wav
+          const notes = [];
+          for (const oct of [4, 5]) {
+            for (const n of ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]) {
+              notes.push(`${n}${oct}`);
+            }
+          }
+          notes.push("C6");
+          return notes;
+        }
+
+        async load() {
+          await this.ensureContext();
+          this.buffers.clear();
+          const candidates = this.getCandidateNoteNames();
+          const prefix = this.packId ? `/${this.packId}` : "";
+          const results = await Promise.allSettled(
+            candidates.map(async (name) => {
+              const midi = noteNameToMidi(name);
+              const url = `${this.root}${prefix}/${name}.wav`;
+              const res = await fetch(url);
+              if (!res.ok) throw new Error(`Missing sample: ${url}`);
+              const arr = await res.arrayBuffer();
+              const buf = await this.context.decodeAudioData(arr);
+              this.buffers.set(midi, buf);
+            })
+          );
+          const okCount = results.filter((r) => r.status === "fulfilled").length;
+          this.loaded = okCount >= 12; // enough coverage to sound reasonable
+          return this.loaded;
+        }
+
+        pickBase(midi) {
+          const bases = [...this.buffers.keys()].sort((a, b) => a - b);
+          if (!bases.length) return null;
+          let best = bases[0];
+          let bestDist = Math.abs(midi - best);
+          for (const b of bases) {
+            const d = Math.abs(midi - b);
+            if (d < bestDist) {
+              best = b;
+              bestDist = d;
+            }
+          }
+          return best;
+        }
+
+        async playMidi(midi, velocity = 100, when = 0) {
+          const ctx = await this.ensureContext();
+          const t = when || ctx.currentTime;
+          const base = this.pickBase(midi);
+          if (base === null) throw new Error("No samples loaded");
+
+          const buf = this.buffers.get(base);
+          const source = ctx.createBufferSource();
+          source.buffer = buf;
+          source.playbackRate.setValueAtTime(Math.pow(2, (midi - base) / 12), t);
+
+          const gain = ctx.createGain();
+          const maxGain = (velocity / 127) * 0.65;
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.linearRampToValueAtTime(maxGain, t + 0.008);
+          gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, maxGain * 0.5), t + 1.2);
+
+          source.connect(gain).connect(ctx.destination);
+          source.start(t);
+
+          const voices = this.voices.get(midi) || [];
+          voices.push({ source, gain });
+          this.voices.set(midi, voices);
+          return { key: `${midi}-${Math.random().toString(36).slice(2)}`, gain };
+        }
+
+        async stopMidi(midi, when = 0) {
+          const ctx = await this.ensureContext();
+          const list = this.voices.get(midi) || [];
+          if (!list.length) return;
+          const t = when || ctx.currentTime;
+          list.forEach((voice) => {
+            try {
+              voice.gain.gain.cancelScheduledValues(t);
+              voice.gain.gain.setValueAtTime(voice.gain.gain.value || 0.0001, t);
+              voice.gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+              voice.source.stop(t + 0.2);
+            } catch (e) {}
+          });
+          this.voices.set(midi, []);
+        }
+
+        async stopAll() {
+          const ctx = await this.ensureContext();
+          this.voices.forEach((list) => {
+            list.forEach((voice) => {
+              try {
+                voice.gain.gain.cancelScheduledValues(ctx.currentTime);
+                voice.gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.03);
+                voice.source.stop(ctx.currentTime + 0.05);
+              } catch (e) {}
+            });
+          });
+          this.voices.clear();
+        }
+      }
+
+      const synthPlayer = new SynthPlayer();
+      let player = synthPlayer;
+      let samplePlayer = null;
+
+      const applyEngine = async () => {
+        const engine = engineSelect?.value || "synth";
+        samplePackSelect.disabled = engine !== "samples";
+        if (engine === "synth") {
+          player = synthPlayer;
+          midiStatus.textContent = midiEvents.length
+            ? midiStatus.textContent
+            : "No MIDI loaded.";
+          return;
+        }
+
+        const packId = samplePackSelect?.value || "";
+        samplePlayer = new SamplePlayer({ root: SAMPLE_ROOT, packId });
+        try {
+          const ok = await samplePlayer.load();
+          if (!ok) throw new Error("Not enough samples loaded");
+          player = samplePlayer;
+          midiStatus.textContent = "Sample engine ready (using local piano-samples).";
+        } catch (e) {
+          console.warn(e);
+          player = synthPlayer;
+          midiStatus.textContent =
+            "Sample files not found — using synth (expected `tools/piano/piano-samples/*.wav`).";
+        }
+      };
 
       const setLayout = () => {
         const layout = computeLayout();
@@ -662,11 +875,15 @@
         layoutLabel.textContent =
           layout === "compact"
             ? "Layout: compact (1 octave)"
-            : "Layout: extended (2 octaves)";
+            : layout === "extended"
+            ? "Layout: extended (2 octaves)"
+            : "Layout: full (88 keys)";
         layoutDescriptor.textContent =
           layout === "compact"
             ? "Compact layout active for mobile view."
-            : "Extended layout active for wider screens.";
+            : layout === "extended"
+            ? "Extended layout active for wider screens."
+            : "Full 88-key layout active (scroll horizontally).";
         renderKeys(layout);
         bindKeyInteractions();
       };
@@ -684,14 +901,35 @@
       };
 
       const startNote = async (note, velocity = 100) => {
-        const midi = noteToMidi(note);
-        await player.ensureContext();
+        const midi = noteNameToMidi(note);
+        try {
+          await player.ensureContext();
+        } catch (e) {
+          console.warn(e);
+          midiStatus.textContent =
+            `Audio init failed: ${e?.message || e}`;
+          return;
+        }
         setKeyActive(note, true);
-        player.playMidi(midi, velocity);
+        try {
+          await player.playMidi(midi, velocity);
+        } catch (e) {
+          // If sample playback fails mid-run, fall back to synth.
+          try {
+            console.warn(e);
+            player = synthPlayer;
+            await player.ensureContext();
+            await player.playMidi(midi, velocity);
+          } catch (err) {
+            console.warn(err);
+            midiStatus.textContent =
+              `Couldn’t start audio: ${err?.message || err}`;
+          }
+        }
       };
 
       const stopNote = (note) => {
-        const midi = noteToMidi(note);
+        const midi = noteNameToMidi(note);
         setKeyActive(note, false);
         player.stopMidi(midi);
       };
@@ -958,13 +1196,18 @@
             // The previous implementation used setTimeout for visual and called playMidi(..., when).
             // playMidi now calls osc.start(when). This is fine.
 
-            player.playMidi(ev.note, ev.velocity, when);
+            // Ensure scheduling happens deterministically (async engines need awaiting).
+            Promise.resolve(player.playMidi(ev.note, ev.velocity, when)).catch((e) =>
+              console.warn(e)
+            );
 
             window.setTimeout(() => {
               if (!midiStopRequested) setKeyActive(ev.noteName, true);
             }, ev.timeMs);
           } else {
-            player.stopMidi(ev.note, when);
+            Promise.resolve(player.stopMidi(ev.note, when)).catch((e) =>
+              console.warn(e)
+            );
             window.setTimeout(() => {
               if (!midiStopRequested) setKeyActive(ev.noteName, false);
             }, ev.timeMs);
@@ -1042,8 +1285,17 @@
       });
       stopMidiBtn.addEventListener("click", () => stopMidiPlayback());
 
+      layoutSelect.addEventListener("change", () => setLayout());
+      engineSelect.addEventListener("change", async () => {
+        await applyEngine();
+      });
+      samplePackSelect.addEventListener("change", async () => {
+        if (engineSelect.value === "samples") await applyEngine();
+      });
+
       window.addEventListener("resize", setLayout);
       setLayout();
+      applyEngine();
     </script>
   </body>
 </html>
