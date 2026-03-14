@@ -6,19 +6,79 @@ import { getReceipt } from './db.js';
 let currentCategory = 'general';
 let selectedReceiptBlob = null;
 
+const TITLE_PRESETS = {
+    general: [
+        { label: '早餐', icon: '🌅' },
+        { label: '午餐', icon: '☀️' },
+        { label: '晚餐', icon: '🌙' },
+        { label: '宵夜', icon: '🍜' },
+        { label: '飲品', icon: '🧋' },
+        { label: '零食', icon: '🍪' },
+        { label: '超市', icon: '🛒' },
+        { label: '便利店', icon: '🏪' },
+        { label: '手信', icon: '🎁' },
+        { label: '門票', icon: '🎫' },
+        { label: '購物', icon: '🛍️' },
+        { label: '藥房', icon: '💊' },
+        { label: '電話/上網', icon: '📶' },
+        { label: '貼士', icon: '💰' },
+    ],
+    transport: [
+        { label: '地鐵/MTR', icon: '🚇' },
+        { label: '巴士', icon: '🚌' },
+        { label: '火車', icon: '🚄' },
+        { label: '的士', icon: '🚕' },
+        { label: 'Uber/Grab', icon: '📱' },
+        { label: '機票', icon: '✈️' },
+        { label: '渡輪', icon: '⛴️' },
+        { label: '租車', icon: '🚗' },
+        { label: '油費', icon: '⛽' },
+        { label: '泊車費', icon: '🅿️' },
+        { label: '高速公路', icon: '🛣️' },
+        { label: '包車', icon: '🚐' },
+    ],
+    accommodation: [
+        { label: '酒店', icon: '🏨' },
+        { label: '民宿', icon: '🏠' },
+        { label: 'Airbnb', icon: '🏡' },
+        { label: '青旅', icon: '🛏️' },
+        { label: '溫泉旅館', icon: '♨️' },
+    ],
+};
+
+function renderTitlePresets(cat) {
+    const container = document.getElementById('title-presets');
+    if (!container) return;
+    const presets = TITLE_PRESETS[cat] || TITLE_PRESETS.general;
+    container.innerHTML = presets.map(p =>
+        `<button type="button" class="preset-title-btn px-2 py-1 rounded-lg text-[11px] font-medium bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:text-blue-600 dark:hover:text-blue-300 transition" data-title="${p.label}">${p.icon} ${p.label}</button>`
+    ).join('');
+    container.querySelectorAll('.preset-title-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const inp = document.getElementById('inp-title');
+            if (inp) {
+                inp.value = btn.dataset.title;
+                inp.focus();
+            }
+        });
+    });
+}
+
 export function selectCategory(cat) {
     currentCategory = cat;
+    const activeClasses = ['bg-blue-50', 'dark:bg-blue-900/30', 'border-blue-200', 'dark:border-blue-500', 'text-blue-700', 'dark:text-blue-300'];
     document.querySelectorAll('.cat-btn').forEach(btn => {
         if (btn.dataset.cat === cat) {
-            btn.classList.add('bg-blue-50', 'border-blue-200', 'text-black');
+            activeClasses.forEach(c => btn.classList.add(c));
         } else {
-            btn.classList.remove('bg-blue-50', 'border-blue-200', 'text-black');
+            activeClasses.forEach(c => btn.classList.remove(c));
         }
     });
     document.getElementById('fields-accommodation').classList.add('hidden');
     document.getElementById('fields-transport').classList.add('hidden');
     if (cat === 'accommodation') document.getElementById('fields-accommodation').classList.remove('hidden');
     else if (cat === 'transport') document.getElementById('fields-transport').classList.remove('hidden');
+    renderTitlePresets(cat);
 }
 
 export async function openAddModal(id = null) {
@@ -104,7 +164,7 @@ export async function openAddModal(id = null) {
                 }
             }
 
-            document.getElementById('modal-title').textContent = '編輯/檢視支出';
+            document.getElementById('modal-title').textContent = '編輯/睇返支出';
         }
     } else {
         selectCategory('general');
@@ -149,11 +209,12 @@ window.showExportModal = function() {
 export function togglePaymentFields() {
     const method = document.querySelector('input[name="payment-method"]:checked')?.value;
     const icField = document.getElementById('field-ic-owner');
-    if (method === 'ic_card') {
-        icField.classList.remove('hidden');
-    } else {
-        icField.classList.add('hidden');
-    }
+    const showOwner = ['ic_card', 'e_pay', 'paid_other'].includes(method);
+    icField.classList.toggle('hidden', !showOwner);
+    const ownerInput = document.getElementById('inp-ic-owner');
+    if (method === 'ic_card') ownerInput.placeholder = '持卡人 (Card Owner)';
+    else if (method === 'e_pay') ownerInput.placeholder = '戶口 / 平台 (Account / Platform)';
+    else if (method === 'paid_other') ownerInput.placeholder = '代付人 (Paid by)';
 }
 window.togglePaymentFields = togglePaymentFields;
 
@@ -182,7 +243,7 @@ function showReceiptPreview(url) {
         container.classList.remove('hidden');
         
         // Add click listener to open lightbox
-        img.onclick = () => openLightbox(url, '收據預覽 (Receipt Preview)');
+        img.onclick = () => openLightbox(url, '收據預覽 (Receipt)');
         img.classList.add('cursor-zoom-in');
     }
 }
@@ -217,7 +278,7 @@ window.closeLightbox = closeLightbox;
 
 export function createItemElement(item, homeCurrency) {
     const div = document.createElement('div');
-    div.className = 'bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition';
+    div.className = 'bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex justify-between items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition';
     div.onclick = () => window.openAddModal(item.id);
 
     const nativeAmount = parseFloat(item.amount);
@@ -225,20 +286,29 @@ export function createItemElement(item, homeCurrency) {
     const homeAmount = nativeAmount * rate;
 
     let iconName = 'shopping-bag';
-    let iconColor = 'bg-gray-100 text-gray-600';
-    if (item.category === 'accommodation') { iconName = 'hotel'; iconColor = 'bg-indigo-100 text-indigo-600'; }
-    if (item.category === 'transport') { iconName = 'plane'; iconColor = 'bg-teal-100 text-teal-600'; }
+    let iconColor = 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
+    if (item.category === 'accommodation') { iconName = 'hotel'; iconColor = 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'; }
+    if (item.category === 'transport') { iconName = 'plane'; iconColor = 'bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400'; }
 
     let detailHtml = '';
     // Payment Method Badge
     let paymentBadge = '';
-    if (item.paymentMethod === 'cash') {
-        paymentBadge = '<span class="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded ml-2">現金</span>';
-    } else if (item.paymentMethod === 'ic_card') {
-        const owner = item.icOwner ? ` (${item.icOwner})` : '';
-        paymentBadge = `<span class="text-[10px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded ml-2">IC卡${owner}</span>`;
-    } else {
-        paymentBadge = '<span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded ml-2">刷卡</span>';
+    const ownerTag = item.icOwner ? ` (${item.icOwner})` : '';
+    switch (item.paymentMethod) {
+        case 'cash':
+            paymentBadge = '<span class="text-[10px] bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 px-1.5 py-0.5 rounded ml-2">現金</span>';
+            break;
+        case 'ic_card':
+            paymentBadge = `<span class="text-[10px] bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 px-1.5 py-0.5 rounded ml-2">IC卡${ownerTag}</span>`;
+            break;
+        case 'e_pay':
+            paymentBadge = `<span class="text-[10px] bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded ml-2">電子付款${ownerTag}</span>`;
+            break;
+        case 'paid_other':
+            paymentBadge = `<span class="text-[10px] bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 px-1.5 py-0.5 rounded ml-2">代付${ownerTag}</span>`;
+            break;
+        default:
+            paymentBadge = '<span class="text-[10px] bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded ml-2">碌卡</span>';
     }
 
     if (item.category === 'accommodation' && item.checkin) {
@@ -263,27 +333,28 @@ export function createItemElement(item, homeCurrency) {
                 <i data-lucide="${iconName}" class="w-5 h-5"></i>
             </div>
             <div class="min-w-0">
-                <div class="font-bold text-gray-800 truncate flex items-center">
+                <div class="font-bold text-gray-800 dark:text-gray-100 truncate flex items-center">
                     ${item.title} ${paymentBadge} 
                     ${item.receiptId ? `<i data-lucide="image" class="w-3.5 h-3.5 text-blue-500 ml-1 cursor-pointer hover:scale-110 transition" onclick="event.stopPropagation(); window.viewReceipt('${item.receiptId}', '${item.title.replace(/'/g, "\\'")}')"></i>` : ''}
                 </div>
-                <div class="text-xs text-gray-500 mt-0.5">
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     <div>${formatCurrency(nativeAmount, item.currency)} ${item.currency !== homeCurrency ? '(@ ' + item.rate + ')' : ''}</div>
-                    <div class="mt-1"><span class="font-mono bg-gray-100 px-1 rounded text-[10px] text-gray-600">${getDetailedTime(item.date)}</span></div>
+                    <div class="mt-1"><span class="font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded text-[10px] text-gray-600 dark:text-gray-300">${getDetailedTime(item.date)}</span></div>
                 </div>
                 ${detailHtml}
             </div>
         </div>
         <div class="text-right shrink-0">
-            <div class="font-bold text-gray-800">${formatCurrency(homeAmount, homeCurrency)}</div>
+            <div class="font-bold text-gray-800 dark:text-gray-100">${formatCurrency(homeAmount, homeCurrency)}</div>
             <div class="flex gap-2 justify-end mt-2">
+                    <button class="btn-dup text-gray-400 hover:text-green-500" title="複製 (Duplicate)"><i data-lucide="copy" class="w-4 h-4"></i></button>
                     <button class="btn-share text-gray-400 hover:text-blue-500"><i data-lucide="share-2" class="w-4 h-4"></i></button>
                     <button class="btn-delete text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
             </div>
         </div>
     `;
 
-    // Attach listeners safely
+    div.querySelector('.btn-dup').onclick = (e) => { e.stopPropagation(); window.duplicateItem(item.id); };
     div.querySelector('.btn-share').onclick = (e) => { e.stopPropagation(); window.shareItem(item.id); };
     div.querySelector('.btn-delete').onclick = (e) => { e.stopPropagation(); window.deleteItem(item.id); };
 
@@ -295,16 +366,25 @@ window.createItemElement = createItemElement;
 // Let's attach the listener in renderFullList or better, make app.js call render on toggle.
 // For now, let's just update the render function.
 
-export function renderFullList(dataList, currency) {
+function getSortComparator(sortOrder) {
+    const homeCurrency = store.activeTrip?.settings?.homeCurrency || 'HKD';
+    const homeAmount = (item) => (parseFloat(item.amount) || 0) * (parseFloat(item.rate) || 1);
+    switch (sortOrder) {
+        case 'dateAsc': return (a, b) => new Date(a.date) - new Date(b.date);
+        case 'amountDesc': return (a, b) => homeAmount(b) - homeAmount(a);
+        case 'amountAsc': return (a, b) => homeAmount(a) - homeAmount(b);
+        default: return (a, b) => new Date(b.date) - new Date(a.date);
+    }
+}
+
+export function renderFullList(dataList, currency, sortOrder = 'dateDesc') {
     const listContainer = document.getElementById('full-list');
     const isGrouped = document.getElementById('toggle-group-day')?.checked;
 
-    // Expand expenses if needed
     const processedList = getAdjustedExpenses(dataList);
+    const sorted = [...processedList].sort(getSortComparator(sortOrder));
 
-    const sorted = [...processedList].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    listContainer.innerHTML = sorted.length ? '' : '<div class="text-center text-gray-400 py-10 text-sm">點擊 + 新增第一筆支出</div>';
+    listContainer.innerHTML = sorted.length ? '' : '<div class="text-center text-gray-400 py-10 text-sm">撳 + 新增第一筆支出</div>';
 
     if (!isGrouped) {
         sorted.forEach(item => listContainer.appendChild(createItemElement(item, currency)));
@@ -324,29 +404,39 @@ export function renderFullList(dataList, currency) {
                     cashHome: 0,
                     cashForeign: 0,
                     ic: 0,
-                    other: 0
+                    card: 0,
+                    ePay: 0,
+                    paidOther: 0
                 };
             }
             groups[dateKey].items.push(item);
 
-            // Calc sums 
-            // 1. Total (Always Home Currency)
             const amountVal = parseFloat(item.amount);
             const rateVal = parseFloat(item.rate) || 1;
             const homeAmount = amountVal * rateVal;
 
             groups[dateKey].total += homeAmount;
 
-            // 2. Breakdown
-            if (item.paymentMethod === 'cash') {
-                if (item.currency === foreignCode) {
-                    groups[dateKey].cashForeign += amountVal; // Keep in Foreign Unit
-                } else {
-                    groups[dateKey].cashHome += homeAmount; // Convert everything else to Home equivalent
-                }
+            switch (item.paymentMethod) {
+                case 'cash':
+                    if (item.currency === foreignCode) {
+                        groups[dateKey].cashForeign += amountVal;
+                    } else {
+                        groups[dateKey].cashHome += homeAmount;
+                    }
+                    break;
+                case 'ic_card':
+                    groups[dateKey].ic += (homeAmount || 0);
+                    break;
+                case 'e_pay':
+                    groups[dateKey].ePay += (homeAmount || 0);
+                    break;
+                case 'paid_other':
+                    groups[dateKey].paidOther += (homeAmount || 0);
+                    break;
+                default:
+                    groups[dateKey].card += homeAmount;
             }
-            else if (item.paymentMethod === 'ic_card') groups[dateKey].ic += (homeAmount || 0);
-            else groups[dateKey].other += homeAmount;
         });
 
         const tripStart = store.activeTrip?.settings?.startDate ? new Date(store.activeTrip.settings.startDate) : null;
@@ -372,24 +462,27 @@ export function renderFullList(dataList, currency) {
             // Stats Construction
             let statsParts = [];
             // Total
-            statsParts.push(`<span class="text-slate-600 whitespace-nowrap">總: <span class="font-bold">${formatCurrency(group.total, currency)}</span></span>`);
+            statsParts.push(`<span class="text-slate-600 dark:text-slate-300 whitespace-nowrap">總: <span class="font-bold">${formatCurrency(group.total, currency)}</span></span>`);
 
             // Cash Foreign
             if (group.cashForeign > 0) {
-                statsParts.push(`<span class="text-yellow-600 bg-yellow-50 px-1 rounded whitespace-nowrap">現(${foreignCode}): ${formatCurrency(group.cashForeign, foreignCode)}</span>`);
+                statsParts.push(`<span class="text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 px-1 rounded whitespace-nowrap">現(${foreignCode}): ${formatCurrency(group.cashForeign, foreignCode)}</span>`);
             }
-            // Cash Home
             if (group.cashHome > 0) {
-                statsParts.push(`<span class="text-yellow-600 bg-yellow-50 px-1 rounded whitespace-nowrap">現(${homeCode}): ${formatCurrency(group.cashHome, homeCode)}</span>`);
+                statsParts.push(`<span class="text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/30 px-1 rounded whitespace-nowrap">現(${homeCode}): ${formatCurrency(group.cashHome, homeCode)}</span>`);
             }
 
-            // IC
             if (group.ic > 0) {
-                statsParts.push(`<span class="text-teal-600 bg-teal-50 px-1 rounded whitespace-nowrap">IC: ${formatCurrency(group.ic, currency)}</span>`);
+                statsParts.push(`<span class="text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 px-1 rounded whitespace-nowrap">IC: ${formatCurrency(group.ic, currency)}</span>`);
             }
-            // Other
-            if (group.other > 0) {
-                statsParts.push(`<span class="text-indigo-600 bg-indigo-50 px-1 rounded whitespace-nowrap">卡: ${formatCurrency(group.other, currency)}</span>`);
+            if (group.card > 0) {
+                statsParts.push(`<span class="text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-1 rounded whitespace-nowrap">碌卡: ${formatCurrency(group.card, currency)}</span>`);
+            }
+            if (group.ePay > 0) {
+                statsParts.push(`<span class="text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/30 px-1 rounded whitespace-nowrap">電付: ${formatCurrency(group.ePay, currency)}</span>`);
+            }
+            if (group.paidOther > 0) {
+                statsParts.push(`<span class="text-pink-600 dark:text-pink-400 bg-pink-50 dark:bg-pink-900/30 px-1 rounded whitespace-nowrap">代付: ${formatCurrency(group.paidOther, currency)}</span>`);
             }
 
             const statsHtml = `
@@ -399,9 +492,9 @@ export function renderFullList(dataList, currency) {
             `;
 
             const header = document.createElement('div');
-            header.className = 'sticky top-16 bg-white/95 backdrop-blur py-3 px-2 z-10 border-b border-gray-100 shadow-sm mt-4 mb-2 -mx-2';
+            header.className = 'sticky top-16 bg-white/95 dark:bg-gray-800/95 backdrop-blur py-3 px-2 z-10 border-b border-gray-100 dark:border-gray-700 shadow-sm mt-4 mb-2 -mx-2';
             header.innerHTML = `
-                <div class="font-bold text-gray-700 text-sm flex justify-between items-center">
+                <div class="font-bold text-gray-700 dark:text-gray-200 text-sm flex justify-between items-center">
                     <div>${dayLabel}</div>
                 </div>
                 ${statsHtml}
@@ -423,22 +516,43 @@ export function renderTripList() {
 
     list.innerHTML = '';
     store.data.trips.forEach(trip => {
+        const isActive = trip.id === store.data.activeTripId;
         const div = document.createElement('div');
-        div.className = `p-4 rounded-xl border flex justify-between items-center cursor-pointer transition ${trip.id === store.data.activeTripId ? 'bg-blue-50 border-blue-500' : 'bg-white border-gray-100 hover:bg-gray-50'}`;
-        div.onclick = () => {
+        div.className = `p-4 rounded-xl border flex justify-between items-center transition ${isActive ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500' : 'bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'}`;
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'flex-1 cursor-pointer';
+        infoDiv.innerHTML = `
+            <div class="font-bold text-gray-800 dark:text-gray-100">${trip.name}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">${trip.expenses.length} Records</div>
+        `;
+        infoDiv.onclick = () => {
             store.switchTrip(trip.id);
             document.getElementById('view-trip-select').classList.add('hidden');
             document.getElementById('view-dashboard').classList.remove('hidden');
-            // Also update nav state?
         };
 
-        div.innerHTML = `
-            <div>
-                <div class="font-bold text-gray-800">${trip.name}</div>
-                <div class="text-xs text-gray-500">${trip.expenses.length} Records</div>
-            </div>
-            ${trip.id === store.data.activeTripId ? '<i data-lucide="check" class="text-blue-500 w-5 h-5"></i>' : ''}
-        `;
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'flex items-center gap-2 shrink-0 ml-3';
+        if (isActive) {
+            actionsDiv.innerHTML = '<i data-lucide="check" class="text-blue-500 w-5 h-5"></i>';
+        }
+        if (store.data.trips.length > 1) {
+            const delBtn = document.createElement('button');
+            delBtn.className = 'p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition';
+            delBtn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>';
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (confirm(`刪除行程「${trip.name}」？呢個操作無法復原。\nDelete trip "${trip.name}"? This cannot be undone.`)) {
+                    store.deleteTrip(trip.id);
+                    renderTripList();
+                }
+            };
+            actionsDiv.appendChild(delBtn);
+        }
+
+        div.appendChild(infoDiv);
+        div.appendChild(actionsDiv);
         list.appendChild(div);
     });
     if (window.lucide) lucide.createIcons();
@@ -453,7 +567,7 @@ export async function viewReceipt(receiptId, title = '') {
             const url = URL.createObjectURL(blob);
             openLightbox(url, title);
         } else {
-            alert('找不到收據檔案');
+            alert('搵唔到收據檔案');
         }
     } catch (err) {
         console.error('Error viewing receipt:', err);

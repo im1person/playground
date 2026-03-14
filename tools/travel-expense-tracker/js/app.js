@@ -48,6 +48,88 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Expense Search
+    const searchInput = document.getElementById('expense-search');
+    const searchClear = document.getElementById('expense-search-clear');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            searchClear.classList.toggle('hidden', !searchInput.value);
+            renderAll();
+        });
+    }
+    if (searchClear) {
+        searchClear.addEventListener('click', () => {
+            searchInput.value = '';
+            searchClear.classList.add('hidden');
+            renderAll();
+        });
+    }
+
+    const listSortEl = document.getElementById('list-sort');
+    if (listSortEl) {
+        listSortEl.value = localStorage.getItem('travelTrackerListSort') || 'dateDesc';
+        listSortEl.addEventListener('change', (e) => {
+            localStorage.setItem('travelTrackerListSort', e.target.value);
+            renderAll();
+        });
+    }
+
+    document.querySelectorAll('.filter-cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const baseClass = 'filter-cat-btn px-2.5 py-1 rounded-lg text-xs font-medium ';
+            const activeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300';
+            const inactiveClass = 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500';
+            document.querySelectorAll('.filter-cat-btn').forEach(b => {
+                b.className = baseClass + (b === btn ? activeClass : inactiveClass);
+                b.classList.toggle('filter-cat-active', b === btn);
+            });
+            renderAll();
+        });
+    });
+
+    document.querySelectorAll('.filter-pay-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const baseClass = 'filter-pay-btn px-2.5 py-1 rounded-lg text-xs font-medium ';
+            const activeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300';
+            const inactiveClass = 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500';
+            document.querySelectorAll('.filter-pay-btn').forEach(b => {
+                b.className = baseClass + (b === btn ? activeClass : inactiveClass);
+                b.classList.toggle('filter-pay-active', b === btn);
+            });
+            renderAll();
+        });
+    });
+
+    // FAB: tap = open modal, long-press = quick templates
+    const fab = document.getElementById('fab-add');
+    const quickMenu = document.getElementById('quick-templates');
+    let fabTimer = null;
+    let fabTriggered = false;
+    const showQuickMenu = () => {
+        fabTriggered = true;
+        quickMenu.classList.toggle('hidden');
+        if (window.lucide) lucide.createIcons();
+    };
+    if (fab) {
+        fab.addEventListener('pointerdown', () => {
+            fabTriggered = false;
+            fabTimer = setTimeout(showQuickMenu, 500);
+        });
+        fab.addEventListener('pointerup', () => {
+            clearTimeout(fabTimer);
+            if (!fabTriggered) {
+                quickMenu.classList.add('hidden');
+                openAddModal();
+            }
+        });
+        fab.addEventListener('pointerleave', () => clearTimeout(fabTimer));
+    }
+    document.addEventListener('click', (e) => {
+        if (quickMenu && !quickMenu.contains(e.target) && e.target !== fab && !fab?.contains(e.target)) {
+            quickMenu.classList.add('hidden');
+        }
+    });
+
     // Subscribe to store changes to keep UI in sync
     store.subscribe(renderAll);
 });
@@ -72,7 +154,22 @@ function renderAll() {
         });
     }
 
-    renderFullList(displayExpenses, trip.settings.homeCurrency);
+    const searchQuery = (document.getElementById('expense-search')?.value || '').trim().toLowerCase();
+    let filteredExpenses = searchQuery
+        ? displayExpenses.filter(i => {
+            const text = `${i.title} ${i.note || ''} ${i.category} ${i.currency} ${i.address || ''} ${i.airline || ''} ${i.flightNo || ''}`.toLowerCase();
+            return text.includes(searchQuery);
+        })
+        : displayExpenses;
+
+    const catFilter = document.querySelector('.filter-cat-btn.filter-cat-active')?.dataset.cat || 'all';
+    if (catFilter !== 'all') filteredExpenses = filteredExpenses.filter(i => i.category === catFilter);
+
+    const payFilter = document.querySelector('.filter-pay-btn.filter-pay-active')?.dataset.pay || 'all';
+    if (payFilter !== 'all') filteredExpenses = filteredExpenses.filter(i => i.paymentMethod === payFilter);
+
+    const listSort = localStorage.getItem('travelTrackerListSort') || 'dateDesc';
+    renderFullList(filteredExpenses, trip.settings.homeCurrency, listSort);
     updateSettingsUI(trip.settings);
 }
 
@@ -121,6 +218,20 @@ function setupSettingsListeners() {
     document.getElementById('setting-end-date').addEventListener('change', (e) => {
         store.updateSettings({ endDate: e.target.value });
     });
+    const themeToggle = document.getElementById('setting-theme-dark');
+    if (themeToggle) {
+        themeToggle.addEventListener('change', (e) => {
+            const theme = e.target.checked ? 'dark' : 'light';
+            store.updateSettings({ theme });
+            applyTheme(theme);
+        });
+    }
+
+    const noteTextarea = document.getElementById('setting-general-note');
+    noteTextarea.addEventListener('input', (e) => {
+        store.updateSettings({ generalNote: e.target.value });
+        autoResizeTextarea(noteTextarea);
+    });
 
     // Smart Rate for Add Form
     document.getElementById('inp-currency').addEventListener('change', (e) => {
@@ -144,12 +255,24 @@ function updateSettingsUI(settings) {
         'setting-location': s.location || '',
         'setting-timezone': s.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
         'setting-start-date': s.startDate || '',
-        'setting-end-date': s.endDate || ''
+        'setting-end-date': s.endDate || '',
+        'setting-general-note': s.generalNote || ''
     };
     for (const [id, val] of Object.entries(ids)) {
         const el = document.getElementById(id);
         if (el && document.activeElement !== el) el.value = val;
     }
+    const noteTA = document.getElementById('setting-general-note');
+    if (noteTA && document.activeElement !== noteTA) autoResizeTextarea(noteTA);
+
+    const themeEl = document.getElementById('setting-theme-dark');
+    if (themeEl && document.activeElement !== themeEl) themeEl.checked = (s.theme || 'light') === 'dark';
+    applyTheme(s.theme || 'light');
+}
+
+function applyTheme(theme) {
+    const isDark = theme === 'dark';
+    document.documentElement.classList.toggle('dark', isDark);
 }
 
 
@@ -162,7 +285,7 @@ async function handleFormSubmit(e) {
 
         // Determine category from DOM state
         let currentCategory = 'general';
-        const activeCatBtn = document.querySelector('.cat-btn.bg-blue-50');
+        const activeCatBtn = document.querySelector('.cat-btn.text-blue-700') || document.querySelector('.cat-btn.bg-blue-50');
         if (activeCatBtn) currentCategory = activeCatBtn.dataset.cat;
 
         const selectedBlob = getSelectedReceiptBlob();
@@ -220,18 +343,46 @@ async function handleFormSubmit(e) {
     }
 }
 
-async function deleteItem(id) {
-    if (confirm('Delete?')) {
-        const item = store.activeTrip.expenses.find(i => i.id === id);
-        if (item?.receiptId) {
-            try {
-                await deleteReceipt(item.receiptId);
-            } catch (err) {
-                console.error('Failed to delete receipt:', err);
-            }
+let undoTimer = null;
+let undoItem = null;
+
+function deleteItem(id) {
+    const item = store.activeTrip.expenses.find(i => i.id === id);
+    if (!item) return;
+
+    undoItem = { ...item };
+    store.deleteExpense(id);
+
+    const toast = document.getElementById('undo-toast');
+    const msg = document.getElementById('undo-toast-msg');
+    const btn = document.getElementById('undo-toast-btn');
+    msg.textContent = `已刪除「${item.title}」`;
+    toast.classList.remove('hidden');
+
+    if (undoTimer) clearTimeout(undoTimer);
+    undoTimer = setTimeout(async () => {
+        toast.classList.add('hidden');
+        if (undoItem?.receiptId) {
+            try { await deleteReceipt(undoItem.receiptId); } catch {}
         }
-        store.deleteExpense(id);
-    }
+        undoItem = null;
+    }, 5000);
+
+    btn.onclick = () => {
+        if (undoTimer) clearTimeout(undoTimer);
+        if (undoItem) {
+            store.addExpense(undoItem);
+            undoItem = null;
+        }
+        toast.classList.add('hidden');
+    };
+}
+
+function duplicateItem(id) {
+    const item = store.activeTrip.expenses.find(i => i.id === id);
+    if (!item) return;
+    const dup = { ...item, id: Date.now().toString(), date: new Date().toISOString(), receiptId: null };
+    store.addExpense(dup);
 }
 
 // --- Import/Export ---
@@ -323,7 +474,7 @@ async function shareItem(id) {
         await navigator.share({ title: item.title, text: text });
     } else {
         navigator.clipboard.writeText(text);
-        alert('已複製詳情到剪貼簿!');
+        alert('已複製詳情到剪貼簿！');
     }
 };
 
@@ -354,7 +505,7 @@ async function shareSummary() {
         }
     } else {
         navigator.clipboard.writeText(text);
-        alert('已複製摘要到剪貼簿!');
+        alert('已複製摘要到剪貼簿！');
     }
 };
 
@@ -368,6 +519,93 @@ window.createNewTrip = createNewTrip;
 window.shareItem = shareItem;
 window.shareSummary = shareSummary;
 window.deleteItem = deleteItem;
+window.duplicateItem = duplicateItem;
+window.quickAdd = quickAdd;
+
+function quickAdd(title, category = 'general') {
+    document.getElementById('quick-templates')?.classList.add('hidden');
+    openAddModal();
+    setTimeout(() => {
+        document.getElementById('inp-title').value = title;
+        selectCategory(category);
+        document.getElementById('inp-amount')?.focus();
+    }, 100);
+}
 window.switchTab = switchTab;
 window.setCurrency = setCurrency;
+
+let noteCollapsed = false;
+function toggleNoteCollapse() {
+    noteCollapsed = !noteCollapsed;
+    const body = document.getElementById('general-note-body');
+    const icon = document.getElementById('note-collapse-icon');
+    if (!body) return;
+    if (noteCollapsed) {
+        body.style.maxHeight = '0px';
+        if (icon) icon.style.transform = 'rotate(180deg)';
+    } else {
+        body.style.maxHeight = body.scrollHeight + 'px';
+        if (icon) icon.style.transform = 'rotate(0deg)';
+    }
+}
+window.toggleNoteCollapse = toggleNoteCollapse;
+
+function copyNoteToClipboard() {
+    const note = store.activeTrip?.settings?.generalNote || '';
+    if (!note) return;
+    navigator.clipboard.writeText(note).then(() => {
+        const btn = document.querySelector('#general-note-container [title*="Copy"]');
+        if (btn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i>';
+            if (window.lucide) lucide.createIcons();
+            setTimeout(() => { btn.innerHTML = orig; if (window.lucide) lucide.createIcons(); }, 1500);
+        }
+    });
+}
+window.copyNoteToClipboard = copyNoteToClipboard;
+
+function autoResizeTextarea(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = Math.max(el.scrollHeight, 96) + 'px';
+}
+
+let notePreviewMode = false;
+function toggleNotePreview() {
+    notePreviewMode = !notePreviewMode;
+    const editArea = document.getElementById('note-edit-area');
+    const previewArea = document.getElementById('note-preview-area');
+    const previewContent = document.getElementById('note-preview-content');
+    const toggleBtn = document.getElementById('note-preview-toggle');
+    if (!editArea || !previewArea) return;
+
+    if (notePreviewMode) {
+        const text = document.getElementById('setting-general-note')?.value || '';
+        try {
+            const html = typeof marked !== 'undefined'
+                ? (typeof marked.parse === 'function' ? marked.parse(text) : marked(text))
+                : text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+            previewContent.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(html) : html;
+        } catch {
+            previewContent.textContent = text;
+            previewContent.style.whiteSpace = 'pre-wrap';
+        }
+        editArea.classList.add('hidden');
+        previewArea.classList.remove('hidden');
+        toggleBtn.innerHTML = '<i data-lucide="pencil" class="w-3 h-3"></i> 編輯';
+        toggleBtn.classList.remove('bg-gray-100', 'text-gray-500');
+        toggleBtn.classList.add('bg-blue-100', 'text-blue-600');
+    } else {
+        editArea.classList.remove('hidden');
+        previewArea.classList.add('hidden');
+        toggleBtn.innerHTML = '<i data-lucide="eye" class="w-3 h-3"></i> 預覽';
+        toggleBtn.classList.add('bg-gray-100', 'text-gray-500');
+        toggleBtn.classList.remove('bg-blue-100', 'text-blue-600');
+        const ta = document.getElementById('setting-general-note');
+        autoResizeTextarea(ta);
+    }
+    if (window.lucide) lucide.createIcons();
+}
+window.toggleNotePreview = toggleNotePreview;
 

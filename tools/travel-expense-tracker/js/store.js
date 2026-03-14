@@ -14,7 +14,8 @@ const DEFAULT_TRIP = {
         location: '',
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         filterDateRange: false,
-        theme: 'light'
+        theme: 'light',
+        generalNote: ''
     },
     expenses: []
 };
