@@ -66,6 +66,37 @@ export function renderDashboard() {
         }
     }
 
+    // General Note
+    const noteContainer = document.getElementById('general-note-container');
+    const noteContent = document.getElementById('general-note-content');
+    if (noteContainer && noteContent) {
+        const noteText = (trip.settings.generalNote || '').trim();
+        if (noteText) {
+            try {
+                const html = typeof marked !== 'undefined'
+                    ? (typeof marked.parse === 'function' ? marked.parse(noteText) : marked(noteText))
+                    : noteText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+                noteContent.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(html) : html;
+            } catch {
+                noteContent.textContent = noteText;
+                noteContent.style.whiteSpace = 'pre-wrap';
+            }
+            noteContainer.classList.remove('hidden');
+            const body = document.getElementById('general-note-body');
+            const icon = document.getElementById('note-collapse-icon');
+            if (body) {
+                requestAnimationFrame(() => {
+                    body.style.maxHeight = window.noteCollapsed ? '0px' : (body.scrollHeight + 'px');
+                    if (icon) icon.style.transform = window.noteCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+                });
+            }
+            if (window.lucide) lucide.createIcons();
+        } else {
+            noteContent.innerHTML = '';
+            noteContainer.classList.add('hidden');
+        }
+    }
+
     let displayExpenses = trip.expenses;
     if (hasDates && trip.settings.filterDateRange) {
         const startDateStr = trip.settings.startDate;
@@ -117,6 +148,8 @@ export function renderDashboard() {
 
     // Breakdown
     renderPaymentBreakdown(cashTotal, cardTotal, currency);
+    renderCurrencyBreakdown(displayExpenses, currency);
+    renderStatsSummary(displayExpenses, currency, trip.settings);
 
     // Lists & Charts
     renderRecentList(displayExpenses, currency);
@@ -135,20 +168,135 @@ function renderPaymentBreakdown(cash, card, currency) {
         container.insertBefore(breakdownEl, container.children[2]);
     }
     breakdownEl.innerHTML = `
-        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 rounded-lg border border-yellow-100">
-            <i data-lucide="coins" class="w-3.5 h-3.5 text-yellow-600"></i>
+        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border border-yellow-100 dark:border-yellow-800">
+            <i data-lucide="coins" class="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400"></i>
             <div class="flex flex-col leading-none">
-                    <span class="text-[10px] text-yellow-600 font-bold uppercase">現金 (Cash)</span>
-                    <span class="text-xs font-bold text-yellow-700">${formatCurrency(cash, currency)}</span>
+                    <span class="text-[10px] text-yellow-600 dark:text-yellow-400 font-bold uppercase">現金 (Cash)</span>
+                    <span class="text-xs font-bold text-yellow-700 dark:text-yellow-300">${formatCurrency(cash, currency)}</span>
             </div>
         </div>
-            <div class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 rounded-lg border border-indigo-100">
-            <i data-lucide="credit-card" class="w-3.5 h-3.5 text-indigo-600"></i>
+        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-100 dark:border-indigo-800">
+            <i data-lucide="credit-card" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
             <div class="flex flex-col leading-none">
-                    <span class="text-[10px] text-indigo-600 font-bold uppercase">其他 (Other)</span>
-                    <span class="text-xs font-bold text-indigo-700">${formatCurrency(card, currency)}</span>
+                    <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase">其他 (Other)</span>
+                    <span class="text-xs font-bold text-indigo-700 dark:text-indigo-300">${formatCurrency(card, currency)}</span>
             </div>
         </div>
+    `;
+    if (window.lucide) lucide.createIcons();
+}
+
+function renderStatsSummary(dataList, currency, settings) {
+    let el = document.getElementById('stats-summary');
+    if (!el) {
+        const summaryCard = document.getElementById('total-expense-display')?.closest('.bg-white, .dark\\:bg-gray-800');
+        if (!summaryCard) return;
+        el = document.createElement('div');
+        el.id = 'stats-summary';
+        el.className = 'bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700';
+        const currBreakdown = document.getElementById('currency-breakdown');
+        if (currBreakdown) {
+            currBreakdown.parentElement.insertBefore(el, currBreakdown.nextSibling);
+        } else {
+            summaryCard.parentElement.insertBefore(el, summaryCard.nextSibling);
+        }
+    }
+
+    if (dataList.length === 0) {
+        el.classList.add('hidden');
+        return;
+    }
+    el.classList.remove('hidden');
+
+    const homeAmounts = dataList.map(i => (parseFloat(i.amount) || 0) * (parseFloat(i.rate) || 1));
+    const total = homeAmounts.reduce((s, a) => s + a, 0);
+    const max = Math.max(...homeAmounts);
+    const maxItem = dataList[homeAmounts.indexOf(max)];
+
+    const uniqueDays = new Set(dataList.map(i => i.date?.split('T')[0])).size || 1;
+
+    let tripDays = uniqueDays;
+    if (settings.startDate && settings.endDate) {
+        const d1 = new Date(settings.startDate);
+        const d2 = new Date(settings.endDate);
+        tripDays = Math.max(1, Math.ceil((d2 - d1) / 86400000) + 1);
+    }
+
+    const avgPerDay = total / tripDays;
+
+    el.innerHTML = `
+        <div class="flex items-center gap-1.5 mb-3">
+            <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400"></i>
+            <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">統計摘要 (Stats)</h3>
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-center">
+            <div>
+                <div class="text-lg font-bold text-gray-800 dark:text-gray-100">${dataList.length}</div>
+                <div class="text-[10px] text-gray-500 dark:text-gray-400">筆數 (Items)</div>
+            </div>
+            <div>
+                <div class="text-lg font-bold text-gray-800 dark:text-gray-100">${formatCurrency(avgPerDay, currency)}</div>
+                <div class="text-[10px] text-gray-500 dark:text-gray-400">日均 (Avg/Day)</div>
+            </div>
+            <div>
+                <div class="text-lg font-bold text-gray-800 dark:text-gray-100">${formatCurrency(max, currency)}</div>
+                <div class="text-[10px] text-gray-500 dark:text-gray-400 truncate" title="${maxItem?.title || ''}">最高 (Max)</div>
+            </div>
+        </div>
+    `;
+    if (window.lucide) lucide.createIcons();
+}
+
+function renderCurrencyBreakdown(dataList, homeCurrency) {
+    let el = document.getElementById('currency-breakdown');
+    if (!el) {
+        const summaryCard = document.getElementById('total-expense-display')?.closest('.bg-white');
+        if (!summaryCard) return;
+        el = document.createElement('div');
+        el.id = 'currency-breakdown';
+        el.className = 'bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700';
+        summaryCard.parentElement.insertBefore(el, summaryCard.nextSibling);
+    }
+
+    const byCurrency = {};
+    dataList.forEach(item => {
+        const cur = item.currency || homeCurrency;
+        const amt = parseFloat(item.amount) || 0;
+        const rate = parseFloat(item.rate) || 1;
+        if (!byCurrency[cur]) byCurrency[cur] = { native: 0, home: 0, count: 0 };
+        byCurrency[cur].native += amt;
+        byCurrency[cur].home += amt * rate;
+        byCurrency[cur].count++;
+    });
+
+    const keys = Object.keys(byCurrency);
+    if (keys.length <= 1) {
+        el.classList.add('hidden');
+        return;
+    }
+    el.classList.remove('hidden');
+
+    const items = keys
+        .sort((a, b) => byCurrency[b].home - byCurrency[a].home)
+        .map(cur => {
+            const d = byCurrency[cur];
+            const homeStr = cur !== homeCurrency ? `<span class="text-[10px] text-gray-400 ml-1">(≈ ${formatCurrency(d.home, homeCurrency)})</span>` : '';
+            return `<div class="flex justify-between items-center py-1.5 border-b border-gray-50 dark:border-gray-700 last:border-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-gray-700 dark:text-gray-200">${cur}</span>
+                    <span class="text-[10px] text-gray-400">${d.count} 筆</span>
+
+                </div>
+                <div class="text-xs font-bold text-gray-800 dark:text-gray-100">${formatCurrency(d.native, cur)}${homeStr}</div>
+            </div>`;
+        }).join('');
+
+    el.innerHTML = `
+        <div class="flex items-center gap-1.5 mb-2">
+            <i data-lucide="coins" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400"></i>
+            <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">各幣別支出 (By Currency)</h3>
+        </div>
+        ${items}
     `;
     if (window.lucide) lucide.createIcons();
 }
@@ -161,7 +309,7 @@ function updateExpenseChart(dataList) {
         const amount = parseFloat(item.amount) * (parseFloat(item.rate) || 1);
         categories[item.category] = (categories[item.category] || 0) + amount;
     });
-    const labels = { 'general': '一般', 'accommodation': '住宿', 'transport': '交通' };
+    const labels = { general: '一般', accommodation: '住宿', transport: '交通' };
     expenseChart.data.labels = Object.keys(categories).map(k => labels[k]);
     expenseChart.data.datasets[0].data = Object.values(categories);
     expenseChart.update();
@@ -177,9 +325,9 @@ function renderDailyChart(dataList, settings) {
         const chartCard = document.querySelector('#view-dashboard > div.bg-white.rounded-2xl.p-5.shadow-sm');
         container = document.createElement('div');
         container.id = 'daily-chart-container';
-        container.className = 'bg-white rounded-2xl p-5 shadow-sm border border-gray-100';
+        container.className = 'bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700';
         container.innerHTML = `
-            <h3 class="text-sm font-semibold text-gray-700 mb-4">每日支出 (Daily)</h3>
+            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4">每日支出 (Daily)</h3>
             <div class="relative h-48 w-full flex justify-center">
                 <canvas id="dailyChart"></canvas>
             </div>
@@ -240,7 +388,7 @@ export function renderRecentList(dataList, currency) {
     const list = document.getElementById('recent-list');
     if (!list) return;
     const recent = [...dataList].reverse().slice(0, 3);
-    list.innerHTML = recent.length ? '' : '<div class="text-center text-gray-400 py-4 text-sm">暫無紀錄</div>';
+    list.innerHTML = recent.length ? '' : '<div class="text-center text-gray-400 py-4 text-sm">暫無記錄</div>';
     recent.forEach(item => list.appendChild(createItemElement(item, currency)));
 }
 
