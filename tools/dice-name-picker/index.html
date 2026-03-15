@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Dice & Name Picker" data-zh-HK="骰子與抽名">Dice & Name Picker</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 20px; transition: background-color 0.3s, color 0.3s; }
+      body.dark { background: #181c1f; color: #f0f0f0; }
+      body.light-mode { background: #f0f0f0; color: #222; }
+      .container { margin-top: 60px; }
+      h1 { text-align: center; margin-bottom: 24px; font-size: 1.5em; }
+      .section { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+      body.dark .section { background: #23272a; }
+      h2 { margin-top: 0; margin-bottom: 12px; font-size: 1.2em; }
+      label { display: block; margin-bottom: 6px; }
+      input[type="number"], textarea { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 12px; width: 100%; box-sizing: border-box; }
+      body.dark input, body.dark textarea { background: #333; border-color: #555; color: #f0f0f0; }
+      textarea { min-height: 80px; resize: vertical; }
+      button { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; background: #1976d2; color: #fff; margin-right: 8px; margin-bottom: 8px; }
+      body.dark button { background: #90caf9; color: #111; }
+      .dice-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; min-height: 52px; }
+      .die { width: 48px; height: 48px; border-radius: 8px; background: #f0f0f0; border: 2px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 1.4em; font-weight: bold; }
+      body.dark .die { background: #333; border-color: #555; }
+      #diceSum { margin-top: 8px; font-weight: bold; }
+      #nameResult { font-size: 1.3em; font-weight: bold; padding: 12px; background: #f5f5f5; border-radius: 8px; margin-top: 8px; }
+      body.dark #nameResult { background: #333; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="Dice & Name Picker" data-zh-HK="骰子與抽名">Dice & Name Picker</h1>
+      <div class="section">
+        <h2 data-en="Dice" data-zh-HK="骰子">Dice</h2>
+        <div class="row">
+          <label data-en="Count:" data-zh-HK="數量：">Count:</label>
+          <input type="number" id="diceCount" min="1" max="6" value="2" style="width: 60px;" />
+          <label data-en="Sides:" data-zh-HK="面數：">Sides:</label>
+          <input type="number" id="diceSides" min="2" max="20" value="6" style="width: 60px;" />
+        </div>
+        <button id="rollBtn" data-en="Roll" data-zh-HK="擲">Roll</button>
+        <div class="dice-row" id="diceRow"></div>
+        <div id="diceSum"></div>
+      </div>
+      <div class="section">
+        <h2 data-en="Pick a name" data-zh-HK="抽名">Pick a name</h2>
+        <textarea id="namesInput" placeholder="One name per line" data-placeholder-en="One name per line" data-placeholder-zh-HK="每行一個名" rows="4"></textarea>
+        <button id="pickBtn" data-en="Pick one" data-zh-HK="抽一個">Pick one</button>
+        <div id="nameResult" aria-live="polite"></div>
+      </div>
+    </div>
+    <script src="dice-name-picker.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>

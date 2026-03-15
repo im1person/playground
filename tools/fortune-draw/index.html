@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Fortune Draw" data-zh-HK="求籤">Fortune Draw</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 20px; transition: background-color 0.3s, color 0.3s; }
+      body.dark { background: #181c1f; color: #f0f0f0; }
+      body.light-mode { background: #f0f0f0; color: #222; }
+      .container { margin-top: 60px; }
+      h1 { text-align: center; margin-bottom: 24px; font-size: 1.5em; }
+      .section { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; }
+      body.dark .section { background: #23272a; }
+      #fortuneCard { min-height: 80px; padding: 16px; margin-top: 12px; border-radius: 8px; border: 2px dashed #ccc; }
+      body.dark #fortuneCard { border-color: #555; }
+      #fortuneNumber { font-weight: bold; opacity: 0.8; margin-bottom: 8px; }
+      #fortuneText { font-size: 1.1em; line-height: 1.5; }
+      button { padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; background: #1976d2; color: #fff; font-size: 1em; }
+      body.dark button { background: #90caf9; color: #111; }
+      button:hover { opacity: 0.9; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="Fortune Draw" data-zh-HK="求籤">Fortune Draw</h1>
+      <div class="section">
+        <button id="drawBtn" data-en="Draw a fortune" data-zh-HK="求籤">Draw a fortune</button>
+        <div id="fortuneCard" aria-live="polite">
+          <div id="fortuneNumber"></div>
+          <div id="fortuneText"></div>
+          <p id="fortunePlaceholder" data-en="Press the button to draw." data-zh-HK="按上面按鈕求籤。">Press the button to draw.</p>
+        </div>
+      </div>
+    </div>
+    <script src="fortune-draw.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>

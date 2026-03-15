@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#c62828" />
+    <title data-en="Red Envelope Tally" data-zh-HK="利是清點">Red Envelope Tally</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="tally-app">
+      <header class="tally-header">
+        <span class="tally-currency" id="currencyLabel">HKD</span>
+        <h1 class="tally-total" id="total" aria-live="polite">0</h1>
+        <p class="tally-count" id="count" data-en="0 envelopes" data-zh-HK="0 封">0 envelopes</p>
+        <p class="tally-stats" id="stats" aria-live="polite"></p>
+      </header>
+
+      <section class="quick-add" aria-label="Quick add amount">
+        <div class="quick-row">
+          <button type="button" class="qty-btn" data-amount="10">10</button>
+          <button type="button" class="qty-btn" data-amount="20">20</button>
+          <button type="button" class="qty-btn" data-amount="50">50</button>
+          <button type="button" class="qty-btn" data-amount="100">100</button>
+        </div>
+        <div class="quick-row">
+          <button type="button" class="qty-btn" data-amount="500">500</button>
+          <button type="button" class="qty-btn" data-amount="1000">1000</button>
+          <button type="button" class="qty-btn qty-btn-custom" id="customBtn" data-en="Custom" data-zh-HK="自訂">Custom</button>
+        </div>
+      </section>
+
+      <div class="custom-row" id="customRow" hidden>
+        <input type="number" id="customInput" inputmode="numeric" min="1" step="1" placeholder="Amount" data-placeholder-en="Amount" data-placeholder-zh-HK="金額" />
+        <button type="button" id="customAdd" data-en="Add" data-zh-HK="加">Add</button>
+      </div>
+
+      <section class="actions">
+        <button type="button" class="action-btn undo-btn" id="undoBtn" data-en="Undo" data-zh-HK="撤銷">Undo</button>
+        <button type="button" class="action-btn reset-btn" id="resetBtn" data-en="Clear all" data-zh-HK="全部清除">Clear all</button>
+        <button type="button" class="action-btn finish-btn" id="finishBtn" data-en="Done" data-zh-HK="完成">Done</button>
+      </section>
+
+      <div class="finish-scene" id="finishScene" aria-live="polite" role="dialog" aria-modal="true" aria-label="Finish count">
+        <div class="finish-backdrop" id="finishBackdrop" tabindex="-1"></div>
+        <div class="finish-card">
+          <h2 class="finish-title" id="finishTitle" data-en="All counted!" data-zh-HK="清點完成！">All counted!</h2>
+          <p class="finish-total-wrap"><span class="finish-currency" id="finishCurrency">HKD</span> <span class="finish-total" id="finishTotal">0</span></p>
+          <div class="finish-mode-toggle" role="group" aria-label="Display mode">
+            <button type="button" class="finish-mode-btn active" id="finishModeStandard" data-mode="standard" data-en="As notes" data-zh-HK="等於幾多張紙">As notes</button>
+            <button type="button" class="finish-mode-btn" id="finishModeRaw" data-mode="raw" data-en="Raw (per envelope)" data-zh-HK="逐封顯示">Raw (per envelope)</button>
+          </div>
+          <p class="finish-sub" id="finishSub" aria-live="polite">Like having these notes</p>
+          <div class="finish-notes" id="finishNotes"></div>
+          <button type="button" class="finish-close" id="finishClose" data-en="Count again" data-zh-HK="再計">Count again</button>
+        </div>
+      </div>
+
+      <section class="recent-list" id="recentList" aria-label="Recent amounts">
+        <p class="recent-hint" data-en="Tap amount above to add; recent below" data-zh-HK="上面撳金額加入，下面係最近">Tap amount above to add; recent below</p>
+        <div class="chips" id="chips"></div>
+      </section>
+    </div>
+
+    <script src="red-envelope-tally.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>
