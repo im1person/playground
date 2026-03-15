@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#fce4ec"/>
+  <!-- dR / Fortune stick holder -->
+  <g transform="translate(100, 50)">
+    <path d="M 100 120 L 100 200 Q 100 220 80 220 L 20 220 Q 0 220 0 200 L 0 120 Z" fill="#8d6e63" stroke="#5d4037" stroke-width="3"/>
+    <rect x="10" y="30" width="80" height="95" rx="4" fill="#fff8e1" stroke="#ffa000" stroke-width="2"/>
+    <!-- Sticks -->
+    <line x1="25" y1="40" x2="25" y2="115" stroke="#795548" stroke-width="3"/>
+    <line x1="45" y1="35" x2="45" y2="118" stroke="#795548" stroke-width="3"/>
+    <line x1="65" y1="42" x2="65" y2="112" stroke="#795548" stroke-width="3"/>
+    <line x1="85" y1="38" x2="85" y2="116" stroke="#795548" stroke-width="3"/>
+  </g>
+  <!-- Fortune slip -->
+  <g transform="translate(220, 90)">
+    <rect x="0" y="0" width="120" height="80" rx="8" fill="#fff" stroke="#c62828" stroke-width="2"/>
+    <text x="60" y="45" font-family="sans-serif" font-size="28" text-anchor="middle" fill="#c62828">	</text>
+    <text x="60" y="70" font-family="sans-serif" font-size="14" text-anchor="middle" fill="#666">#1</text>
+  </g>
+</svg>

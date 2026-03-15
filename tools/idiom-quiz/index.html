@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Idiom Quiz" data-zh-HK="歇後語／成語小測">Idiom Quiz</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 20px; transition: background-color 0.3s, color 0.3s; }
+      body.dark { background: #181c1f; color: #f0f0f0; }
+      body.light-mode { background: #f0f0f0; color: #222; }
+      .container { margin-top: 60px; }
+      h1 { text-align: center; margin-bottom: 24px; font-size: 1.5em; }
+      .section { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+      body.dark .section { background: #23272a; }
+      #question { font-size: 1.2em; margin-bottom: 16px; min-height: 2em; }
+      .options { display: flex; flex-direction: column; gap: 8px; }
+      .option { padding: 12px; border-radius: 8px; border: 2px solid #ccc; cursor: pointer; background: #fafafa; }
+      body.dark .option { background: #333; border-color: #555; }
+      .option:hover { border-color: #1976d2; }
+      .option.correct { border-color: #2e7d32; background: #e8f5e9; }
+      body.dark .option.correct { background: #1b5e20; }
+      .option.wrong { border-color: #c62828; background: #ffebee; }
+      body.dark .option.wrong { background: #b71c1c; }
+      #feedback { margin-top: 12px; padding: 12px; border-radius: 8px; min-height: 1.5em; }
+      #feedback.explain { background: #e3f2fd; }
+      body.dark #feedback.explain { background: #0d47a1; }
+      button { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; background: #1976d2; color: #fff; margin-top: 8px; }
+      body.dark button { background: #90caf9; color: #111; }
+      .score { margin-bottom: 12px; opacity: 0.9; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="Idiom Quiz" data-zh-HK="歇後語／成語小測">Idiom Quiz</h1>
+      <div class="section">
+        <div class="score" id="score" data-en="Score: 0 / 0" data-zh-HK="得分：0 / 0">Score: 0 / 0</div>
+        <div id="question"></div>
+        <div class="options" id="options"></div>
+        <div id="feedback"></div>
+        <button id="nextBtn" style="display:none;" data-en="Next" data-zh-HK="下一題">Next</button>
+        <button id="restartBtn" style="display:none;" data-en="Restart" data-zh-HK="再嚟">Restart</button>
+      </div>
+    </div>
+    <script src="idiom-quiz.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>

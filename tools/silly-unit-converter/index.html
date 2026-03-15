@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Silly Unit Converter" data-zh-HK="搞笑單位換算">Silly Unit Converter</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 20px; transition: background-color 0.3s, color 0.3s; }
+      body.dark { background: #181c1f; color: #f0f0f0; }
+      body.light-mode { background: #f0f0f0; color: #222; }
+      .container { margin-top: 60px; }
+      h1 { text-align: center; margin-bottom: 24px; font-size: 1.5em; }
+      .section { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+      body.dark .section { background: #23272a; }
+      label { display: block; margin-bottom: 6px; }
+      input, select { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 12px; width: 100%; box-sizing: border-box; }
+      body.dark input, body.dark select { background: #333; border-color: #555; color: #f0f0f0; }
+      #result { margin-top: 16px; padding: 12px; background: #f5f5f5; border-radius: 8px; font-size: 1.05em; line-height: 1.6; }
+      body.dark #result { background: #333; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="Silly Unit Converter" data-zh-HK="搞笑單位換算">Silly Unit Converter</h1>
+      <div class="section">
+        <label data-en="Amount" data-zh-HK="數量">Amount</label>
+        <input type="number" id="amount" min="0" step="any" value="100" />
+        <label data-en="From unit" data-zh-HK="由單位">From unit</label>
+        <select id="fromUnit">
+          <option value="m">m (metres)</option>
+          <option value="km">km</option>
+          <option value="ml">ml</option>
+          <option value="L">L</option>
+          <option value="kg">kg</option>
+        </select>
+        <div id="result" aria-live="polite"></div>
+      </div>
+    </div>
+    <script src="silly-unit-converter.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>

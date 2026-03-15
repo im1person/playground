@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Bingo Card Generator" data-zh-HK="Bingo 卡生成器">Bingo Card Generator</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="Bingo Card Generator" data-zh-HK="Bingo 卡生成器">Bingo Card Generator</h1>
+      <div class="section">
+        <label data-en="Words (one per line, 24 or 25 for 5×5)" data-zh-HK="詞語（每行一個，24 或 25 個做 5×5）">Words (one per line, 24 or 25 for 5×5)</label>
+        <textarea id="wordsInput" rows="8" placeholder="word1&#10;word2&#10;..."></textarea>
+        <button id="generateBtn" data-en="Generate" data-zh-HK="生成">Generate</button>
+        <button id="shuffleBtn" data-en="Shuffle again" data-zh-HK="再隨機">Shuffle again</button>
+        <button id="printBtn" data-en="Print" data-zh-HK="列印">Print</button>
+      </div>
+      <div class="section bingo-preview-section">
+        <div id="bingoGrid" class="bingo-grid" aria-label="Bingo card"></div>
+      </div>
+    </div>
+    <script src="bingo-card-generator.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>

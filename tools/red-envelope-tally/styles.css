@@ -1,0 +1,435 @@
+/* 利是清點 — 香港風格、紅金、最快輸入 */
+:root {
+  --tally-bg: #fff8f0;
+  --tally-card: #fff;
+  --tally-primary: #c62828;
+  --tally-primary-light: #ffcdd2;
+  --tally-money: #b8860b;
+  --tally-text: #1a1a1a;
+  --tally-muted: #666;
+  --tally-border: #ffccbc;
+  --tally-stat-color: #b8860b;
+}
+body.dark {
+  background: #181c1f !important;
+  --tally-bg: #181c1f;
+  --tally-card: #23272a;
+  --tally-primary: #ef5350;
+  --tally-primary-light: #5d2a2a;
+  --tally-money: #e6c200;
+  --tally-stat-color: #e8e8e8;
+  --tally-text: #f0f0f0;
+  --tally-muted: #aaa;
+  --tally-border: #4a2c2a;
+}
+
+.tally-app {
+  min-height: 100vh;
+  padding: 60px 16px 24px;
+  background: var(--tally-bg);
+  color: var(--tally-text);
+  box-sizing: border-box;
+}
+body.dark .tally-app {
+  background: #181c1f;
+}
+body.light-mode .tally-app {
+  background: #f0f0f0;
+}
+
+.tally-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.tally-currency {
+  display: inline-block;
+  font-size: 0.9rem;
+  color: var(--tally-muted);
+  margin-bottom: 4px;
+}
+.tally-total {
+  font-size: clamp(3rem, 14vw, 5rem);
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.1;
+  color: var(--tally-money);
+  letter-spacing: -0.02em;
+}
+.tally-count {
+  font-size: 1rem;
+  color: var(--tally-muted);
+  margin: 8px 0 0;
+}
+.tally-stats {
+  font-size: 0.95rem;
+  color: var(--tally-stat-color);
+  margin: 6px 0 0;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  min-height: 1.4em;
+}
+
+/* Quick-add: 大按鈕、一撳即加 */
+.quick-add {
+  max-width: 360px;
+  margin: 0 auto 16px;
+}
+.quick-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  justify-content: center;
+}
+/* 港紙顏色：按面額對應 10/20/50/100/500/1000 元鈔票 */
+.qty-btn {
+  flex: 1;
+  min-height: 56px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.1s, border-color 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+body.dark .qty-btn {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+.qty-btn[data-amount="10"]  { background: #ede7f6; color: #5e35b1; border-color: #b39ddb; }
+.qty-btn[data-amount="20"]  { background: #e3f2fd; color: #1565c0; border-color: #90caf9; }
+.qty-btn[data-amount="50"]  { background: #e8f5e9; color: #2e7d32; border-color: #81c784; }
+.qty-btn[data-amount="100"] { background: #ffebee; color: #c62828; border-color: #e57373; }
+.qty-btn[data-amount="500"] { background: #efebe9; color: #6d4c41; border-color: #a1887f; }
+.qty-btn[data-amount="1000"]{ background: #fff3e0; color: #e65100; border-color: #ffb74d; }
+body.dark .qty-btn[data-amount="10"]  { background: #4527a0; color: #d1c4e9; border-color: #5e35b1; }
+body.dark .qty-btn[data-amount="20"]  { background: #0d47a1; color: #bbdefb; border-color: #1565c0; }
+body.dark .qty-btn[data-amount="50"]  { background: #1b5e20; color: #c8e6c9; border-color: #2e7d32; }
+body.dark .qty-btn[data-amount="100"] { background: #b71c1c; color: #ffcdd2; border-color: #c62828; }
+body.dark .qty-btn[data-amount="500"] { background: #4e342e; color: #d7ccc8; border-color: #6d4c41; }
+body.dark .qty-btn[data-amount="1000"]{ background: #e65100; color: #ffe0b2; border-color: #ff8f00; }
+.qty-btn:active {
+  transform: scale(0.96);
+}
+.qty-btn[data-amount="10"]:active  { filter: brightness(0.92); }
+.qty-btn[data-amount="20"]:active  { filter: brightness(0.92); }
+.qty-btn[data-amount="50"]:active  { filter: brightness(0.92); }
+.qty-btn[data-amount="100"]:active { filter: brightness(0.92); }
+.qty-btn[data-amount="500"]:active { filter: brightness(0.92); }
+.qty-btn[data-amount="1000"]:active{ filter: brightness(0.92); }
+.qty-btn-custom {
+  font-size: 1.1rem;
+  background: var(--tally-card) !important;
+  color: var(--tally-muted) !important;
+  border-color: var(--tally-border) !important;
+}
+body.dark .qty-btn-custom {
+  background: var(--tally-card) !important;
+  color: var(--tally-muted) !important;
+  border-color: var(--tally-border) !important;
+}
+
+.custom-row {
+  max-width: 360px;
+  margin: 0 auto 16px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.custom-row input {
+  flex: 1;
+  min-height: 48px;
+  padding: 0 16px;
+  font-size: 1.2rem;
+  border-radius: 12px;
+  border: 2px solid var(--tally-border);
+  background: var(--tally-card);
+  color: var(--tally-text);
+  box-sizing: border-box;
+}
+.custom-row input:focus {
+  outline: none;
+  border-color: var(--tally-primary);
+}
+.custom-row button {
+  min-height: 48px;
+  padding: 0 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  background: var(--tally-primary);
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+.action-btn {
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--tally-card);
+  color: var(--tally-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+body.dark .action-btn {
+  background: #333;
+}
+.action-btn:active {
+  opacity: 0.85;
+}
+.undo-btn:disabled,
+.reset-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.recent-list {
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--tally-card);
+  border: 1px solid var(--tally-border);
+}
+.recent-hint {
+  font-size: 0.85rem;
+  color: var(--tally-muted);
+  margin: 0 0 10px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 40px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.chip[data-amount="10"]   { background: #ede7f6; color: #5e35b1; border-color: #b39ddb; }
+.chip[data-amount="20"]   { background: #e3f2fd; color: #1565c0; border-color: #90caf9; }
+.chip[data-amount="50"]   { background: #e8f5e9; color: #2e7d32; border-color: #81c784; }
+.chip[data-amount="100"]  { background: #ffebee; color: #c62828; border-color: #e57373; }
+.chip[data-amount="500"]  { background: #efebe9; color: #6d4c41; border-color: #a1887f; }
+.chip[data-amount="1000"] { background: #fff3e0; color: #e65100; border-color: #ffb74d; }
+.chip:not([data-amount="10"]):not([data-amount="20"]):not([data-amount="50"]):not([data-amount="100"]):not([data-amount="500"]):not([data-amount="1000"]) {
+  background: var(--tally-primary-light);
+  color: var(--tally-money);
+  border-color: var(--tally-border);
+}
+body.dark .chip[data-amount="10"]   { background: #4527a0; color: #d1c4e9; border-color: #5e35b1; }
+body.dark .chip[data-amount="20"]   { background: #0d47a1; color: #bbdefb; border-color: #1565c0; }
+body.dark .chip[data-amount="50"]   { background: #1b5e20; color: #c8e6c9; border-color: #2e7d32; }
+body.dark .chip[data-amount="100"]  { background: #b71c1c; color: #ffcdd2; border-color: #c62828; }
+body.dark .chip[data-amount="500"]  { background: #4e342e; color: #d7ccc8; border-color: #6d4c41; }
+body.dark .chip[data-amount="1000"] { background: #e65100; color: #ffe0b2; border-color: #ff8f00; }
+body.dark .chip:not([data-amount="10"]):not([data-amount="20"]):not([data-amount="50"]):not([data-amount="100"]):not([data-amount="500"]):not([data-amount="1000"]) {
+  background: var(--tally-primary-light);
+  color: var(--tally-money);
+  border-color: var(--tally-border);
+}
+.chip:active {
+  opacity: 0.8;
+}
+.chip-remove {
+  margin-left: 6px;
+  font-size: 1.1em;
+  opacity: 0.7;
+}
+
+/* 加數動畫 */
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.tally-total.just-updated {
+  animation: pop 0.25s ease;
+}
+
+/* Finish scene — 總額視覺化做「等於幾多張咩紙」 */
+.finish-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+.finish-scene.is-open {
+  display: flex;
+  pointer-events: auto;
+}
+.finish-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.finish-card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 340px;
+  pointer-events: auto;
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--tally-card);
+  border: 2px solid var(--tally-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+.finish-title {
+  margin: 0 0 12px;
+  font-size: 1.5rem;
+  text-align: center;
+  color: var(--tally-primary);
+}
+.finish-total-wrap {
+  text-align: center;
+  margin: 0 0 4px;
+}
+.finish-currency {
+  font-size: 1rem;
+  color: var(--tally-muted);
+  margin-right: 6px;
+}
+.finish-total {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--tally-money);
+  letter-spacing: -0.02em;
+}
+.finish-mode-toggle {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin: 0 0 8px;
+}
+.finish-mode-btn {
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 2px solid var(--tally-border, #e0e0e0);
+  border-radius: 8px;
+  background: var(--tally-bg);
+  color: var(--tally-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.finish-mode-btn:hover {
+  color: var(--tally-fg);
+  border-color: var(--tally-primary);
+}
+.finish-mode-btn.active {
+  background: var(--tally-primary);
+  color: #fff;
+  border-color: var(--tally-primary);
+}
+.finish-sub {
+  font-size: 0.9rem;
+  color: var(--tally-muted);
+  text-align: center;
+  margin: 0 0 16px;
+}
+.finish-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+  min-height: 60px;
+}
+/* Raw mode: 逐封 — 每張卡放在弧線上 (10點→2點)，唔疊埋；留足位唔遮再計掣 */
+.finish-notes.is-raw {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 180px;
+  margin-bottom: 96px;
+}
+.finish-raw-sector {
+  position: relative;
+  width: 300px;
+  height: 150px;
+  flex-shrink: 0;
+  overflow: visible;
+}
+.finish-raw-sector .finish-note {
+  position: absolute;
+  margin: 0;
+  transform-origin: 26px 36px;
+}
+.finish-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  border: 2px solid transparent;
+}
+.finish-note-10   { background: #ede7f6; color: #5e35b1; border-color: #b39ddb; }
+.finish-note-20   { background: #e3f2fd; color: #1565c0; border-color: #90caf9; }
+.finish-note-50   { background: #e8f5e9; color: #2e7d32; border-color: #81c784; }
+.finish-note-100  { background: #ffebee; color: #c62828; border-color: #e57373; }
+.finish-note-500  { background: #efebe9; color: #6d4c41; border-color: #a1887f; }
+.finish-note-1000 { background: #fff3e0; color: #e65100; border-color: #ffb74d; }
+body.dark .finish-note-10   { background: #4527a0; color: #d1c4e9; border-color: #5e35b1; }
+body.dark .finish-note-20   { background: #0d47a1; color: #bbdefb; border-color: #1565c0; }
+body.dark .finish-note-50   { background: #1b5e20; color: #c8e6c9; border-color: #2e7d32; }
+body.dark .finish-note-100  { background: #b71c1c; color: #ffcdd2; border-color: #c62828; }
+body.dark .finish-note-500  { background: #4e342e; color: #d7ccc8; border-color: #6d4c41; }
+body.dark .finish-note-1000 { background: #e65100; color: #ffe0b2; border-color: #ff8f00; }
+.finish-note-custom {
+  background: var(--tally-bg);
+  color: var(--tally-fg);
+  border-color: var(--tally-border, #e0e0e0);
+}
+body.dark .finish-note-custom {
+  background: var(--tally-surface);
+  color: var(--tally-fg);
+  border-color: var(--tally-border);
+}
+.finish-close {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  background: var(--tally-primary);
+  color: #fff;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+body.dark .finish-close {
+  background: var(--tally-primary);
+  color: #fff;
+}
+.finish-btn { margin-left: 0; }

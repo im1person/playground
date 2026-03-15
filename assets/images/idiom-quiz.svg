@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice">
+  <rect width="400" height="260" fill="#fff8e1"/>
+  <g transform="translate(90, 50)">
+    <rect x="0" y="0" width="140" height="160" rx="8" fill="#fff" stroke="#ff8f00" stroke-width="3"/>
+    <line x1="20" y1="50" x2="120" y2="50" stroke="#ffb74d" stroke-width="2"/>
+    <line x1="20" y1="80" x2="100" y2="80" stroke="#ffb74d" stroke-width="2"/>
+    <line x1="20" y1="110" x2="130" y2="110" stroke="#ffb74d" stroke-width="2"/>
+    <text x="70" y="145" font-family="Arial, sans-serif" font-size="36" text-anchor="middle" fill="#e65100">&#25104;</text>
+  </g>
+  <g transform="translate(260, 70)">
+    <circle cx="50" cy="30" r="25" fill="none" stroke="#f57c00" stroke-width="3"/>
+    <text x="50" y="40" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="#e65100">?</text>
+    <rect x="0" y="70" width="100" height="28" rx="6" fill="#ffe0b2" stroke="#ff8f00" stroke-width="2"/>
+    <rect x="0" y="105" width="100" height="28" rx="6" fill="#fff" stroke="#ff8f00" stroke-width="2"/>
+    <rect x="0" y="140" width="100" height="28" rx="6" fill="#ffe0b2" stroke="#ff8f00" stroke-width="2"/>
+  </g>
+</svg>

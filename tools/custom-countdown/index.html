@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-en="Custom Countdown" data-zh-HK="自訂倒數">Custom Countdown</title>
+    <link rel="stylesheet" href="../../assets/style.css" />
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 20px; transition: background-color 0.3s, color 0.3s; }
+      body.dark { background: #181c1f; color: #f0f0f0; }
+      body.light-mode { background: #f0f0f0; color: #222; }
+      .container { margin-top: 60px; }
+      h1 { text-align: center; margin-bottom: 24px; font-size: 1.5em; }
+      .section { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+      body.dark .section { background: #23272a; }
+      .countdown-display { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 16px 0; font-size: 1.5em; }
+      .time-unit { text-align: center; }
+      .time-value { font-weight: bold; }
+      label { display: block; margin-bottom: 6px; }
+      input, select { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 12px; width: 100%; box-sizing: border-box; }
+      body.dark input, body.dark select { background: #333; border-color: #555; color: #f0f0f0; }
+      button { padding: 10px 20px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; background: #1976d2; color: #fff; margin-right: 8px; margin-top: 8px; }
+      body.dark button { background: #90caf9; color: #111; }
+      #pastMsg { margin-top: 12px; padding: 12px; background: #fff3e0; border-radius: 8px; }
+      body.dark #pastMsg { background: #5d4037; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 id="mainTitle" data-en="Custom Countdown" data-zh-HK="自訂倒數">Custom Countdown</h1>
+      <div class="section">
+        <div class="countdown-display">
+          <div class="time-unit"><span class="time-value" id="days">0</span> <span class="time-label" data-en="days" data-zh-HK="天">days</span></div>
+          <div class="time-unit"><span class="time-value" id="hours">0</span> <span class="time-label" data-en="hrs" data-zh-HK="小時">hrs</span></div>
+          <div class="time-unit"><span class="time-value" id="minutes">0</span> <span class="time-label" data-en="min" data-zh-HK="分">min</span></div>
+          <div class="time-unit"><span class="time-value" id="seconds">0</span> <span class="time-label" data-en="sec" data-zh-HK="秒">sec</span></div>
+        </div>
+        <div id="pastMsg" style="display:none;"></div>
+        <label data-en="Target date" data-zh-HK="目標日期">Target date</label>
+        <input type="date" id="targetDate" />
+        <label data-en="Target time" data-zh-HK="目標時間">Target time</label>
+        <input type="time" id="targetTime" value="00:00" />
+        <label data-en="Timezone" data-zh-HK="時區">Timezone</label>
+        <select id="timezone"></select>
+        <button id="copyLinkBtn" data-en="Copy share link" data-zh-HK="複製分享連結">Copy share link</button>
+      </div>
+    </div>
+    <script src="custom-countdown.js"></script>
+    <script type="module">
+      import { initThemeToggle } from "../../assets/theme-toggle.js";
+      import { initLocaleMenu } from "../../assets/locale-menu.js";
+      import { initHeader } from "../../assets/header.js";
+      initHeader("../../index.html");
+      initThemeToggle();
+      initLocaleMenu();
+    </script>
+  </body>
+</html>

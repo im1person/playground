@@ -1,0 +1,78 @@
+body {
+  font-family: Arial, sans-serif;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 20px;
+  transition: background-color 0.3s, color 0.3s;
+}
+body.dark { background: #181c1f; color: #f0f0f0; }
+body.light-mode { background: #f0f0f0; color: #222; }
+.container { margin-top: 60px; }
+h1 { text-align: center; margin-bottom: 24px; font-size: 1.5em; }
+.section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+body.dark .section { background: #23272a; }
+label { display: block; margin-bottom: 6px; }
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-bottom: 12px;
+}
+body.dark textarea { background: #333; border-color: #555; color: #f0f0f0; }
+button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  background: #1976d2;
+  color: #fff;
+  margin-right: 8px;
+  margin-bottom: 8px;
+}
+body.dark button { background: #90caf9; color: #111; }
+.bingo-preview-section { overflow-x: auto; }
+.bingo-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  max-width: 360px;
+  margin: 0 auto;
+  border: 2px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+}
+body.dark .bingo-grid { border-color: #666; }
+.bingo-cell {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  text-align: center;
+  font-size: 0.9em;
+  background: #fff;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  user-select: none;
+}
+body.dark .bingo-cell { background: #2a2a2a; border-color: #444; }
+.bingo-cell.checked { background: #c8e6c9; font-weight: bold; }
+body.dark .bingo-cell.checked { background: #1b5e20; }
+.bingo-cell.free { background: #fff9c4; font-weight: bold; }
+body.dark .bingo-cell.free { background: #f9a825; color: #111; }
+@media print {
+  body * { visibility: hidden; }
+  .bingo-preview-section, .bingo-preview-section * { visibility: visible; }
+  .bingo-preview-section { position: absolute; left: 0; top: 0; width: 100%; }
+  .bingo-cell.checked { background: #c8e6c9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .bingo-cell.free { background: #fff9c4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

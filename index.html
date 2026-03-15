@@ -261,6 +261,87 @@
       border-bottom-color: #333;
       opacity: 0.9;
     }
+
+    .hub-filter {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 1100px;
+      margin: 20px auto 0;
+      padding: 0 10px;
+    }
+    .hub-search {
+      width: 100%;
+      max-width: 360px;
+      margin: 0 auto;
+      padding: 12px 16px;
+      font-size: 1rem;
+      border: 2px solid #ddd;
+      border-radius: 12px;
+      background: #fff;
+      color: #222;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .hub-search::placeholder { color: #888; }
+    .hub-search:focus {
+      outline: none;
+      border-color: #1976d2;
+      box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.15);
+    }
+    body.dark .hub-search {
+      background: #23272a;
+      color: #f0f0f0;
+      border-color: #444;
+    }
+    body.dark .hub-search::placeholder { color: #888; }
+    body.dark .hub-search:focus {
+      border-color: #90caf9;
+      box-shadow: 0 0 0 3px rgba(144, 202, 249, 0.2);
+    }
+    .hub-filter-chips {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .hub-chip {
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: 2px solid #ddd;
+      border-radius: 999px;
+      background: #fff;
+      color: #444;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .hub-chip:hover {
+      border-color: #1976d2;
+      color: #1976d2;
+    }
+    .hub-chip.active {
+      background: #1976d2;
+      color: #fff;
+      border-color: #1976d2;
+    }
+    body.dark .hub-chip {
+      background: #23272a;
+      color: #bbb;
+      border-color: #444;
+    }
+    body.dark .hub-chip:hover {
+      border-color: #90caf9;
+      color: #90caf9;
+    }
+    body.dark .hub-chip.active {
+      background: #90caf9;
+      color: #111;
+      border-color: #90caf9;
+    }
+    .game-entry.hub-hidden { display: none !important; }
+    .section-title.hub-section-empty { display: none; }
+    .game-list.hub-section-empty { display: none; }
   </style>
 </head>
 
@@ -268,11 +349,27 @@
   <div class="hub-container">
     <h1 id="mainTitle">🎮 My Playground</h1>
 
+    <div class="hub-filter" role="search">
+      <input type="search" id="hubSearch" class="hub-search" placeholder="Search tools & games…" autocomplete="off"
+        aria-label="Search tools and games"
+        data-placeholder-en="Search tools & games…"
+        data-placeholder-zh-HK="搜尋工具與遊戲…" />
+      <div class="hub-filter-chips" role="group" aria-label="Filter by type">
+        <button type="button" class="hub-chip active" data-filter="all" data-en="All" data-zh-HK="全部">All</button>
+        <button type="button" class="hub-chip" data-filter="games" data-en="Games" data-zh-HK="遊戲">Games</button>
+        <button type="button" class="hub-chip" data-filter="tools" data-en="Tools" data-zh-HK="工具">Tools</button>
+        <button type="button" class="hub-chip" data-filter="christmas" data-en="Christmas" data-zh-HK="聖誕節">Christmas</button>
+        <button type="button" class="hub-chip" data-filter="lunar-new-year" data-en="Lunar New Year" data-zh-HK="農曆新年">Lunar New Year</button>
+        <button type="button" class="hub-chip" data-filter="halloween" data-en="Halloween" data-zh-HK="萬聖節">Halloween</button>
+        <button type="button" class="hub-chip" data-filter="mid-autumn" data-en="Mid-Autumn" data-zh-HK="中秋節">Mid-Autumn</button>
+      </div>
+    </div>
+
     <!-- Games Section -->
-    <div class="section-title">🎮</div>
-    <div class="game-list">
+    <div class="section-title" data-section="games">🎮</div>
+    <div class="game-list" data-section="games">
       <!-- Sudoku -->
-      <div class="game-entry sudoku-card action-card">
+      <div class="game-entry sudoku-card action-card" data-section="games">
         <img src="assets/images/sudoku.svg" alt="Sudoku" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Four-tier Sudoku with notes, hints, and auto-solve support."
@@ -292,7 +389,7 @@
       </div>
 
       <!-- Rubik's Cube -->
-      <a class="game-entry" href="games/rubiks-cube/index.html">
+      <a class="game-entry" href="games/rubiks-cube/index.html" data-section="games">
         <img src="assets/images/rubiks-cube.svg" alt="Rubik's Cube" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="3D Rubik's Cube solver and simulator." data-zh-HK="3D 魔術方塊解題與模擬器。">
@@ -302,7 +399,7 @@
       </a>
 
       <!-- Chess -->
-      <a class="game-entry" href="games/chess/index.html">
+      <a class="game-entry" href="games/chess/index.html" data-section="games">
         <img src="assets/images/chess.svg" alt="Chess" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Play vs friend or AI, with puzzles and analysis."
@@ -313,7 +410,7 @@
       </a>
 
       <!-- Falling Balls -->
-      <a class="game-entry" href="games/falling-balls/index.html">
+      <a class="game-entry" href="games/falling-balls/index.html" data-section="games">
         <img src="assets/images/falling-balls.svg" alt="Falling Balls" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Pop falling balls for points. Fast, fun, and mobile-friendly!"
@@ -324,7 +421,7 @@
       </a>
 
       <!-- Poker -->
-      <a class="game-entry" href="games/poker/index.html">
+      <a class="game-entry" href="games/poker/index.html" data-section="games">
         <img src="assets/images/poker.svg" alt="Playing Cards" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Interactive playing card deck simulation. Shuffle, deal, and flip cards!"
@@ -336,7 +433,7 @@
       </a>
 
       <!-- Tetris -->
-      <div class="game-entry action-card">
+      <div class="game-entry action-card" data-section="games">
         <img src="assets/images/tetris.svg" alt="Tetris" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Classic Tetris game. Stack blocks and clear lines!"
@@ -356,7 +453,7 @@
       </div>
 
       <!-- Tetris T-Spin -->
-      <div class="game-entry action-card">
+      <div class="game-entry action-card" data-section="games">
         <img src="assets/images/tetris-tspin.svg" alt="Tetris T-Spin" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Advanced Tetris with T-Spin detection logic."
@@ -376,7 +473,7 @@
       </div>
 
       <!-- Christmas Tree Decorator -->
-      <a class="game-entry" href="games/christmas-tree/index.html">
+      <a class="game-entry" href="games/christmas-tree/index.html" data-section="games" data-festival="christmas">
         <img src="assets/images/christmas-tree.svg" alt="Christmas Tree Decorator" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Decorate a Christmas tree with drag-and-drop ornaments!"
@@ -387,7 +484,7 @@
       </a>
 
       <!-- Advent Calendar -->
-      <a class="game-entry" href="games/advent-calendar/index.html">
+      <a class="game-entry" href="games/advent-calendar/index.html" data-section="games" data-festival="christmas">
         <img src="assets/images/advent-calendar.svg" alt="Advent Calendar" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Interactive Advent calendar with daily surprises and facts!"
@@ -398,7 +495,7 @@
       </a>
 
       <!-- Snowflake Puzzle -->
-      <a class="game-entry" href="games/snowflake-puzzle/index.html">
+      <a class="game-entry" href="games/snowflake-puzzle/index.html" data-section="games" data-festival="christmas">
         <img src="assets/images/snowflake-puzzle.svg" alt="Snowflake Puzzle" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Match snowflake pairs in this memory puzzle game!"
@@ -409,7 +506,7 @@
       </a>
 
       <!-- Zodiac Memory -->
-      <a class="game-entry" href="games/zodiac-memory/index.html">
+      <a class="game-entry" href="games/zodiac-memory/index.html" data-section="games" data-festival="lunar-new-year">
         <img src="assets/images/zodiac-memory.svg" alt="Zodiac Memory" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Match zodiac animal pairs. Clear the board to advance!"
@@ -420,7 +517,7 @@
       </a>
 
       <!-- Spring Couplet Match -->
-      <a class="game-entry" href="games/spring-couplet-match/index.html">
+      <a class="game-entry" href="games/spring-couplet-match/index.html" data-section="games" data-festival="lunar-new-year">
         <img src="assets/images/spring-couplet-match.svg" alt="Spring Couplet Match" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Match pairs of lucky characters. Clear the board to advance!"
@@ -431,7 +528,7 @@
       </a>
 
       <!-- Reunion Dinner Platter -->
-      <a class="game-entry" href="games/reunion-dinner/index.html">
+      <a class="game-entry" href="games/reunion-dinner/index.html" data-section="games" data-festival="lunar-new-year">
         <img src="assets/images/reunion-dinner.svg" alt="Reunion Dinner Platter" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Drag dishes onto the round table. Double-click to remove."
@@ -442,7 +539,7 @@
       </a>
 
       <!-- Lantern Riddle Quiz -->
-      <a class="game-entry" href="games/lantern-riddle/index.html">
+      <a class="game-entry" href="games/lantern-riddle/index.html" data-section="games" data-festival="lunar-new-year">
         <img src="assets/images/lantern-riddle.svg" alt="Lantern Riddle Quiz" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Guess the riddle! Type your answer or reveal it."
@@ -454,10 +551,10 @@
     </div>
 
     <!-- Tools Section -->
-    <div class="section-title">🛠️</div>
-    <div class="game-list">
+    <div class="section-title" data-section="tools">🛠️</div>
+    <div class="game-list" data-section="tools">
       <!-- Random Number Generator -->
-      <a class="game-entry" href="tools/random-number-generator/index.html">
+      <a class="game-entry" href="tools/random-number-generator/index.html" data-section="tools">
         <img src="assets/images/rng.svg" alt="Random Number Generator" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Pick random numbers, exclude numbers, and more!"
@@ -468,7 +565,7 @@
       </a>
 
       <!-- Secret Santa Generator -->
-      <a class="game-entry" href="tools/secret-santa/index.html">
+      <a class="game-entry" href="tools/secret-santa/index.html" data-section="tools" data-festival="christmas">
         <img src="assets/images/secret-santa.svg" alt="Secret Santa Generator" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Generate Secret Santa assignments with exclusion rules!"
@@ -479,7 +576,7 @@
       </a>
 
       <!-- Christmas Countdown Timer -->
-      <a class="game-entry" href="tools/christmas-countdown/index.html">
+      <a class="game-entry" href="tools/christmas-countdown/index.html" data-section="tools" data-festival="christmas">
         <img src="assets/images/christmas-countdown.svg" alt="Christmas Countdown Timer" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Countdown timer to Christmas or any date with timezone support!"
@@ -490,7 +587,7 @@
       </a>
 
       <!-- Lunar New Year Countdown -->
-      <a class="game-entry" href="tools/lunar-new-year-countdown/index.html">
+      <a class="game-entry" href="tools/lunar-new-year-countdown/index.html" data-section="tools" data-festival="lunar-new-year">
         <img src="assets/images/lunar-new-year-countdown.svg" alt="Lunar New Year Countdown" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Countdown to Lunar New Year (初一) with timezone and zodiac!"
@@ -501,7 +598,7 @@
       </a>
 
       <!-- Red Envelope Calculator -->
-      <a class="game-entry" href="tools/red-envelope-calculator/index.html">
+      <a class="game-entry" href="tools/red-envelope-calculator/index.html" data-section="tools" data-festival="lunar-new-year">
         <img src="assets/images/red-envelope-calculator.svg" alt="Red Envelope Calculator" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Split your budget into lucky amounts (88, 168, 600…). Add recipients and copy your list."
@@ -511,8 +608,19 @@
         </div>
       </a>
 
+      <!-- Red Envelope Tally (利是清點) -->
+      <a class="game-entry" href="tools/red-envelope-tally/index.html" data-section="tools" data-festival="lunar-new-year">
+        <img src="assets/images/red-envelope-calculator.svg" alt="Red Envelope Tally" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Tally red envelopes fast. Tap amount to add, undo, recent list. For kids counting 利是."
+            data-zh-HK="拆利是快速清點。撳金額即加、可撤銷、最近列表。小朋友用最順。">
+            Tally red envelopes fast. Tap amount to add, undo, recent list. For kids counting 利是.
+          </div>
+        </div>
+      </a>
+
       <!-- Spring Couplet Generator -->
-      <a class="game-entry" href="tools/spring-couplet-generator/index.html">
+      <a class="game-entry" href="tools/spring-couplet-generator/index.html" data-section="tools" data-festival="lunar-new-year">
         <img src="assets/images/spring-couplet-generator.svg" alt="Spring Couplet Generator" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Create spring couplets (橫批 + 上聯 + 下聯) or single 福. Download PNG."
@@ -523,7 +631,7 @@
       </a>
 
       <!-- Gift List Manager -->
-      <a class="game-entry" href="tools/gift-list-manager/index.html">
+      <a class="game-entry" href="tools/gift-list-manager/index.html" data-section="tools" data-festival="christmas">
         <img src="assets/images/gift-list.svg" alt="Gift List Manager" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Track gifts, recipients, and budget for your Christmas shopping!"
@@ -534,7 +642,7 @@
       </a>
 
       <!-- Travel Expense Tracker -->
-      <a class="game-entry" href="tools/travel-expense-tracker/index.html">
+      <a class="game-entry" href="tools/travel-expense-tracker/index.html" data-section="tools">
         <img src="assets/images/travel-tracker.svg" alt="Travel Expense Tracker" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Offline-first travel expense tracker. Budget, currencies, and charts."
@@ -545,7 +653,7 @@
       </a>
 
       <!-- Piano -->
-      <a class="game-entry" href="tools/piano/index.html">
+      <a class="game-entry" href="tools/piano/index.html" data-section="tools">
         <img src="assets/images/piano.svg" alt="Piano" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Responsive piano with keyboard controls and MIDI playback."
@@ -556,7 +664,7 @@
       </a>
 
       <!-- URL Parser -->
-      <a class="game-entry" href="tools/url-parser/index.html">
+      <a class="game-entry" href="tools/url-parser/index.html" data-section="tools">
         <img src="assets/images/url-parser.svg" alt="URL Parser" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Parse and analyze URLs into their components."
@@ -567,7 +675,7 @@
       </a>
 
       <!-- JSON Formatter -->
-      <a class="game-entry" href="tools/json-formatter/index.html">
+      <a class="game-entry" href="tools/json-formatter/index.html" data-section="tools">
         <img src="assets/images/json-formatter.svg" alt="JSON Formatter" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Paste JSON and auto-format with indentation."
@@ -578,7 +686,7 @@
       </a>
 
       <!-- Magic Bridge Scorer -->
-      <a class="game-entry" href="tools/magic-bridge-scorer/index.html">
+      <a class="game-entry" href="tools/magic-bridge-scorer/index.html" data-section="tools">
         <img src="assets/images/magic-bridge-scorer.svg" alt="Magic Bridge Scorer" class="game-preview" />
         <div class="game-content">
           <div class="game-desc" data-en="Score calculator for tile-based number games with multiple save slots."
@@ -590,13 +698,101 @@
       </a>
 
       <!-- General Scoreboard -->
-      <a class="game-entry" href="tools/general-scoreboard/index.html">
+      <a class="game-entry" href="tools/general-scoreboard/index.html" data-section="tools">
         <img src="assets/images/magic-bridge-scorer.svg" alt="General Scoreboard" class="game-preview" />
         <div class="game-content">
           <div class="game-title" data-en="General Scoreboard" data-zh-HK="通用計分板">General Scoreboard</div>
           <div class="game-desc" data-en="Universal scoreboard for poker, mahjong, and more. Four scoring modes, on-screen numpad, localStorage."
             data-zh-HK="撲克、麻將等通用計分板。四種結算模式、自訂數字鍵盤、本地儲存。">
             Universal scoreboard for poker, mahjong, and more. Four scoring modes, on-screen numpad, localStorage.
+          </div>
+        </div>
+      </a>
+
+      <!-- Memorable Password -->
+      <a class="game-entry" href="tools/memorable-password/index.html" data-section="tools">
+        <img src="assets/images/memorable-password.svg" alt="Memorable Password" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Generate memorable passphrases (word list) or random strings. Copy to clipboard."
+            data-zh-HK="生成易記詞組密碼或隨機字串，一鍵複製。">
+            Generate memorable passphrases (word list) or random strings. Copy to clipboard.
+          </div>
+        </div>
+      </a>
+
+      <!-- Silly Unit Converter -->
+      <a class="game-entry" href="tools/silly-unit-converter/index.html" data-section="tools">
+        <img src="assets/images/silly-unit-converter.svg" alt="Silly Unit Converter" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Convert length, volume, or mass into football pitches, cups of coffee, elephants, etc."
+            data-zh-HK="將長度、容量、重量換算成足球場、咖啡杯、大象等趣味單位。">
+            Convert length, volume, or mass into football pitches, cups of coffee, elephants, etc.
+          </div>
+        </div>
+      </a>
+
+      <!-- Fortune Draw -->
+      <a class="game-entry" href="tools/fortune-draw/index.html" data-section="tools">
+        <img src="assets/images/fortune-draw.svg" alt="Fortune Draw" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Draw a random fortune. Fun, light-hearted messages (not fortune-telling)."
+            data-zh-HK="隨機求籤，搞笑勵志短句，純玩唔算命。">
+            Draw a random fortune. Fun, light-hearted messages (not fortune-telling).
+          </div>
+        </div>
+      </a>
+
+      <!-- Dice & Name Picker -->
+      <a class="game-entry" href="tools/dice-name-picker/index.html" data-section="tools">
+        <img src="assets/images/dice-name-picker.svg" alt="Dice & Name Picker" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Roll 1–6 dice (custom sides) or pick a random name from a list."
+            data-zh-HK="擲 1–6 粒骰子（可自訂面數）或從名單抽一個名。">
+            Roll 1–6 dice (custom sides) or pick a random name from a list.
+          </div>
+        </div>
+      </a>
+
+      <!-- Decision Wheel -->
+      <a class="game-entry" href="tools/decision-wheel/index.html" data-section="tools">
+        <img src="assets/images/decision-wheel.svg" alt="Decision Wheel" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Enter options and spin the wheel to pick one randomly (e.g. what to eat)."
+            data-zh-HK="輸入選項，轉輪盤隨機抽一個（例如今日食咩）。">
+            Enter options and spin the wheel to pick one randomly (e.g. what to eat).
+          </div>
+        </div>
+      </a>
+
+      <!-- Custom Countdown -->
+      <a class="game-entry" href="tools/custom-countdown/index.html" data-section="tools">
+        <img src="assets/images/custom-countdown.svg" alt="Custom Countdown" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Countdown to any date and time. Shareable link with date in URL."
+            data-zh-HK="倒數到任意日期時間，可複製帶參數連結分享。">
+            Countdown to any date and time. Shareable link with date in URL.
+          </div>
+        </div>
+      </a>
+
+      <!-- Idiom Quiz -->
+      <a class="game-entry" href="tools/idiom-quiz/index.html" data-section="tools">
+        <img src="assets/images/idiom-quiz.svg" alt="Idiom Quiz" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Quiz on 歇後語 and 成語. Multiple choice, bilingual hints."
+            data-zh-HK="歇後語與成語小測驗，四選一，中英提示。">
+            Quiz on 歇後語 and 成語. Multiple choice, bilingual hints.
+          </div>
+        </div>
+      </a>
+
+      <!-- Bingo Card Generator -->
+      <a class="game-entry" href="tools/bingo-card-generator/index.html" data-section="tools">
+        <img src="assets/images/bingo-card-generator.svg" alt="Bingo Card Generator" class="game-preview" />
+        <div class="game-content">
+          <div class="game-desc" data-en="Create 5×5 Bingo cards from your words. Shuffle, tick, and print."
+            data-zh-HK="用自己嘅詞做 5×5 Bingo 卡，可重排、勾選、列印。">
+            Create 5×5 Bingo cards from your words. Shuffle, tick, and print.
           </div>
         </div>
       </a>
@@ -607,7 +803,9 @@
     import { initLocaleMenu } from "./assets/locale-menu.js";
     import { initHeader } from "./assets/header.js";
     import { initKawaiiStyleToggle } from "./assets/kawaii-style-toggle.js";
+    import { initHubFilter } from "./assets/hub-filter.js";
     initHeader("index.html");
+    initHubFilter();
     initThemeToggle();
     initKawaiiStyleToggle();
     initLocaleMenu({

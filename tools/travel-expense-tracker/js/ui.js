@@ -229,8 +229,10 @@ export function handleReceiptSelection(event) {
 
 export function removeReceipt() {
     selectedReceiptBlob = null;
-    const inp = document.getElementById('inp-receipt');
-    if (inp) inp.value = '';
+    ['inp-receipt-camera', 'inp-receipt-file'].forEach(id => {
+        const inp = document.getElementById(id);
+        if (inp) inp.value = '';
+    });
     const container = document.getElementById('receipt-preview-container');
     if (container) container.classList.add('hidden');
 }
