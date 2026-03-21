@@ -225,23 +225,24 @@ function renderStatsSummary(dataList, currency, settings) {
 
     const avgPerDay = total / tripDays;
 
+    const maxTitleEsc = escHtml(maxItem?.title || '');
     el.innerHTML = `
         <div class="flex items-center gap-1.5 mb-3">
             <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400"></i>
             <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">統計摘要</h3>
         </div>
-        <div class="grid grid-cols-3 gap-3 text-center">
-            <div>
-                <div class="text-lg font-bold text-gray-800 dark:text-gray-100">${dataList.length}</div>
-                <div class="text-[10px] text-gray-500 dark:text-gray-400">筆數</div>
+        <div class="flex flex-col gap-2.5 sm:grid sm:grid-cols-3 sm:gap-3 sm:text-center">
+            <div class="flex flex-row justify-between items-baseline gap-2 sm:flex-col sm:items-center sm:gap-1 sm:min-w-0">
+                <span class="text-[10px] text-gray-500 dark:text-gray-400 shrink-0 sm:order-2">筆數</span>
+                <span class="flex-1 min-w-0 text-lg font-bold text-gray-800 dark:text-gray-100 tabular-nums text-right sm:text-center sm:order-1 sm:flex-none">${dataList.length}</span>
             </div>
-            <div>
-                <div class="text-lg font-bold text-gray-800 dark:text-gray-100">${formatCurrency(avgPerDay, currency)}</div>
-                <div class="text-[10px] text-gray-500 dark:text-gray-400">日均開支</div>
+            <div class="flex flex-row justify-between items-baseline gap-2 sm:flex-col sm:items-center sm:gap-1 sm:min-w-0">
+                <span class="text-[10px] text-gray-500 dark:text-gray-400 shrink-0 sm:order-2">日均開支</span>
+                <span class="flex-1 min-w-0 text-base sm:text-lg font-bold text-gray-800 dark:text-gray-100 tabular-nums text-right sm:text-center sm:order-1 sm:flex-none leading-tight">${formatCurrency(avgPerDay, currency)}</span>
             </div>
-            <div>
-                <div class="text-lg font-bold text-gray-800 dark:text-gray-100">${formatCurrency(max, currency)}</div>
-                <div class="text-[10px] text-gray-500 dark:text-gray-400 truncate" title="${maxItem?.title || ''}">單筆最高</div>
+            <div class="flex flex-row justify-between items-baseline gap-2 sm:flex-col sm:items-center sm:gap-1 sm:min-w-0">
+                <span class="text-[10px] text-gray-500 dark:text-gray-400 shrink-0 sm:order-2" title="${maxTitleEsc}">單筆最高</span>
+                <span class="flex-1 min-w-0 text-base sm:text-lg font-bold text-gray-800 dark:text-gray-100 tabular-nums text-right sm:text-center sm:order-1 sm:flex-none leading-tight">${formatCurrency(max, currency)}</span>
             </div>
         </div>
     `;

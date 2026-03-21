@@ -397,7 +397,7 @@ window.closeLightbox = closeLightbox;
 
 export function createItemElement(item, homeCurrency) {
     const div = document.createElement('div');
-    div.className = 'bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex justify-between items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition';
+    div.className = 'bg-white dark:bg-gray-800 p-3.5 sm:p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition active:bg-gray-50 dark:active:bg-gray-700/80 touch-manipulation';
     div.onclick = () => window.openAddModal(item.id);
 
     const nativeAmount = parseFloat(item.amount);
@@ -413,26 +413,26 @@ export function createItemElement(item, homeCurrency) {
     let detailHtml = '';
     // Payment Method Badge
     let paymentBadge = '';
-    const ownerTag = item.icOwner ? ` (${item.icOwner})` : '';
+    const ownerTag = item.icOwner ? ` (${escapeHtml(item.icOwner)})` : '';
     switch (item.paymentMethod) {
         case 'cash':
-            paymentBadge = '<span class="text-[10px] bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 px-1.5 py-0.5 rounded ml-2">現金</span>';
+            paymentBadge = '<span class="text-[10px] bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 px-1.5 py-0.5 rounded-md font-medium shrink-0">現金</span>';
             break;
         case 'ic_card':
-            paymentBadge = `<span class="text-[10px] bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 px-1.5 py-0.5 rounded ml-2">IC卡${ownerTag}</span>`;
+            paymentBadge = `<span class="text-[10px] bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 px-1.5 py-0.5 rounded-md font-medium shrink-0">IC卡${ownerTag}</span>`;
             break;
         case 'e_pay':
-            paymentBadge = `<span class="text-[10px] bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded ml-2">電子付款${ownerTag}</span>`;
+            paymentBadge = `<span class="text-[10px] bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-1.5 py-0.5 rounded-md font-medium shrink-0">電子付款${ownerTag}</span>`;
             break;
         case 'paid_other':
-            paymentBadge = `<span class="text-[10px] bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 px-1.5 py-0.5 rounded ml-2">代付${ownerTag}</span>`;
+            paymentBadge = `<span class="text-[10px] bg-pink-100 dark:bg-pink-900/40 text-pink-700 dark:text-pink-300 px-1.5 py-0.5 rounded-md font-medium shrink-0">代付${ownerTag}</span>`;
             break;
         default:
-            paymentBadge = '<span class="text-[10px] bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded ml-2">碌卡</span>';
+            paymentBadge = '<span class="text-[10px] bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded-md font-medium shrink-0">碌卡</span>';
     }
 
     const paidByTag = item.paidBy
-        ? `<span class="text-[10px] bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 px-1.5 py-0.5 rounded ml-1">找數：${escapeHtml(item.paidBy)}</span>`
+        ? `<span class="text-[10px] bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 px-1.5 py-0.5 rounded-md font-medium shrink-0">找數：${escapeHtml(item.paidBy)}</span>`
         : '';
 
     if (item.category === 'accommodation' && item.checkin) {
@@ -441,39 +441,47 @@ export function createItemElement(item, homeCurrency) {
         const checkoutDate = new Date(checkinDate);
         checkoutDate.setDate(checkinDate.getDate() + nights);
         const avgPrice = nativeAmount / nights;
+        const addrEsc = escapeHtml(item.address || '無地址');
 
         detailHtml = `
-            <div class="text-[10px] text-gray-400 mt-1 flex flex-col gap-0.5">
-                <div class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> ${item.address || '無地址'}</div>
-                <div>退房: ${checkoutDate.toLocaleDateString()} (${nights}晚, 均價: ${formatCurrency(avgPrice, item.currency)})</div>
+            <div class="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5 space-y-1">
+                <div class="flex items-start gap-1.5 min-w-0">
+                    <i data-lucide="map-pin" class="w-3 h-3 shrink-0 mt-0.5 opacity-80"></i>
+                    <span class="break-words leading-snug">${addrEsc}</span>
+                </div>
+                <div class="leading-snug pl-4 sm:pl-0 sm:ml-4">退房：${checkoutDate.toLocaleDateString()} · ${nights}晚 · 每晚約 ${formatCurrency(avgPrice, item.currency)}</div>
             </div>`;
     } else if (item.category === 'transport') {
-        detailHtml = `<div class="text-[10px] text-gray-400 mt-1 flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${item.departure ? new Date(item.departure).toLocaleString() : ''} ${item.flightNo || ''}</div>`;
+        detailHtml = `<div class="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5 flex items-start gap-1.5 min-w-0"><i data-lucide="calendar" class="w-3 h-3 shrink-0 mt-0.5 opacity-80"></i><span class="break-words leading-snug">${item.departure ? new Date(item.departure).toLocaleString() : ''} ${escapeHtml(item.flightNo || '')}</span></div>`;
     }
 
+    const titleSafeJs = String(item.title || '').replace(/'/g, "\\'");
+
     div.innerHTML = `
-        <div class="flex items-center gap-3 overflow-hidden">
-            <div class="${iconColor} p-2 rounded-lg shrink-0">
+        <div class="flex gap-3 items-start min-w-0">
+            <div class="${iconColor} p-2.5 rounded-xl shrink-0" aria-hidden="true">
                 <i data-lucide="${iconName}" class="w-5 h-5"></i>
             </div>
-            <div class="min-w-0">
-                <div class="font-bold text-gray-800 dark:text-gray-100 truncate flex items-center flex-wrap gap-y-1">
-                    ${item.title} ${paymentBadge} ${paidByTag}
-                    ${item.receiptId ? `<i data-lucide="image" class="w-3.5 h-3.5 text-blue-500 ml-1 cursor-pointer hover:scale-110 transition" onclick="event.stopPropagation(); window.viewReceipt('${item.receiptId}', '${item.title.replace(/'/g, "\\'")}')"></i>` : ''}
+            <div class="flex-1 min-w-0 space-y-1">
+                <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                    <span class="font-bold text-base text-gray-800 dark:text-gray-100 break-words">${escapeHtml(item.title)}</span>
+                    ${paymentBadge}
+                    ${paidByTag}
+                    ${item.receiptId ? `<button type="button" class="p-1 rounded-md text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 shrink-0 -m-0.5" title="睇收據" aria-label="睇收據" onclick="event.stopPropagation(); window.viewReceipt('${item.receiptId}', '${titleSafeJs}')"><i data-lucide="image" class="w-4 h-4"></i></button>` : ''}
                 </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    <div>${formatCurrency(nativeAmount, item.currency)} ${item.currency !== homeCurrency ? '(@ ' + item.rate + ')' : ''}</div>
-                    <div class="mt-1"><span class="font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded text-[10px] text-gray-600 dark:text-gray-300">${getDetailedTime(item.date)}</span></div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                    <span class="tabular-nums">${formatCurrency(nativeAmount, item.currency)}</span>${item.currency !== homeCurrency ? ` <span class="text-gray-400">(@ ${item.rate})</span>` : ''}
                 </div>
+                <div><span class="inline-block font-mono bg-gray-100 dark:bg-gray-700/80 px-1.5 py-0.5 rounded-md text-[10px] text-gray-600 dark:text-gray-300">${getDetailedTime(item.date)}</span></div>
                 ${detailHtml}
             </div>
-        </div>
-        <div class="text-right shrink-0">
-            <div class="font-bold text-gray-800 dark:text-gray-100">${formatCurrency(homeAmount, homeCurrency)}</div>
-            <div class="flex gap-2 justify-end mt-2">
-                    <button class="btn-dup text-gray-400 hover:text-green-500" title="複製"><i data-lucide="copy" class="w-4 h-4"></i></button>
-                    <button class="btn-share text-gray-400 hover:text-blue-500"><i data-lucide="share-2" class="w-4 h-4"></i></button>
-                    <button class="btn-delete text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            <div class="flex flex-col items-end gap-1.5 shrink-0 min-w-0 sm:min-w-[6.5rem]">
+                <div class="text-lg font-bold tabular-nums tracking-tight text-gray-900 dark:text-gray-100 leading-snug text-right">${formatCurrency(homeAmount, homeCurrency)}</div>
+                <div class="flex items-center gap-0.5 -mr-1 sm:mr-0">
+                    <button type="button" class="btn-dup p-2.5 rounded-lg text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100 dark:hover:bg-gray-600/50 min-w-[44px] min-h-[44px] flex items-center justify-center" title="複製" aria-label="複製此筆支出"><i data-lucide="copy" class="w-[18px] h-[18px]"></i></button>
+                    <button type="button" class="btn-share p-2.5 rounded-lg text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-600/50 min-w-[44px] min-h-[44px] flex items-center justify-center" title="分享" aria-label="分享此筆支出"><i data-lucide="share-2" class="w-[18px] h-[18px]"></i></button>
+                    <button type="button" class="btn-delete p-2.5 rounded-lg text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-600/50 min-w-[44px] min-h-[44px] flex items-center justify-center" title="刪除" aria-label="刪除此筆支出"><i data-lucide="trash-2" class="w-[18px] h-[18px]"></i></button>
+                </div>
             </div>
         </div>
     `;
