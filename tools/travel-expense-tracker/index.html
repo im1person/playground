@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Travel Expense Tracker</title>
+    <title>旅遊記帳</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -101,7 +101,7 @@
     <header class="fixed top-0 w-full bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm z-50 p-4 border-b border-gray-100 dark:border-gray-700">
         <div class="flex justify-between items-center max-w-md mx-auto">
             <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-                Travel Tracker</h1>
+                旅遊記帳</h1>
             <div class="flex gap-2">
                 <button id="btn-export-header" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition"
                     onclick="showExportModal()">
@@ -123,7 +123,7 @@
                     <div
                         class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600">
                     </div>
-                    <span class="ms-3 text-xs font-medium text-gray-700 dark:text-gray-300">只顯示行程內 (Trip Dates Only)</span>
+                    <span class="ms-3 text-xs font-medium text-gray-700 dark:text-gray-300">只顯示行程日期內</span>
                 </label>
             </div>
 
@@ -132,10 +132,10 @@
                 <div class="bg-amber-50 dark:bg-gray-800 rounded-2xl shadow-sm border border-amber-100 dark:border-gray-700 relative overflow-hidden">
                     <div class="flex items-center justify-between px-4 pt-3 pb-2 cursor-pointer select-none" onclick="toggleNoteCollapse()">
                         <div class="flex items-center gap-1.5 text-amber-700 dark:text-amber-400 text-xs font-bold uppercase">
-                            <i data-lucide="notebook-pen" class="w-3.5 h-3.5"></i> 行程備註 (Notes)
+                            <i data-lucide="notebook-pen" class="w-3.5 h-3.5"></i> 行程備註
                         </div>
                         <div class="flex items-center gap-1.5">
-                            <button onclick="event.stopPropagation(); copyNoteToClipboard()" class="p-1 rounded hover:bg-amber-200/50 dark:hover:bg-gray-700 text-amber-500 dark:text-amber-400 hover:text-amber-700 transition" title="複製 (Copy)">
+                            <button onclick="event.stopPropagation(); copyNoteToClipboard()" class="p-1 rounded hover:bg-amber-200/50 dark:hover:bg-gray-700 text-amber-500 dark:text-amber-400 hover:text-amber-700 transition" title="複製">
                                 <i data-lucide="clipboard-copy" class="w-3.5 h-3.5"></i>
                             </button>
                             <button onclick="event.stopPropagation(); switchTab('settings')" class="text-[10px] text-amber-600 dark:text-amber-400 hover:text-amber-800 font-medium">編輯</button>
@@ -154,12 +154,12 @@
                 <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 dark:bg-blue-900/20 rounded-full -mr-10 -mt-10 opacity-50 z-0">
                 </div>
                 <div class="relative z-10">
-                    <div class="text-sm text-gray-500 dark:text-gray-400 mb-1 font-medium">總支出 (Total Expenses)</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400 mb-1 font-medium">總支出</div>
                     <div class="text-3xl font-bold text-slate-800 dark:text-gray-100" id="total-expense-display">$0</div>
 
                     <div class="mt-4">
                         <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-                            <span>預算 (Budget)</span>
+                            <span>預算</span>
                             <span id="budget-progress-text">0%</span>
                         </div>
                         <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
@@ -176,7 +176,7 @@
 
             <!-- Chart -->
             <div class="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
-                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">支出分析 (Analytics)</h3>
+                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">支出分析</h3>
                 <div class="relative h-48 w-full flex justify-center">
                     <canvas id="expenseChart"></canvas>
                 </div>
@@ -185,12 +185,12 @@
             <!-- Recent Transactions Preview -->
             <div>
                 <div class="flex justify-between items-center mb-3">
-                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">最近記錄 (Recent)</h3>
-                    <button onclick="switchTab('list')" class="text-xs text-blue-600 font-medium">查看全部</button>
+                    <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">最近紀錄</h3>
+                    <button onclick="switchTab('list')" class="text-xs text-blue-600 font-medium">睇晒全部</button>
                 </div>
                 <div id="recent-list" class="space-y-3">
                     <!-- Items will be injected here -->
-                    <div class="text-center text-gray-400 py-4 text-sm">暫無記錄</div>
+                    <div class="text-center text-gray-400 py-4 text-sm">暫無紀錄</div>
                 </div>
             </div>
 
@@ -210,7 +210,7 @@
         <!-- View: List -->
         <div id="view-list" class="hidden space-y-4 pb-24">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">支出列表 (Expenses)</h2>
+                <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">支出列表</h2>
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-medium text-gray-500 dark:text-gray-400">按天分組</span>
                     <label class="inline-flex items-center cursor-pointer">
@@ -224,7 +224,7 @@
             <!-- Search Bar -->
             <div class="relative">
                 <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
-                <input type="text" id="expense-search" placeholder="搜尋支出 (Search expenses)..."
+                <input type="text" id="expense-search" placeholder="搜尋支出、備註、找數…"
                     class="w-full pl-9 pr-8 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:text-gray-100">
                 <button id="expense-search-clear" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-300">
                     <i data-lucide="x" class="w-4 h-4"></i>
@@ -237,6 +237,7 @@
                     <button type="button" class="filter-cat-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500" data-cat="general">一般</button>
                     <button type="button" class="filter-cat-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500" data-cat="accommodation">住宿</button>
                     <button type="button" class="filter-cat-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500" data-cat="transport">交通</button>
+                    <button type="button" class="filter-cat-btn px-2.5 py-1 rounded-lg text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-600 dark:text-gray-300 dark:hover:bg-gray-500" data-cat="insurance">保險</button>
                 </div>
                 <select id="list-sort" class="text-xs py-1.5 pl-2 pr-7 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="dateDesc">日期 新→舊</option>
@@ -261,51 +262,51 @@
 
         <!-- View: Settings -->
         <div id="view-settings" class="hidden space-y-6">
-            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">設定 (Settings)</h2>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">設定</h2>
 
             <!-- Theme -->
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <i data-lucide="palette" class="w-4 h-4 text-gray-500 dark:text-gray-400"></i>
-                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">外觀 (Theme)</span>
+                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">外觀</span>
                     </div>
                     <label class="inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="setting-theme-dark" class="sr-only peer">
                         <div class="relative w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                        <span class="ms-2 text-xs text-gray-600 dark:text-gray-400">深色模式 (Dark)</span>
+                        <span class="ms-2 text-xs text-gray-600 dark:text-gray-400">深色模式</span>
                     </label>
                 </div>
             </div>
 
             <!-- Location Setting -->
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">旅遊地點 (Location)</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">旅遊地點</label>
                 <input type="text" id="setting-location"
                     class="w-full p-2 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100 mb-3"
                     placeholder="例如: 東京之旅">
 
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">時區 (Timezone)</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">時區</label>
                 <div class="relative mb-3">
                     <select id="setting-timezone"
                         class="w-full p-2 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white dark:bg-gray-700 dark:text-gray-100">
-                        <option value="">Browser Default (Auto)</option>
-                        <optgroup label="Asia">
+                        <option value="">跟瀏覽器（自動）</option>
+                        <optgroup label="亞洲">
                             <option value="Asia/Hong_Kong">🇭🇰 香港/台灣/北京 (GMT+8)</option>
                             <option value="Asia/Tokyo">🇯🇵 日本/韓國 (GMT+9)</option>
                             <option value="Asia/Bangkok">🇹🇭 泰國/越南 (GMT+7)</option>
                             <option value="Asia/Singapore">🇸🇬 新加坡/馬來西亞 (GMT+8)</option>
                             <option value="Asia/Dubai">🇦🇪 杜拜 (GMT+4)</option>
                         </optgroup>
-                        <optgroup label="Europe">
+                        <optgroup label="歐洲">
                             <option value="Europe/London">🇬🇧 英國 (GMT+0/1)</option>
                             <option value="Europe/Paris">🇪🇺 中歐 (法/德/義) (GMT+1/2)</option>
                         </optgroup>
-                        <optgroup label="America">
+                        <optgroup label="美洲">
                             <option value="America/New_York">🇺🇸 美東 (紐約) (GMT-5/4)</option>
                             <option value="America/Los_Angeles">🇺🇸 美西 (洛杉磯) (GMT-8/7)</option>
                         </optgroup>
-                        <optgroup label="Oceania">
+                        <optgroup label="大洋洲">
                             <option value="Australia/Sydney">🇦🇺 雪梨 (GMT+10/11)</option>
                         </optgroup>
                     </select>
@@ -314,7 +315,7 @@
                     </div>
                 </div>
 
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">行程日期 (Trip Dates)</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">行程日期</label>
                 <div class="flex gap-2">
                     <input type="date" id="setting-start-date"
                         class="w-full p-2 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100">
@@ -324,13 +325,43 @@
                 </div>
             </div>
 
+            <!-- Trip members (行程人選) -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="users" class="w-4 h-4 text-blue-500"></i>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">行程人選</span>
+                </div>
+                <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-2">之後「邊個找數」同現金分配會用呢個名單。</p>
+                <div id="trip-members-rows" class="space-y-2 mb-2"></div>
+                <button type="button" id="btn-trip-member-add"
+                    class="w-full py-2 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-xs text-gray-600 dark:text-gray-300 hover:border-blue-400 hover:text-blue-600">+ 新增同行人</button>
+            </div>
+
+            <!-- Cash pool（只計外幣現金） -->
+            <div id="cash-pool-settings-block" class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="wallet" class="w-4 h-4 text-yellow-600"></i>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">現金池</span>
+                </div>
+                <p class="text-[10px] text-gray-500 dark:text-gray-400 mb-2">只計<span class="font-medium text-gray-600 dark:text-gray-300">外幣</span>現金；幣別：<span id="cash-pool-currency-hint" class="font-mono">—</span></p>
+                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">總額</label>
+                <input type="number" id="setting-cash-pool-total" step="0.01" min="0"
+                    class="w-full p-2 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100 mb-3"
+                    value="0" placeholder="0">
+                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">每人分配</label>
+                <div id="cash-alloc-rows" class="space-y-2 mb-2"></div>
+                <button type="button" id="btn-cash-alloc-add"
+                    class="w-full py-2 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-xs text-gray-600 dark:text-gray-300 hover:border-blue-400 hover:text-blue-600 mb-2">+ 新增分配</button>
+                <p id="cash-alloc-warning" class="text-[10px] text-amber-600 dark:text-amber-400 hidden"></p>
+            </div>
+
             <!-- General Note -->
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         <span class="flex items-center gap-1.5">
                             <i data-lucide="notebook-pen" class="w-4 h-4 text-amber-500"></i>
-                            行程備註 (Notes)
+                            行程備註
                         </span>
                     </label>
                     <button type="button" id="note-preview-toggle" onclick="toggleNotePreview()"
@@ -341,8 +372,8 @@
                 <div id="note-edit-area">
                     <textarea id="setting-general-note" rows="4"
                         class="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 text-sm leading-relaxed font-mono resize-none overflow-hidden bg-white dark:bg-gray-700 dark:text-gray-100"
-                        placeholder="支援 Markdown 格式。行程計劃、總備忘或每日備註&#10;Supports Markdown. Travel plan, general notes, or daily notes&#10;&#10;## Day 1&#10;- 景點 A&#10;- 餐廳 B"></textarea>
-                    <div class="text-[10px] text-gray-400 mt-1">支援 Markdown：標題(#)、清單(-)、**粗體**、*斜體** 等</div>
+                        placeholder="支援 Markdown。行程計劃、總備忘或每日備註&#10;&#10;## 第 1 日&#10;- 景點 A&#10;- 餐廳 B"></textarea>
+                    <div class="text-[10px] text-gray-400 mt-1">支援 Markdown：標題（#）、清單（-）、**粗體**、*斜體* 等</div>
                 </div>
                 <div id="note-preview-area" class="hidden">
                     <div id="note-preview-content" class="note-content text-sm text-gray-700 dark:text-gray-200 leading-relaxed p-3 bg-amber-50/50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-lg min-h-[6rem]"></div>
@@ -351,7 +382,7 @@
 
             <!-- Base Currency Setting -->
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">本幣 (Home Currency)</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">本幣</label>
                 <input type="text" id="setting-home-currency"
                     class="w-full p-2 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100"
                     value="HKD">
@@ -368,12 +399,12 @@
 
             <!-- Foreign Currency Setting -->
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">外幣 (Foreign Currency)</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">外幣</label>
                 <input type="text" id="setting-foreign-currency"
                     class="w-full p-2 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100 mb-3"
-                    placeholder="e.g. JPY">
+                    placeholder="例如 JPY">
 
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">預設匯率 (Default Rate)</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">預設匯率</label>
                 <div class="flex items-center gap-2">
                     <input type="number" id="setting-exchange-rate" step="0.0001"
                         class="w-full p-2 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100"
@@ -384,7 +415,7 @@
 
             <!-- Budget Setting -->
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">總預算 (Total Budget)</label>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">總預算</label>
                 <div class="flex flex-col gap-2">
                     <input type="number" id="setting-budget"
                         class="w-full p-2 border border-gray-200 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100"
@@ -400,7 +431,7 @@
 
             <!-- Data Management -->
             <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 space-y-3">
-                <h3 class="font-medium text-gray-800 dark:text-gray-100">資料管理 (Data)</h3>
+                <h3 class="font-medium text-gray-800 dark:text-gray-100">資料管理</h3>
                 <button onclick="exportJSON()"
                     class="w-full text-left flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition">
                     <div class="bg-blue-100 dark:bg-blue-900/40 p-2 rounded-lg text-blue-600 dark:text-blue-400"><i data-lucide="file-json" class="w-5 h-5"></i></div>
@@ -414,7 +445,7 @@
                     <div class="bg-green-100 dark:bg-green-900/40 p-2 rounded-lg text-green-600 dark:text-green-400"><i data-lucide="file-spreadsheet" class="w-5 h-5"></i></div>
                     <div>
                         <div class="text-sm font-medium dark:text-gray-200">匯出 CSV</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">Excel 表格</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Excel 試算表</div>
                     </div>
                 </button>
                 <div class="relative">
@@ -522,7 +553,7 @@
                     <input type="hidden" id="entry-id">
 
                     <!-- Category Selection -->
-                    <div class="grid grid-cols-3 gap-2 mb-4">
+                    <div class="grid grid-cols-2 gap-2 mb-4">
                         <button type="button"
                             class="cat-btn p-3 rounded-xl border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 flex flex-col items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-200 transition active"
                             onclick="selectCategory('general')" data-cat="general">
@@ -538,12 +569,17 @@
                             onclick="selectCategory('transport')" data-cat="transport">
                             <i data-lucide="plane" class="w-5 h-5"></i> 交通
                         </button>
+                        <button type="button"
+                            class="cat-btn p-3 rounded-xl border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-600 dark:text-gray-300 flex flex-col items-center gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:border-blue-200 transition"
+                            onclick="selectCategory('insurance')" data-cat="insurance">
+                            <i data-lucide="shield" class="w-5 h-5"></i> 保險
+                        </button>
                     </div>
 
                     <!-- Common Fields -->
                     <div class="space-y-3">
                         <div>
-                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">標題 (Title)</label>
+                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">標題</label>
                             <input type="text" id="inp-title" required
                                 class="w-full mt-1 p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                                 placeholder="例如: 晚餐, 手信...">
@@ -551,7 +587,7 @@
                         </div>
 
                         <div>
-                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">日期 (Date) <span
+                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">日期 <span
                                     id="hint-timezone"
                                     class="text-[10px] font-normal text-blue-500 normal-case ml-1"></span></label>
                             <input type="datetime-local" id="inp-date" required
@@ -560,13 +596,13 @@
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">金額 (Amount)</label>
+                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">金額</label>
                                 <input type="number" id="inp-amount" required step="0.01"
                                     class="w-full mt-1 p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                                     placeholder="0.00">
                             </div>
                             <div>
-                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">幣別 (Currency)</label>
+                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">幣別</label>
                                 <input type="text" id="inp-currency"
                                     class="w-full mt-1 p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
                                     value="HKD">
@@ -581,7 +617,7 @@
                         </div>
 
                         <div>
-                            <label class="text-xs font-semibold text-gray-500 uppercase">付款方式 (Payment Method)</label>
+                            <label class="text-xs font-semibold text-gray-500 uppercase">付款方式</label>
                             <div class="grid grid-cols-3 gap-2 mt-1">
                                 <label class="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-xl border border-transparent has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 dark:has-[:checked]:bg-blue-900/30 cursor-pointer">
                                     <input type="radio" name="payment-method" value="cash" class="text-blue-600 focus:ring-blue-500" checked onchange="togglePaymentFields()">
@@ -614,16 +650,26 @@
                                     </div>
                                 </label>
                             </div>
+                            <!-- 邊個找數 (paidBy) -->
+                            <div id="field-paid-by-wrap" class="mt-3">
+                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400">邊個找數</label>
+                                <p id="paid-by-hint" class="text-[10px] text-gray-400 mt-0.5 mb-1"></p>
+                                <input type="hidden" id="inp-paid-by" value="">
+                                <div id="inp-paid-by-chips" class="hidden flex flex-wrap gap-2 mt-2" role="group" aria-label="邊個找數"></div>
+                                <input type="text" id="inp-paid-by-text"
+                                    class="w-full mt-1 p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-sm hidden"
+                                    placeholder="手動輸入姓名（建議去設定加行程人選）">
+                            </div>
                             <!-- IC Card Owner / E-Pay / Paid-by-other extra input -->
                             <div id="field-ic-owner" class="hidden mt-2">
                                 <input type="text" id="inp-ic-owner"
                                     class="w-full p-2 bg-teal-50 dark:bg-teal-900/30 border border-teal-100 dark:border-teal-800 rounded-lg text-sm outline-none focus:border-teal-500 text-teal-800 dark:text-teal-200 placeholder-teal-300 dark:placeholder-teal-600"
-                                    placeholder="持卡人 / 戶口名稱 (Owner / Account)">
+                                    placeholder="持卡人／戶口名稱">
                             </div>
                         </div>
 
                         <div>
-                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">匯率 (Rate)</label>
+                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">匯率</label>
                             <div class="flex items-center gap-2">
                                 <input type="number" id="inp-rate" step="0.0001"
                                     class="w-full mt-1 p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
@@ -639,18 +685,18 @@
                             <i data-lucide="hotel" class="w-4 h-4"></i> <span class="text-sm font-bold">住宿詳情</span>
                         </div>
                         <div>
-                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">地址 (Address)</label>
+                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">地址</label>
                             <input type="text" id="inp-address"
                                 class="w-full mt-1 p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">入住 (Check-in)</label>
+                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">入住</label>
                                 <input type="date" id="inp-checkin"
                                     class="w-full mt-1 p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
                             </div>
                             <div>
-                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">晚數 (Nights)</label>
+                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">晚數</label>
                                 <input type="number" id="inp-nights"
                                     class="w-full mt-1 p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
                             </div>
@@ -658,7 +704,7 @@
                         <div class="flex items-center gap-2 mt-2">
                             <input type="checkbox" id="inp-spread-cost"
                                 class="w-4 h-4 text-indigo-600 rounded border-gray-300 dark:border-gray-600 focus:ring-indigo-500">
-                            <label for="inp-spread-cost" class="text-sm text-gray-600 dark:text-gray-300">平均分攤到入住日 (Spread Cost per Night)</label>
+                            <label for="inp-spread-cost" class="text-sm text-gray-600 dark:text-gray-300">平均分攤到每晚</label>
                         </div>
                     </div>
 
@@ -669,35 +715,35 @@
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">航班號 (Flight No)</label>
+                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">航班編號</label>
                                 <input type="text" id="inp-flight-no"
                                     class="w-full mt-1 p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border-none rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
                             </div>
                             <div>
-                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">航空公司 (Airline)</label>
+                                <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">航空公司</label>
                                 <input type="text" id="inp-airline"
                                     class="w-full mt-1 p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border-none rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
                             </div>
                         </div>
                         <div>
-                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">時間 (Departure Time)</label>
+                            <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">出發時間</label>
                             <input type="datetime-local" id="inp-departure"
                                 class="w-full mt-1 p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border-none rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
                         </div>
                     </div>
 
                     <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">備註 (Notes)</label>
+                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">備註</label>
                         <textarea id="inp-note" rows="2"
                             class="w-full mt-1 p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-100 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none placeholder-gray-300 dark:placeholder-gray-500 text-sm"
-                            placeholder="例如: 於 1/15 預購 (Purchased on 1/15)..."></textarea>
+                            placeholder="例如：1/15 預購…"></textarea>
                     </div>
 
                     <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">收據 (Receipt)</label>
+                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">收據</label>
                         <div id="receipt-preview-container" class="mt-2 hidden">
                             <img id="receipt-preview" class="w-full rounded-xl border border-gray-200 dark:border-gray-600 shadow-sm mb-2 max-h-48 object-cover">
-                            <button type="button" onclick="removeReceipt()" class="text-xs text-red-500 font-medium">移除相片 (Remove Photo)</button>
+                            <button type="button" onclick="removeReceipt()" class="text-xs text-red-500 font-medium">移除相片</button>
                         </div>
                         <div id="receipt-upload-btn" class="mt-2 flex gap-2">
                             <button type="button" onclick="document.getElementById('inp-receipt-camera').click()" 
@@ -715,8 +761,7 @@
 
                     <div class="pt-6">
                         <button type="submit"
-                            class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 active:scale-[0.98] transition">儲存
-                            (Save)</button>
+                            class="w-full py-4 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 active:scale-[0.98] transition">儲存</button>
                     </div>
                 </form>
             </div>
@@ -726,18 +771,18 @@
     <!-- View: Trip Selection -->
     <div id="view-trip-select" class="hidden absolute inset-0 bg-gray-50 dark:bg-gray-900 z-[60] p-6 overflow-y-auto">
         <div class="max-w-md mx-auto space-y-6">
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">My Trips</h2>
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">我嘅行程</h2>
             <div id="trip-list-container" class="space-y-3">
                 <!-- Trips injected here -->
             </div>
             <button onclick="createNewTrip()"
                 class="w-full py-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-500 dark:text-gray-400 font-medium hover:border-blue-500 hover:text-blue-500 transition">
-                + Create New Trip
+                + 新增行程
             </button>
             <button
                 onclick="document.getElementById('view-trip-select').classList.add('hidden'); document.getElementById('view-dashboard').classList.remove('hidden');"
                 class="w-full py-3 text-gray-400 dark:text-gray-500 font-sm">
-                Cancel
+                返回
             </button>
         </div>
     </div>

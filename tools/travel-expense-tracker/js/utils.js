@@ -1,7 +1,15 @@
 // Utils (Global)
+
+/** 現金池只跟外幣現金；未設定外幣則無現金池幣別（唔計本幣現金） */
+export function getCashPoolCurrencyCode(settings) {
+    if (!settings) return '';
+    const f = settings.foreignCurrency && String(settings.foreignCurrency).trim();
+    return f || '';
+}
+
 export function formatCurrency(num, curr) {
     try {
-        return new Intl.NumberFormat('zh-TW', { style: 'currency', currency: curr }).format(num);
+        return new Intl.NumberFormat('zh-Hant-HK', { style: 'currency', currency: curr }).format(num);
     } catch (e) {
         return `${curr} ${parseFloat(num).toFixed(2)}`;
     }
@@ -33,7 +41,7 @@ export function getDetailedTime(isoStr) {
         const tz = store?.activeTrip?.settings?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         // Format: "1/26(週一) 14:30"
-        return new Date(isoStr).toLocaleString('zh-TW', {
+        return new Date(isoStr).toLocaleString('zh-Hant-HK', {
             timeZone: tz,
             month: 'numeric',
             day: 'numeric',

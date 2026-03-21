@@ -1,6 +1,6 @@
 // Dashboard Module
 import { store } from './store.js';
-import { formatCurrency, getTripDate } from './utils.js';
+import { formatCurrency, getTripDate, getCashPoolCurrencyCode } from './utils.js';
 import { createItemElement } from './ui.js';
 
 let expenseChart = null;
@@ -28,7 +28,7 @@ function initChart() {
             labels: [],
             datasets: [{
                 data: [],
-                backgroundColor: ['#2563eb', '#6366f1', '#14b8a6', '#f59e0b', '#ef4444'],
+                backgroundColor: ['#2563eb', '#6366f1', '#14b8a6', '#f43f5e'],
                 borderWidth: 0
             }]
         },
@@ -49,7 +49,7 @@ export function renderDashboard() {
 
     // Header
     const titleEl = document.querySelector('header h1');
-    if (titleEl) titleEl.textContent = trip.settings.location || 'Travel Tracker';
+    if (titleEl) titleEl.textContent = trip.settings.location || '旅遊記帳';
 
     // Date Filtering Logic
     const hasDates = trip.settings.startDate && trip.settings.endDate;
@@ -150,6 +150,7 @@ export function renderDashboard() {
     renderPaymentBreakdown(cashTotal, cardTotal, currency);
     renderCurrencyBreakdown(displayExpenses, currency);
     renderStatsSummary(displayExpenses, currency, trip.settings);
+    renderCashPoolSummary(displayExpenses, trip.settings);
 
     // Lists & Charts
     renderRecentList(displayExpenses, currency);
@@ -171,14 +172,14 @@ function renderPaymentBreakdown(cash, card, currency) {
         <div class="flex items-center gap-1.5 px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border border-yellow-100 dark:border-yellow-800">
             <i data-lucide="coins" class="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400"></i>
             <div class="flex flex-col leading-none">
-                    <span class="text-[10px] text-yellow-600 dark:text-yellow-400 font-bold uppercase">現金 (Cash)</span>
+                    <span class="text-[10px] text-yellow-600 dark:text-yellow-400 font-bold uppercase">現金</span>
                     <span class="text-xs font-bold text-yellow-700 dark:text-yellow-300">${formatCurrency(cash, currency)}</span>
             </div>
         </div>
         <div class="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border border-indigo-100 dark:border-indigo-800">
             <i data-lucide="credit-card" class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400"></i>
             <div class="flex flex-col leading-none">
-                    <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase">其他 (Other)</span>
+                    <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase">非現金</span>
                     <span class="text-xs font-bold text-indigo-700 dark:text-indigo-300">${formatCurrency(card, currency)}</span>
             </div>
         </div>
@@ -227,20 +228,20 @@ function renderStatsSummary(dataList, currency, settings) {
     el.innerHTML = `
         <div class="flex items-center gap-1.5 mb-3">
             <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400"></i>
-            <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">統計摘要 (Stats)</h3>
+            <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">統計摘要</h3>
         </div>
         <div class="grid grid-cols-3 gap-3 text-center">
             <div>
                 <div class="text-lg font-bold text-gray-800 dark:text-gray-100">${dataList.length}</div>
-                <div class="text-[10px] text-gray-500 dark:text-gray-400">筆數 (Items)</div>
+                <div class="text-[10px] text-gray-500 dark:text-gray-400">筆數</div>
             </div>
             <div>
                 <div class="text-lg font-bold text-gray-800 dark:text-gray-100">${formatCurrency(avgPerDay, currency)}</div>
-                <div class="text-[10px] text-gray-500 dark:text-gray-400">日均 (Avg/Day)</div>
+                <div class="text-[10px] text-gray-500 dark:text-gray-400">日均開支</div>
             </div>
             <div>
                 <div class="text-lg font-bold text-gray-800 dark:text-gray-100">${formatCurrency(max, currency)}</div>
-                <div class="text-[10px] text-gray-500 dark:text-gray-400 truncate" title="${maxItem?.title || ''}">最高 (Max)</div>
+                <div class="text-[10px] text-gray-500 dark:text-gray-400 truncate" title="${maxItem?.title || ''}">單筆最高</div>
             </div>
         </div>
     `;
@@ -294,22 +295,92 @@ function renderCurrencyBreakdown(dataList, homeCurrency) {
     el.innerHTML = `
         <div class="flex items-center gap-1.5 mb-2">
             <i data-lucide="coins" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400"></i>
-            <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">各幣別支出 (By Currency)</h3>
+            <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">各幣別支出</h3>
         </div>
         ${items}
     `;
     if (window.lucide) lucide.createIcons();
 }
 
+function escHtml(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+}
+
 // ... Charts related functions ...
+function renderCashPoolSummary(displayExpenses, settings) {
+    const poolCode = getCashPoolCurrencyCode(settings);
+    const poolTotal = parseFloat(settings.cashPoolTotal) || 0;
+    const allocs = Array.isArray(settings.cashAllocations) ? settings.cashAllocations : [];
+
+    let el = document.getElementById('cash-pool-summary');
+    if (!poolCode) {
+        if (el) el.classList.add('hidden');
+        return;
+    }
+
+    const cashSpentNative = displayExpenses
+        .filter(i => i.paymentMethod === 'cash' && String(i.currency || '').trim() === poolCode)
+        .reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
+
+    const poolRemaining = poolTotal - cashSpentNative;
+
+    const show = poolTotal > 0 || allocs.length > 0;
+    const anchor = document.getElementById('currency-breakdown') || document.getElementById('stats-summary');
+    const summaryCard = document.getElementById('total-expense-display')?.closest('.rounded-2xl');
+    if (!summaryCard?.parentElement) return;
+
+    if (!show) {
+        if (el) el.classList.add('hidden');
+        return;
+    }
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'cash-pool-summary';
+        el.className = 'bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700';
+        if (anchor) anchor.parentElement.insertBefore(el, anchor.nextSibling);
+        else summaryCard.parentElement.insertBefore(el, summaryCard.nextSibling);
+    }
+    el.classList.remove('hidden');
+
+    const memberRows = allocs.map(a => {
+        const name = a.memberName || '';
+        const alloc = parseFloat(a.amount) || 0;
+        const spent = displayExpenses
+            .filter(i => i.paymentMethod === 'cash' && String(i.currency || '').trim() === poolCode && (i.paidBy || '') === name)
+            .reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
+        const rem = alloc - spent;
+        return `<div class="flex justify-between text-xs py-1 border-b border-gray-50 dark:border-gray-700 last:border-0">
+            <span class="text-gray-600 dark:text-gray-300">${name ? escHtml(name) : '—'}</span>
+            <span class="font-mono text-gray-800 dark:text-gray-100">分配 ${formatCurrency(alloc, poolCode)} · 仲剩 ${formatCurrency(rem, poolCode)}</span>
+        </div>`;
+    }).join('');
+
+    el.innerHTML = `
+        <div class="flex items-center gap-1.5 mb-2">
+            <i data-lucide="wallet" class="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400"></i>
+            <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">現金池（${poolCode}）</h3>
+        </div>
+        <div class="flex justify-between text-sm mb-2">
+            <span class="text-gray-600 dark:text-gray-300">總額</span>
+            <span class="font-bold">${formatCurrency(poolTotal, poolCode)}</span>
+        </div>
+        <div class="flex justify-between text-sm mb-2">
+            <span class="text-gray-600 dark:text-gray-300">總池剩餘（估算）</span>
+            <span class="font-bold text-yellow-700 dark:text-yellow-300">${formatCurrency(poolRemaining, poolCode)}</span>
+        </div>
+        ${memberRows ? `<div class="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700"><div class="text-[10px] text-gray-400 mb-1">每人分配 · 仲剩幾多</div>${memberRows}</div>` : ''}
+    `;
+    if (window.lucide) lucide.createIcons();
+}
+
 function updateExpenseChart(dataList) {
     if (!expenseChart) return;
-    const categories = { 'general': 0, 'accommodation': 0, 'transport': 0 };
+    const categories = { 'general': 0, 'accommodation': 0, 'transport': 0, 'insurance': 0 };
     dataList.forEach(item => {
         const amount = parseFloat(item.amount) * (parseFloat(item.rate) || 1);
         categories[item.category] = (categories[item.category] || 0) + amount;
     });
-    const labels = { general: '一般', accommodation: '住宿', transport: '交通' };
+    const labels = { general: '一般', accommodation: '住宿', transport: '交通', insurance: '保險' };
     expenseChart.data.labels = Object.keys(categories).map(k => labels[k]);
     expenseChart.data.datasets[0].data = Object.values(categories);
     expenseChart.update();
@@ -327,7 +398,7 @@ function renderDailyChart(dataList, settings) {
         container.id = 'daily-chart-container';
         container.className = 'bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700';
         container.innerHTML = `
-            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4">每日支出 (Daily)</h3>
+            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-4">每日支出</h3>
             <div class="relative h-48 w-full flex justify-center">
                 <canvas id="dailyChart"></canvas>
             </div>
@@ -373,7 +444,7 @@ function renderDailyChart(dataList, settings) {
             type: 'bar',
             data: {
                 labels: labels,
-                datasets: [{ label: 'Daily', data: dataPoints, backgroundColor: '#60a5fa', borderRadius: 4 }]
+                datasets: [{ label: '本幣', data: dataPoints, backgroundColor: '#60a5fa', borderRadius: 4 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
@@ -388,7 +459,7 @@ export function renderRecentList(dataList, currency) {
     const list = document.getElementById('recent-list');
     if (!list) return;
     const recent = [...dataList].reverse().slice(0, 3);
-    list.innerHTML = recent.length ? '' : '<div class="text-center text-gray-400 py-4 text-sm">暫無記錄</div>';
+    list.innerHTML = recent.length ? '' : '<div class="text-center text-gray-400 py-4 text-sm">暫無紀錄</div>';
     recent.forEach(item => list.appendChild(createItemElement(item, currency)));
 }
 

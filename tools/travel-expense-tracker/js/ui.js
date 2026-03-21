@@ -6,6 +6,51 @@ import { getReceipt } from './db.js';
 let currentCategory = 'general';
 let selectedReceiptBlob = null;
 
+export function getCurrentCategory() {
+    return currentCategory;
+}
+
+function escapeHtml(s) {
+    if (!s) return '';
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+
+function escapeAttr(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+const PAID_BY_CHIP_BASE = 'paid-by-chip px-3 py-1.5 rounded-full text-xs font-medium transition border shrink-0';
+const PAID_BY_CHIP_ON = 'bg-blue-600 text-white border-blue-600 shadow-sm dark:bg-blue-500';
+const PAID_BY_CHIP_OFF = 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600';
+
+function paidByChipClass(selected) {
+    return `${PAID_BY_CHIP_BASE} ${selected ? PAID_BY_CHIP_ON : PAID_BY_CHIP_OFF}`;
+}
+
+function initPaidByChipClicks() {
+    const wrap = document.getElementById('field-paid-by-wrap');
+    if (!wrap || wrap.dataset.paidByBound) return;
+    wrap.dataset.paidByBound = '1';
+    wrap.addEventListener('click', (e) => {
+        const btn = e.target.closest('button.paid-by-chip');
+        if (!btn) return;
+        e.preventDefault();
+        const name = btn.dataset.name ?? '';
+        const hidden = document.getElementById('inp-paid-by');
+        if (hidden) hidden.value = name;
+        const container = document.getElementById('inp-paid-by-chips');
+        if (!container) return;
+        container.querySelectorAll('.paid-by-chip').forEach(b => {
+            const on = (b.dataset.name ?? '') === name;
+            b.className = paidByChipClass(on);
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+    });
+}
+initPaidByChipClicks();
+
 const TITLE_PRESETS = {
     general: [
         { label: '早餐', icon: '🌅' },
@@ -44,6 +89,12 @@ const TITLE_PRESETS = {
         { label: '青旅', icon: '🛏️' },
         { label: '溫泉旅館', icon: '♨️' },
     ],
+    insurance: [
+        { label: '旅遊保險', icon: '🛡️' },
+        { label: '醫療保險', icon: '🏥' },
+        { label: '租車保險', icon: '🚗' },
+        { label: '航班保險', icon: '✈️' },
+    ],
 };
 
 function renderTitlePresets(cat) {
@@ -78,7 +129,69 @@ export function selectCategory(cat) {
     document.getElementById('fields-transport').classList.add('hidden');
     if (cat === 'accommodation') document.getElementById('fields-accommodation').classList.remove('hidden');
     else if (cat === 'transport') document.getElementById('fields-transport').classList.remove('hidden');
+    // insurance: 無額外區塊
     renderTitlePresets(cat);
+}
+
+export function populatePaidByFields(paidByValue = '') {
+    const settings = store.activeTrip?.settings || {};
+    const members = Array.isArray(settings.tripMembers) ? settings.tripMembers.filter(m => m && String(m).trim()) : [];
+    const hidden = document.getElementById('inp-paid-by');
+    const chips = document.getElementById('inp-paid-by-chips');
+    const text = document.getElementById('inp-paid-by-text');
+    if (!hidden || !chips || !text) return;
+
+    const v = paidByValue || '';
+    hidden.value = v;
+
+    const chipsHtml = [];
+    const noneSelected = !v;
+    chipsHtml.push(`<button type="button" class="${paidByChipClass(noneSelected)}" data-name="" aria-pressed="${noneSelected}">唔揀</button>`);
+    members.forEach(m => {
+        const on = v === m;
+        chipsHtml.push(`<button type="button" class="${paidByChipClass(on)}" data-name="${escapeAttr(m)}" aria-pressed="${on}">${escapeHtml(m)}</button>`);
+    });
+    if (v && !members.includes(v)) {
+        chipsHtml.push(`<button type="button" class="${paidByChipClass(true)}" data-name="${escapeAttr(v)}" aria-pressed="true">${escapeHtml(v)}（舊紀錄）</button>`);
+    }
+
+    if (members.length > 0 || (v && !members.includes(v))) {
+        chips.innerHTML = chipsHtml.join('');
+        chips.classList.remove('hidden');
+        text.classList.add('hidden');
+    } else {
+        chips.classList.add('hidden');
+        chips.innerHTML = '';
+        text.classList.remove('hidden');
+        text.value = v;
+    }
+    updatePaidByHint();
+    if (window.lucide) lucide.createIcons();
+}
+
+function updatePaidByHint() {
+    const hint = document.getElementById('paid-by-hint');
+    if (!hint) return;
+    const method = document.querySelector('input[name="payment-method"]:checked')?.value;
+    const foreign = (store.activeTrip?.settings?.foreignCurrency || '').trim();
+    if (method === 'cash') {
+        if (foreign) {
+            hint.textContent = `外幣（${foreign}）現金會跟現金池扣；揀邊個人頭。本幣現金唔計池。`;
+        } else {
+            hint.textContent = '現金池只計外幣現金；請先喺設定填「外幣」。本幣現金唔會入池。';
+        }
+    } else {
+        hint.textContent = '記低邊個找數（唔扣現金池各人剩餘）';
+    }
+}
+
+export function getPaidByFromForm() {
+    const chips = document.getElementById('inp-paid-by-chips');
+    const hidden = document.getElementById('inp-paid-by');
+    const text = document.getElementById('inp-paid-by-text');
+    if (chips && !chips.classList.contains('hidden') && hidden) return (hidden.value || '').trim();
+    if (text && !text.classList.contains('hidden')) return (text.value || '').trim();
+    return '';
 }
 
 export async function openAddModal(id = null) {
@@ -106,7 +219,7 @@ export async function openAddModal(id = null) {
     // Show device timezone hint
     const offset = -new Date().getTimezoneOffset() / 60;
     const sign = offset >= 0 ? '+' : '';
-    document.getElementById('hint-timezone').textContent = `(Device Time: GMT${sign}${offset})`;
+    document.getElementById('hint-timezone').textContent = `（裝置時間 GMT${sign}${offset}）`;
 
     const now = new Date();
     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -119,6 +232,7 @@ export async function openAddModal(id = null) {
     document.getElementById('inp-note').value = '';
     document.getElementById('inp-ic-owner').value = '';
     togglePaymentFields(); // Reset visibility
+    populatePaidByFields('');
 
     // Check if Edit
     if (id && typeof id === 'string' && store.activeTrip) {
@@ -149,6 +263,7 @@ export async function openAddModal(id = null) {
             document.getElementById('inp-departure').value = item.departure || '';
             document.getElementById('inp-ic-owner').value = item.icOwner || '';
             togglePaymentFields(); // Update visibility based on loaded item
+            populatePaidByFields(item.paidBy || '');
 
             // Load Receipt
             if (item.receiptId) {
@@ -176,6 +291,7 @@ export async function openAddModal(id = null) {
     setTimeout(() => {
         modalForm.classList.remove('opacity-0');
         document.getElementById('modal-content').classList.remove('translate-y-full');
+        if (window.lucide) lucide.createIcons();
     }, 10);
 }
 
@@ -212,9 +328,10 @@ export function togglePaymentFields() {
     const showOwner = ['ic_card', 'e_pay', 'paid_other'].includes(method);
     icField.classList.toggle('hidden', !showOwner);
     const ownerInput = document.getElementById('inp-ic-owner');
-    if (method === 'ic_card') ownerInput.placeholder = '持卡人 (Card Owner)';
-    else if (method === 'e_pay') ownerInput.placeholder = '戶口 / 平台 (Account / Platform)';
-    else if (method === 'paid_other') ownerInput.placeholder = '代付人 (Paid by)';
+    if (method === 'ic_card') ownerInput.placeholder = '持卡人姓名';
+    else if (method === 'e_pay') ownerInput.placeholder = '戶口／平台名稱';
+    else if (method === 'paid_other') ownerInput.placeholder = '代付人姓名';
+    updatePaidByHint();
 }
 window.togglePaymentFields = togglePaymentFields;
 
@@ -245,7 +362,7 @@ function showReceiptPreview(url) {
         container.classList.remove('hidden');
         
         // Add click listener to open lightbox
-        img.onclick = () => openLightbox(url, '收據預覽 (Receipt)');
+        img.onclick = () => openLightbox(url, '收據預覽');
         img.classList.add('cursor-zoom-in');
     }
 }
@@ -291,6 +408,7 @@ export function createItemElement(item, homeCurrency) {
     let iconColor = 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
     if (item.category === 'accommodation') { iconName = 'hotel'; iconColor = 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400'; }
     if (item.category === 'transport') { iconName = 'plane'; iconColor = 'bg-teal-100 dark:bg-teal-900/40 text-teal-600 dark:text-teal-400'; }
+    if (item.category === 'insurance') { iconName = 'shield'; iconColor = 'bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400'; }
 
     let detailHtml = '';
     // Payment Method Badge
@@ -312,6 +430,10 @@ export function createItemElement(item, homeCurrency) {
         default:
             paymentBadge = '<span class="text-[10px] bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded ml-2">碌卡</span>';
     }
+
+    const paidByTag = item.paidBy
+        ? `<span class="text-[10px] bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 px-1.5 py-0.5 rounded ml-1">找數：${escapeHtml(item.paidBy)}</span>`
+        : '';
 
     if (item.category === 'accommodation' && item.checkin) {
         const checkinDate = new Date(item.checkin);
@@ -335,8 +457,8 @@ export function createItemElement(item, homeCurrency) {
                 <i data-lucide="${iconName}" class="w-5 h-5"></i>
             </div>
             <div class="min-w-0">
-                <div class="font-bold text-gray-800 dark:text-gray-100 truncate flex items-center">
-                    ${item.title} ${paymentBadge} 
+                <div class="font-bold text-gray-800 dark:text-gray-100 truncate flex items-center flex-wrap gap-y-1">
+                    ${item.title} ${paymentBadge} ${paidByTag}
                     ${item.receiptId ? `<i data-lucide="image" class="w-3.5 h-3.5 text-blue-500 ml-1 cursor-pointer hover:scale-110 transition" onclick="event.stopPropagation(); window.viewReceipt('${item.receiptId}', '${item.title.replace(/'/g, "\\'")}')"></i>` : ''}
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -349,7 +471,7 @@ export function createItemElement(item, homeCurrency) {
         <div class="text-right shrink-0">
             <div class="font-bold text-gray-800 dark:text-gray-100">${formatCurrency(homeAmount, homeCurrency)}</div>
             <div class="flex gap-2 justify-end mt-2">
-                    <button class="btn-dup text-gray-400 hover:text-green-500" title="複製 (Duplicate)"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                    <button class="btn-dup text-gray-400 hover:text-green-500" title="複製"><i data-lucide="copy" class="w-4 h-4"></i></button>
                     <button class="btn-share text-gray-400 hover:text-blue-500"><i data-lucide="share-2" class="w-4 h-4"></i></button>
                     <button class="btn-delete text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
             </div>
@@ -458,7 +580,7 @@ export function renderFullList(dataList, currency, sortOrder = 'dateDesc') {
                 const diffTime = d2 - d1;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 const dayNum = diffDays + 1;
-                dayLabel = `Day ${dayNum} <span class="font-normal text-xs text-gray-400">(${dateKey})</span>`;
+                dayLabel = `第 ${dayNum} 日 <span class="font-normal text-xs text-gray-400">（${dateKey}）</span>`;
             }
 
             // Stats Construction
@@ -526,7 +648,7 @@ export function renderTripList() {
         infoDiv.className = 'flex-1 cursor-pointer';
         infoDiv.innerHTML = `
             <div class="font-bold text-gray-800 dark:text-gray-100">${trip.name}</div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">${trip.expenses.length} Records</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">${trip.expenses.length} 筆紀錄</div>
         `;
         infoDiv.onclick = () => {
             store.switchTrip(trip.id);
@@ -545,7 +667,7 @@ export function renderTripList() {
             delBtn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>';
             delBtn.onclick = (e) => {
                 e.stopPropagation();
-                if (confirm(`刪除行程「${trip.name}」？呢個操作無法復原。\nDelete trip "${trip.name}"? This cannot be undone.`)) {
+                if (confirm(`刪除行程「${trip.name}」？呢個操作無法復原。`)) {
                     store.deleteTrip(trip.id);
                     renderTripList();
                 }
