@@ -15,7 +15,10 @@ const DEFAULT_TRIP = {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         filterDateRange: false,
         theme: 'light',
-        generalNote: ''
+        generalNote: '',
+        tripMembers: [],
+        cashPoolTotal: 0,
+        cashAllocations: []
     },
     expenses: []
 };
@@ -47,7 +50,7 @@ export class Store {
                 try {
                     const parsed = JSON.parse(oldData);
                     // Convert old format to new trip
-                    const newTrip = { ...DEFAULT_TRIP, id: Date.now().toString(), name: parsed.settings.location || 'Imported Trip', ...parsed };
+                    const newTrip = { ...DEFAULT_TRIP, id: Date.now().toString(), name: parsed.settings.location || '匯入嘅行程', ...parsed };
                     this.data.trips.push(newTrip);
                     this.data.activeTripId = newTrip.id;
                     this.save();
@@ -64,6 +67,26 @@ export class Store {
         if (!this.data.activeTripId && this.data.trips.length > 0) {
             this.data.activeTripId = this.data.trips[0].id;
         }
+
+        // Merge new settings keys for older saved data
+        let migrated = false;
+        const defS = DEFAULT_TRIP.settings;
+        this.data.trips.forEach(trip => {
+            trip.settings = { ...defS, ...trip.settings };
+            if (!Array.isArray(trip.settings.tripMembers)) {
+                trip.settings.tripMembers = [];
+                migrated = true;
+            }
+            if (typeof trip.settings.cashPoolTotal !== 'number') {
+                trip.settings.cashPoolTotal = parseFloat(trip.settings.cashPoolTotal) || 0;
+                migrated = true;
+            }
+            if (!Array.isArray(trip.settings.cashAllocations)) {
+                trip.settings.cashAllocations = [];
+                migrated = true;
+            }
+        });
+        if (migrated) this.save();
     }
 
     save() {
@@ -143,4 +166,5 @@ export class Store {
 
 // Global Store Instance
 export const store = new Store();
+if (typeof window !== 'undefined') window.store = store;
 

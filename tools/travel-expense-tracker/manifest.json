@@ -1,7 +1,7 @@
 {
-  "name": "Travel Expense Tracker",
-  "short_name": "Travel Tracker",
-  "description": "Offline-first travel expense tracker with multi-currency support and budget management.",
+  "name": "旅遊記帳",
+  "short_name": "旅遊記帳",
+  "description": "離線優先嘅旅遊支出記帳，支援多幣別同預算。",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
