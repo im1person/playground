@@ -1,0 +1,1669 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="屋企數簿">
+  <link rel="apple-touch-icon" href="icon-512.png">
+  <title>記帳</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #10223a;
+      --muted: #5f6f82;
+      --primary: #2164f3;
+      --primary-press: #144cc3;
+      --danger: #ea4335;
+      --danger-press: #be2e22;
+      --ok: #18a856;
+      --ok-press: #118043;
+      --border: #d9e2ef;
+      --shadow: 0 8px 24px rgba(16, 34, 58, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: Arial, "Noto Sans TC", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: min(100%, 560px);
+      min-height: 100dvh;
+      padding: 10px 16px 76px;
+    }
+
+    .view {
+      display: none;
+      gap: 10px;
+    }
+
+    .view.active {
+      display: grid;
+    }
+
+    .display {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 12px 16px;
+    }
+
+    .display-label {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .amount-text {
+      margin: 0;
+      font-size: clamp(2.2rem, 9vw, 3.5rem);
+      line-height: 1.1;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      word-break: break-all;
+    }
+
+    .selected-category {
+      margin-top: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary);
+      min-height: 1.4em;
+    }
+
+    .hint {
+      margin: 0 0 -4px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 800;
+      transition: transform 0.08s ease, filter 0.08s ease, box-shadow 0.08s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+      filter: brightness(0.95);
+    }
+
+    .btn:focus-visible {
+      outline: 3px solid #8bb2ff;
+      outline-offset: 2px;
+    }
+
+    .category-btn {
+      background: var(--card);
+      border: 2px solid var(--border);
+      color: var(--text);
+      min-height: 68px;
+      min-width: 0;
+      padding: 8px 4px;
+      display: grid;
+      gap: 2px;
+      justify-items: center;
+      align-content: center;
+      font-size: 0.82rem;
+    }
+
+    #view-entry .display-label {
+      display: none;
+    }
+
+    .entry-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .entry-meta-row--category .selected-category {
+      margin-top: 0;
+      width: 100%;
+      min-height: 1.2em;
+      font-size: 0.92rem;
+    }
+
+    .payment-status-group {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .payment-status-btn {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      background: #f8fbff;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    .payment-status-btn.active-paid {
+      border-color: var(--ok);
+      background: #e8f8ee;
+      color: #0d6e36;
+    }
+
+    .payment-status-btn.active-unpaid {
+      border-color: var(--danger);
+      background: #fdecea;
+      color: #b3261e;
+    }
+
+    .entry-meta-row--dates {
+      align-items: flex-start;
+    }
+
+    .entry-dates-stack {
+      flex: 1;
+      min-width: 0;
+      display: grid;
+      gap: 6px;
+    }
+
+    .entry-dynamic-label,
+    .due-date-label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .month-picker,
+    .entry-date-input {
+      width: 100%;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 4px 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+    }
+
+    .entry-date-input {
+      font-size: 0.9rem;
+    }
+
+    .entry-date-input--full {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .due-date-container {
+      display: none;
+      margin-top: 2px;
+      gap: 4px;
+    }
+
+    .due-date-container.is-visible {
+      display: grid;
+    }
+
+    .category-btn .emoji {
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .category-btn.active {
+      border-color: var(--primary);
+      background: #e9f1ff;
+      color: #123d92;
+      box-shadow: 0 6px 14px rgba(33, 100, 243, 0.22);
+    }
+
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .keypad.disabled {
+      opacity: 0.4;
+      filter: grayscale(100%);
+      pointer-events: none;
+    }
+
+    .key-btn {
+      min-height: 60px;
+      font-size: 2rem;
+      background: #ffffff;
+      border: 2px solid var(--border);
+      color: var(--text);
+    }
+
+    .key-btn.function-clear {
+      background: var(--danger);
+      color: #fff;
+      font-size: 1.15rem;
+      border: 2px solid transparent;
+    }
+
+    .key-btn.function-clear:active {
+      background: var(--danger-press);
+    }
+
+    .key-btn.function-submit {
+      background: var(--ok);
+      color: #fff;
+      font-size: 1.15rem;
+      border: 2px solid transparent;
+      grid-column: span 2;
+    }
+
+    .key-btn.function-equal {
+      background: #2563eb;
+      color: #fff;
+      font-size: 1.2rem;
+      border: 2px solid transparent;
+    }
+
+    .key-btn.function-submit:active {
+      background: var(--ok-press);
+    }
+
+    .status {
+      min-height: 1.2em;
+      margin: 0;
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .status.error { color: var(--danger); }
+    .status.success { color: var(--ok); }
+
+    .history-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .history-group {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 8px;
+    }
+
+    .history-group-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e6edf7;
+      margin-bottom: 2px;
+    }
+
+    .history-group-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: #123d92;
+    }
+
+    .history-group-subtotal {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #1348b2;
+      white-space: nowrap;
+    }
+
+    .history-item {
+      display: grid;
+      gap: 6px;
+      background: #f8fbff;
+      border: 1px solid #dbe7f7;
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .history-unpaid-banner {
+      margin-top: 2px;
+    }
+
+    .history-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .history-main {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .history-emoji {
+      font-size: 1.5rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .history-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+    }
+
+    .history-date {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .history-amount {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #1348b2;
+      white-space: nowrap;
+    }
+
+    .paid-tag {
+      display: inline-block;
+      background: #eef3fa;
+      border: 1px solid #ccd9ec;
+      color: #3d5066;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .delete-btn {
+      border: 2px solid #f2bbb6;
+      background: #fff3f2;
+      color: #b1261a;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .delete-btn:active {
+      transform: scale(0.97);
+      background: #fce3e0;
+    }
+
+    .undo-btn {
+      border: 2px solid #fbd38d;
+      background: #fffaf0;
+      color: #dd6b20;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .undo-btn:active {
+      transform: scale(0.97);
+    }
+
+    .history-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .unpaid-warning {
+      display: inline-block;
+      width: 100%;
+      max-width: 100%;
+      background: #fde8e8;
+      border: 2px solid #ea4335;
+      color: #9b1c1c;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      line-height: 1.3;
+      box-shadow: 0 2px 6px rgba(234, 67, 53, 0.15);
+    }
+
+    .mark-paid-btn {
+      border: 2px solid #8fcd9f;
+      background: #e8f8ee;
+      color: #0d6e36;
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .mark-paid-btn:active {
+      transform: scale(0.97);
+      background: #d4f0dc;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px 12px;
+      color: var(--muted);
+      font-size: 1.05rem;
+      font-weight: 700;
+      background: var(--card);
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+    }
+
+    .clear-all-wrap {
+      margin-top: 8px;
+    }
+
+    .clear-all-btn {
+      width: 100%;
+      border: 2px solid #f2bbb6;
+      background: #fff3f2;
+      color: #b1261a;
+      border-radius: 12px;
+      padding: 12px 10px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .clear-all-btn:active {
+      transform: scale(0.98);
+      background: #fce3e0;
+    }
+
+    .settings-add-card {
+      display: grid;
+      gap: 10px;
+    }
+
+    .settings-section-title {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #123d92;
+    }
+
+    .settings-form-row {
+      display: grid;
+      gap: 4px;
+    }
+
+    .settings-text-input {
+      width: 100%;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+    }
+
+    @keyframes settings-input-flash {
+      0% { box-shadow: 0 0 0 0 rgba(33, 100, 243, 0.45); }
+      100% { box-shadow: 0 0 0 6px rgba(33, 100, 243, 0); }
+    }
+
+    .settings-text-input.flash-ring {
+      animation: settings-input-flash 0.4s ease-out;
+    }
+
+    .emoji-quick-hint {
+      margin: 0 0 4px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .emoji-quick-pick {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .quick-emoji-btn {
+      font-family: inherit;
+      line-height: 1;
+      background: #f8fbff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: transform 0.1s ease, filter 0.1s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .quick-emoji-btn:active {
+      transform: scale(0.9);
+    }
+
+    .settings-form-actions {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .settings-form-actions .settings-add-btn {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .settings-add-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .settings-add-btn:active {
+      background: var(--primary-press);
+    }
+
+    .settings-cancel-edit-btn {
+      flex-shrink: 0;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 800;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .settings-cancel-edit-btn:active {
+      filter: brightness(0.96);
+    }
+
+    .settings-status {
+      min-height: 1.2em;
+      margin: 0;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .settings-status.error {
+      color: var(--danger);
+    }
+
+    .settings-status.success {
+      color: var(--ok);
+    }
+
+    .settings-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .settings-cat-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .settings-cat-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .settings-cat-emoji {
+      font-size: 1.6rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .settings-cat-name {
+      font-size: 1.05rem;
+      font-weight: 800;
+      word-break: break-word;
+    }
+
+    .settings-cat-actions {
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .settings-cat-edit {
+      flex-shrink: 0;
+      border: 2px solid #9bc4ff;
+      background: #eef6ff;
+      color: #1565c0;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .settings-cat-edit:active {
+      transform: scale(0.97);
+    }
+
+    .settings-cat-delete {
+      flex-shrink: 0;
+      border: 2px solid #f2bbb6;
+      background: #fff3f2;
+      color: #b1261a;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .settings-cat-delete:active {
+      transform: scale(0.97);
+    }
+
+    .settings-cat-delete:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 0;
+      width: min(100%, 560px);
+      background: #ffffff;
+      border-top: 2px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 8px;
+      gap: 8px;
+      z-index: 20;
+    }
+
+    .tab-btn {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 8px;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--muted);
+      background: #f8fbff;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      color: #123d92;
+      border-color: var(--primary);
+      background: #e9f1ff;
+    }
+
+    .tab-btn:active {
+      transform: scale(0.98);
+    }
+
+    @media (max-width: 380px) {
+      .category-btn {
+        min-height: 64px;
+        font-size: 0.75rem;
+      }
+
+      .key-btn {
+        min-height: 68px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section id="view-entry" class="view active">
+      <section class="display">
+        <p class="display-label">輸入金額</p>
+        <p class="amount-text" id="amountDisplay">$0.00</p>
+        <div class="entry-meta-row entry-meta-row--category">
+          <p class="selected-category" id="selectedCategoryDisplay">尚未選擇分類</p>
+        </div>
+        <div class="entry-meta-row entry-meta-row--dates">
+          <div class="entry-dates-stack">
+            <label for="entryDateInput" id="entryDateLabel" class="entry-dynamic-label">入數日期</label>
+            <input id="entryDateInput" class="entry-date-input entry-date-input--full" type="date" aria-label="入數日期">
+            <div id="dueDateContainer" class="due-date-container">
+              <label for="dueDateInput" class="due-date-label">🚨 到期日 (Due Date)</label>
+              <input type="date" id="dueDateInput" class="entry-date-input entry-date-input--full" aria-label="到期日">
+            </div>
+          </div>
+          <div class="payment-status-group" role="group" aria-label="交咗未">
+            <button type="button" class="payment-status-btn active-paid" id="btnStatusPaid" data-payment-status="paid">🟢 已交</button>
+            <button type="button" class="payment-status-btn" id="btnStatusUnpaid" data-payment-status="unpaid">🔴 未交</button>
+          </div>
+        </div>
+      </section>
+
+      <p class="hint">先揀分類，再按數字，最後按「確認入數」</p>
+
+      <section class="category-grid" id="categoryGrid" aria-label="開支分類"></section>
+
+      <section class="keypad disabled" id="keypad" aria-label="自訂數字鍵盤">
+        <button class="btn key-btn" data-key="7">7</button>
+        <button class="btn key-btn" data-key="8">8</button>
+        <button class="btn key-btn" data-key="9">9</button>
+        <button class="btn key-btn" data-key="/">÷</button>
+        <button class="btn key-btn" data-key="4">4</button>
+        <button class="btn key-btn" data-key="5">5</button>
+        <button class="btn key-btn" data-key="6">6</button>
+        <button class="btn key-btn" data-key="*">×</button>
+        <button class="btn key-btn" data-key="1">1</button>
+        <button class="btn key-btn" data-key="2">2</button>
+        <button class="btn key-btn" data-key="3">3</button>
+        <button class="btn key-btn" data-key="-">-</button>
+        <button class="btn key-btn" data-key=".">.</button>
+        <button class="btn key-btn" data-key="0">0</button>
+        <button class="btn key-btn" id="backspaceBtn" type="button">⌫</button>
+        <button class="btn key-btn" data-key="+">+</button>
+        <button class="btn key-btn function-clear" id="clearBtn" type="button">清除</button>
+        <button class="btn key-btn function-equal" id="equalBtn" type="button">=</button>
+        <button class="btn key-btn function-submit" id="submitBtn" type="button">確認入數</button>
+      </section>
+
+      <p class="status" id="statusMessage" aria-live="polite"></p>
+    </section>
+
+    <section id="view-history" class="view">
+      <section class="display">
+        <p class="display-label">紀錄</p>
+        <p class="hint">按分類顯示（只睇所選月份）</p>
+        <input id="historyMonthInput" class="month-picker" type="month">
+      </section>
+      <div class="history-list" id="historyList"></div>
+      <div class="clear-all-wrap">
+        <button id="clearAllBtn" class="clear-all-btn" type="button">清空所有紀錄</button>
+      </div>
+    </section>
+
+    <section id="view-settings" class="view">
+      <section class="display">
+        <p class="display-label">設定</p>
+        <p class="hint">自訂開支分類（只存在你部電話）</p>
+      </section>
+      <section class="settings-add-card display">
+        <p class="settings-section-title">新增分類</p>
+        <div class="settings-form-row">
+          <label for="settingsEmojiInput" class="entry-dynamic-label">圖示（Emoji）</label>
+          <input type="text" id="settingsEmojiInput" class="settings-text-input" maxlength="8" placeholder="例如 🛒" autocomplete="off" inputmode="text">
+          <p class="emoji-quick-hint">揀常用圖示</p>
+          <div id="emojiQuickPick" class="emoji-quick-pick" aria-label="常用 Emoji">
+            <button type="button" class="quick-emoji-btn" aria-label="快餐">🍔</button>
+            <button type="button" class="quick-emoji-btn" aria-label="咖啡">☕</button>
+            <button type="button" class="quick-emoji-btn" aria-label="肉類">🥩</button>
+            <button type="button" class="quick-emoji-btn" aria-label="生果">🍎</button>
+            <button type="button" class="quick-emoji-btn" aria-label="服飾">👗</button>
+            <button type="button" class="quick-emoji-btn" aria-label="手機">📱</button>
+            <button type="button" class="quick-emoji-btn" aria-label="禮物">🎁</button>
+            <button type="button" class="quick-emoji-btn" aria-label="的士">🚕</button>
+            <button type="button" class="quick-emoji-btn" aria-label="地鐵">🚇</button>
+            <button type="button" class="quick-emoji-btn" aria-label="飛機">✈️</button>
+            <button type="button" class="quick-emoji-btn" aria-label="紙巾">🧻</button>
+            <button type="button" class="quick-emoji-btn" aria-label="上網">📶</button>
+            <button type="button" class="quick-emoji-btn" aria-label="維修">🛠️</button>
+            <button type="button" class="quick-emoji-btn" aria-label="醫院">🏥</button>
+            <button type="button" class="quick-emoji-btn" aria-label="理髮">💇</button>
+            <button type="button" class="quick-emoji-btn" aria-label="寵物">🐶</button>
+            <button type="button" class="quick-emoji-btn" aria-label="遊戲">🎮</button>
+            <button type="button" class="quick-emoji-btn" aria-label="電影">🎬</button>
+            <button type="button" class="quick-emoji-btn" aria-label="唱K">🎤</button>
+            <button type="button" class="quick-emoji-btn" aria-label="錢">💰</button>
+            <button type="button" class="quick-emoji-btn" aria-label="銀行">🏦</button>
+            <button type="button" class="quick-emoji-btn" aria-label="信用卡">💳</button>
+          </div>
+        </div>
+        <div class="settings-form-row">
+          <label for="settingsNameInput" class="entry-dynamic-label">分類名稱</label>
+          <input type="text" id="settingsNameInput" class="settings-text-input" maxlength="40" placeholder="例如 買餸" autocomplete="off">
+        </div>
+        <div class="settings-form-actions">
+          <button type="button" class="btn settings-add-btn" id="settingsAddBtn">新增分類</button>
+          <button type="button" class="btn settings-cancel-edit-btn" id="settingsCancelEditBtn" hidden>取消</button>
+        </div>
+        <p class="settings-status" id="settingsStatus" aria-live="polite"></p>
+      </section>
+      <div class="settings-list" id="settingsCategoryList"></div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" aria-label="底部導覽">
+    <button class="tab-btn active" data-view="entry" type="button">入數</button>
+    <button class="tab-btn" data-view="history" type="button">紀錄</button>
+    <button class="tab-btn" data-view="settings" type="button">設定</button>
+  </nav>
+
+  <script>
+    (function () {
+      var STORAGE_KEY = "travel-expense-records";
+      var CATEGORIES_KEY = "expense-categories";
+      var selectedCategory = "";
+      var amountText = "";
+      var selectedPaymentStatus = "paid";
+      var editingCategoryName = null;
+
+      var DEFAULT_CATEGORIES = [
+        { name: "買餸", emoji: "🛒" },
+        { name: "食飯", emoji: "🍜" },
+        { name: "水費", emoji: "💧" },
+        { name: "電費", emoji: "⚡" },
+        { name: "煤氣", emoji: "🔥" },
+        { name: "搭車", emoji: "🚌" },
+        { name: "雜費", emoji: "🏠" },
+        { name: "管理費", emoji: "🏢" },
+        { name: "卡數 (HSBC)", emoji: "💳" },
+        { name: "卡數 (恆生)", emoji: "💳" },
+        { name: "卡數 (渣打)", emoji: "💳" }
+      ];
+
+      var amountDisplay = document.getElementById("amountDisplay");
+      var selectedCategoryDisplay = document.getElementById("selectedCategoryDisplay");
+      var statusMessage = document.getElementById("statusMessage");
+      var categoryGrid = document.getElementById("categoryGrid");
+      var keyButtons = document.querySelectorAll(".key-btn[data-key]");
+      var clearBtn = document.getElementById("clearBtn");
+      var backspaceBtn = document.getElementById("backspaceBtn");
+      var equalBtn = document.getElementById("equalBtn");
+      var submitBtn = document.getElementById("submitBtn");
+      var keypad = document.getElementById("keypad");
+      var entryDateInput = document.getElementById("entryDateInput");
+      var entryDateLabel = document.getElementById("entryDateLabel");
+      var dueDateContainer = document.getElementById("dueDateContainer");
+      var dueDateInput = document.getElementById("dueDateInput");
+      var btnStatusPaid = document.getElementById("btnStatusPaid");
+      var btnStatusUnpaid = document.getElementById("btnStatusUnpaid");
+      var historyList = document.getElementById("historyList");
+      var clearAllBtn = document.getElementById("clearAllBtn");
+      var historyMonthInput = document.getElementById("historyMonthInput");
+      var settingsEmojiInput = document.getElementById("settingsEmojiInput");
+      var settingsNameInput = document.getElementById("settingsNameInput");
+      var settingsAddBtn = document.getElementById("settingsAddBtn");
+      var settingsCancelEditBtn = document.getElementById("settingsCancelEditBtn");
+      var settingsStatus = document.getElementById("settingsStatus");
+      var settingsCategoryList = document.getElementById("settingsCategoryList");
+      var emojiQuickPick = document.getElementById("emojiQuickPick");
+      var tabButtons = document.querySelectorAll(".tab-btn");
+      var views = {
+        entry: document.getElementById("view-entry"),
+        history: document.getElementById("view-history"),
+        settings: document.getElementById("view-settings")
+      };
+
+      function formatMoney(value) {
+        return "$" + Number(value || 0).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      }
+
+      function getTodayString() {
+        var now = new Date();
+        var y = now.getFullYear();
+        var m = String(now.getMonth() + 1).padStart(2, "0");
+        var d = String(now.getDate()).padStart(2, "0");
+        return y + "-" + m + "-" + d;
+      }
+
+      function getCurrentMonthString() {
+        return getTodayString().slice(0, 7);
+      }
+
+      function getRecordMonth(record) {
+        if (!record || !record.date) return "";
+        if (/^\d{4}-\d{2}-\d{2}/.test(record.date)) return record.date.slice(0, 7);
+        var d = new Date(record.date);
+        if (isNaN(d.getTime())) return "";
+        var y = d.getFullYear();
+        var m = String(d.getMonth() + 1).padStart(2, "0");
+        return y + "-" + m;
+      }
+
+      function formatShortDate(isoString) {
+        if (/^\d{4}-\d{2}-\d{2}/.test(isoString || "")) {
+          return isoString.slice(0, 10);
+        }
+        var d = new Date(isoString);
+        if (isNaN(d.getTime())) return "-";
+        var y = d.getFullYear();
+        var m = String(d.getMonth() + 1).padStart(2, "0");
+        var day = String(d.getDate()).padStart(2, "0");
+        return y + "-" + m + "-" + day;
+      }
+
+      function getRecords() {
+        try {
+          var raw = localStorage.getItem(STORAGE_KEY);
+          var parsed = raw ? JSON.parse(raw) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function setRecords(records) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      }
+
+      function initCategories() {
+        var raw = localStorage.getItem(CATEGORIES_KEY);
+        if (raw === null || raw === "" || raw === "undefined") {
+          setCategories(DEFAULT_CATEGORIES.map(function (c) {
+            return { name: c.name, emoji: c.emoji };
+          }));
+          return;
+        }
+        try {
+          var parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed) || parsed.length === 0) {
+            setCategories(DEFAULT_CATEGORIES.map(function (c) {
+              return { name: c.name, emoji: c.emoji };
+            }));
+          }
+        } catch (err) {
+          setCategories(DEFAULT_CATEGORIES.map(function (c) {
+            return { name: c.name, emoji: c.emoji };
+          }));
+        }
+      }
+
+      function getCategories() {
+        try {
+          var raw = localStorage.getItem(CATEGORIES_KEY);
+          var parsed = raw ? JSON.parse(raw) : [];
+          if (!Array.isArray(parsed)) return [];
+          return parsed.map(function (item) {
+            return {
+              name: String(item.name || "").trim(),
+              emoji: String(item.emoji || "").trim() || "🏷️"
+            };
+          }).filter(function (c) {
+            return c.name.length > 0;
+          });
+        } catch (err) {
+          return [];
+        }
+      }
+
+      function setCategories(list) {
+        localStorage.setItem(CATEGORIES_KEY, JSON.stringify(list));
+      }
+
+      function getEmojiForCategoryName(categoryName) {
+        var name = categoryName || "";
+        var cats = getCategories();
+        for (var i = 0; i < cats.length; i++) {
+          if (cats[i].name === name) return cats[i].emoji || "🏷️";
+        }
+        return "🏷️";
+      }
+
+      function renderCategories() {
+        var cats = getCategories();
+        if (!cats.length) {
+          setCategories(DEFAULT_CATEGORIES.map(function (c) {
+            return { name: c.name, emoji: c.emoji };
+          }));
+          cats = getCategories();
+        }
+        categoryGrid.innerHTML = "";
+        cats.forEach(function (c) {
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn category-btn";
+          btn.setAttribute("data-category", c.name);
+          var spanE = document.createElement("span");
+          spanE.className = "emoji";
+          spanE.textContent = c.emoji || "🏷️";
+          var spanN = document.createElement("span");
+          spanN.textContent = c.name;
+          btn.appendChild(spanE);
+          btn.appendChild(spanN);
+          categoryGrid.appendChild(btn);
+        });
+        if (selectedCategory && !cats.some(function (x) {
+          return x.name === selectedCategory;
+        })) {
+          selectedCategory = "";
+        }
+        categoryGrid.querySelectorAll(".category-btn").forEach(function (btn) {
+          btn.classList.toggle("active", btn.getAttribute("data-category") === selectedCategory);
+        });
+      }
+
+      function setSettingsStatus(message, type) {
+        settingsStatus.textContent = message || "";
+        settingsStatus.className = "settings-status" + (type ? " " + type : "");
+      }
+
+      function exitCategoryEditMode() {
+        editingCategoryName = null;
+        settingsEmojiInput.value = "";
+        settingsNameInput.value = "";
+        settingsAddBtn.textContent = "新增分類";
+        settingsCancelEditBtn.hidden = true;
+      }
+
+      function renderSettingsCategoryList() {
+        var cats = getCategories().slice().sort(function (a, b) {
+          return a.name.localeCompare(b.name, "zh-Hant");
+        });
+        settingsCategoryList.innerHTML = "";
+        cats.forEach(function (c) {
+          var row = document.createElement("div");
+          row.className = "settings-cat-row";
+          var main = document.createElement("div");
+          main.className = "settings-cat-main";
+          var em = document.createElement("span");
+          em.className = "settings-cat-emoji";
+          em.textContent = c.emoji || "🏷️";
+          var nm = document.createElement("span");
+          nm.className = "settings-cat-name";
+          nm.textContent = c.name;
+          main.appendChild(em);
+          main.appendChild(nm);
+          var actions = document.createElement("div");
+          actions.className = "settings-cat-actions";
+          var edit = document.createElement("button");
+          edit.type = "button";
+          edit.className = "settings-cat-edit";
+          edit.textContent = "編輯";
+          edit.setAttribute("data-edit-category", c.name);
+          var del = document.createElement("button");
+          del.type = "button";
+          del.className = "settings-cat-delete";
+          del.textContent = "刪除";
+          del.setAttribute("data-delete-category", c.name);
+          if (cats.length <= 1) del.disabled = true;
+          actions.appendChild(edit);
+          actions.appendChild(del);
+          row.appendChild(main);
+          row.appendChild(actions);
+          settingsCategoryList.appendChild(row);
+        });
+      }
+
+      function getRecordPaymentStatus(record) {
+        return record.paymentStatus === "unpaid" ? "unpaid" : "paid";
+      }
+
+      function syncEntryPaymentUI() {
+        btnStatusPaid.classList.toggle("active-paid", selectedPaymentStatus === "paid");
+        btnStatusUnpaid.classList.toggle("active-unpaid", selectedPaymentStatus === "unpaid");
+        if (selectedPaymentStatus === "unpaid") {
+          entryDateLabel.textContent = "📝 帳單日期 (Statement Date)";
+          entryDateInput.setAttribute("aria-label", "帳單日期");
+          dueDateContainer.classList.add("is-visible");
+        } else {
+          entryDateLabel.textContent = "入數日期";
+          entryDateInput.setAttribute("aria-label", "入數日期");
+          dueDateContainer.classList.remove("is-visible");
+          dueDateInput.value = "";
+        }
+      }
+
+      function setPaymentStatus(status) {
+        selectedPaymentStatus = status === "unpaid" ? "unpaid" : "paid";
+        syncEntryPaymentUI();
+      }
+
+      function render() {
+        var inputView = amountText;
+        if (!inputView) {
+          amountDisplay.textContent = "$0.00";
+        } else {
+          amountDisplay.textContent = "$" + inputView.replace(/\*/g, "×").replace(/\//g, "÷");
+        }
+        selectedCategoryDisplay.textContent = selectedCategory
+          ? "已選擇: " + selectedCategory
+          : "尚未選擇分類";
+        keypad.classList.toggle("disabled", !selectedCategory);
+        syncEntryPaymentUI();
+      }
+
+      function renderHistory() {
+        var selectedMonth = historyMonthInput.value || getCurrentMonthString();
+        var records = getRecords().filter(function (record) {
+          return getRecordMonth(record) === selectedMonth;
+        }).slice().reverse();
+
+        if (!records.length) {
+          historyList.innerHTML = '<div class="empty-state">未有任何紀錄</div>';
+          return;
+        }
+
+        var grouped = {};
+        records.forEach(function (record) {
+          var cat = record.category || "未分類";
+          if (!grouped[cat]) grouped[cat] = [];
+          grouped[cat].push(record);
+        });
+
+        var categoryOrder = Object.keys(grouped).sort(function (a, b) {
+          return a.localeCompare(b, "zh-Hant");
+        });
+
+        historyList.innerHTML = categoryOrder.map(function (category) {
+          var items = grouped[category];
+          var subtotal = items.reduce(function (sum, item) {
+            return sum + Number(item.amount || 0);
+          }, 0);
+          var emoji = getEmojiForCategoryName(category);
+
+          var itemsHtml = items.map(function (record) {
+            var isUnpaid = getRecordPaymentStatus(record) === "unpaid";
+            var dueDisplay = "—";
+            if (isUnpaid && record.dueDate && /^\d{4}-\d{2}-\d{2}/.test(record.dueDate)) {
+              dueDisplay = formatShortDate(record.dueDate);
+            }
+            var unpaidHtml = isUnpaid
+              ? '<div class="unpaid-warning">⚠️ 未交 (到期: ' + dueDisplay + ')</div>'
+              : "";
+            var markPaidHtml = isUnpaid
+              ? '<button class="mark-paid-btn" type="button" data-mark-paid-id="' + record.id + '">✅ 標記已交</button>'
+              : "";
+            var undoMarkPaidHtml =
+              record.paymentStatus === "paid" && record.dueDate
+                ? '<button class="undo-btn" type="button" data-mark-unpaid-id="' + record.id + '">⏪ 撤銷</button>'
+                : "";
+            return (
+              '<article class="history-item">' +
+                '<div class="history-row">' +
+                  '<div class="history-main">' +
+                    '<span class="history-date">' + formatShortDate(record.date) + '</span>' +
+                  '</div>' +
+                  '<div class="history-amount">' + formatMoney(record.amount) + '</div>' +
+                '</div>' +
+                (isUnpaid ? '<div class="history-unpaid-banner">' + unpaidHtml + '</div>' : '') +
+                '<div class="history-row">' +
+                  '<span class="paid-tag">由 ' + (record.paidBy || "Mom") + ' 付款</span>' +
+                  '<div class="history-actions">' +
+                    markPaidHtml +
+                    undoMarkPaidHtml +
+                    '<button class="delete-btn" type="button" data-delete-id="' + record.id + '">刪除</button>' +
+                  '</div>' +
+                '</div>' +
+              '</article>'
+            );
+          }).join("");
+
+          return (
+            '<section class="history-group">' +
+              '<div class="history-group-header">' +
+                '<div class="history-group-title">' + emoji + " " + category + '</div>' +
+                '<div class="history-group-subtotal">小計: ' + formatMoney(subtotal) + '</div>' +
+              '</div>' +
+              itemsHtml +
+            '</section>'
+          );
+        }).join("");
+      }
+
+      function switchView(viewName) {
+        Object.keys(views).forEach(function (key) {
+          views[key].classList.toggle("active", key === viewName);
+        });
+        tabButtons.forEach(function (btn) {
+          btn.classList.toggle("active", btn.getAttribute("data-view") === viewName);
+        });
+
+        if (viewName === "history") renderHistory();
+        if (viewName === "settings") {
+          renderSettingsCategoryList();
+          setSettingsStatus("", "");
+        }
+        if (viewName === "entry") renderCategories();
+      }
+
+      function setStatus(message, type) {
+        statusMessage.textContent = message;
+        statusMessage.className = "status" + (type ? " " + type : "");
+      }
+
+      function isOperator(char) {
+        return ["+", "-", "*", "/"].indexOf(char) !== -1;
+      }
+
+      function getLastOperand(text) {
+        var parts = text.split(/[+\-*/]/);
+        return parts[parts.length - 1] || "";
+      }
+
+      function appendKey(key) {
+        if (!key) return;
+
+        var lastChar = amountText.slice(-1);
+        var isLastOperator = isOperator(lastChar);
+        var isLastDot = lastChar === ".";
+
+        if (isOperator(key)) {
+          if (!amountText || isLastOperator || isLastDot) return;
+          amountText += key;
+          return;
+        }
+
+        if (key === ".") {
+          if (!amountText || isLastOperator) {
+            amountText += "0.";
+            return;
+          }
+          if (isLastDot) return;
+          var lastOperand = getLastOperand(amountText);
+          if (lastOperand.indexOf(".") !== -1) return;
+          amountText += ".";
+          return;
+        }
+
+        if (!/^\d$/.test(key)) return;
+        var currentOperand = getLastOperand(amountText);
+        var decimalPart = currentOperand.split(".")[1] || "";
+        if (currentOperand.indexOf(".") !== -1 && decimalPart.length >= 2) return;
+        if (amountText.length >= 30) return;
+        amountText += key;
+      }
+
+      function evaluateExpression() {
+        if (!amountText) return null;
+        var expr = amountText.trim();
+        if (!expr) return null;
+        if (isOperator(expr.slice(-1)) || expr.slice(-1) === ".") return null;
+        if (!/^[0-9+\-*/.\s]+$/.test(expr)) return null;
+
+        try {
+          var result = new Function("return (" + expr + ")")();
+          if (typeof result !== "number" || !isFinite(result)) return null;
+          var rounded = Math.round(result * 100) / 100;
+          return rounded;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function clearAmount() {
+        amountText = "";
+      }
+
+      function backspaceAmount() {
+        if (!amountText) return;
+        amountText = amountText.slice(0, -1);
+      }
+
+      function saveRecord() {
+        if (!selectedCategory) {
+          setStatus("請先選擇分類", "error");
+          return;
+        }
+        var finalAmount = evaluateExpression();
+        if (finalAmount === null || finalAmount <= 0) {
+          setStatus("請輸入有效算式", "error");
+          return;
+        }
+        amountText = String(finalAmount);
+
+        if (selectedPaymentStatus === "unpaid" && !dueDateInput.value) {
+          setStatus("請輸入到期日", "error");
+          return;
+        }
+
+        var record = {
+          id: Date.now().toString(),
+          amount: finalAmount,
+          category: selectedCategory,
+          date: entryDateInput.value || getTodayString(),
+          paidBy: "Mom",
+          paymentStatus: selectedPaymentStatus
+        };
+        if (selectedPaymentStatus === "unpaid") {
+          record.dueDate = dueDateInput.value || null;
+        }
+
+        try {
+          var list = getRecords();
+          list.push(record);
+          setRecords(list);
+
+          amountText = "";
+          selectedCategory = "";
+          if (selectedPaymentStatus === "unpaid") {
+            dueDateInput.value = "";
+          }
+          categoryGrid.querySelectorAll(".category-btn").forEach(function (btn) {
+            btn.classList.remove("active");
+          });
+          render();
+          setStatus("已儲存紀錄", "success");
+          renderHistory();
+        } catch (error) {
+          setStatus("儲存失敗，請稍後再試", "error");
+        }
+      }
+
+      categoryGrid.addEventListener("click", function (event) {
+        var btn = event.target.closest(".category-btn");
+        if (!btn || !categoryGrid.contains(btn)) return;
+        selectedCategory = btn.getAttribute("data-category") || "";
+        categoryGrid.querySelectorAll(".category-btn").forEach(function (b) {
+          b.classList.toggle("active", b === btn);
+        });
+        render();
+        setStatus("", "");
+      });
+
+      keyButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          appendKey(button.getAttribute("data-key") || "");
+          render();
+          setStatus("", "");
+        });
+      });
+
+      clearBtn.addEventListener("click", function () {
+        clearAmount();
+        render();
+        setStatus("已清除金額", "");
+      });
+
+      backspaceBtn.addEventListener("click", function () {
+        backspaceAmount();
+        render();
+        setStatus("", "");
+      });
+
+      equalBtn.addEventListener("click", function () {
+        var finalAmount = evaluateExpression();
+        if (finalAmount === null) {
+          setStatus("算式無效", "error");
+          return;
+        }
+        amountText = String(finalAmount);
+        render();
+        setStatus("已計算", "success");
+      });
+
+      submitBtn.addEventListener("click", saveRecord);
+
+      btnStatusPaid.addEventListener("click", function () {
+        setPaymentStatus("paid");
+        setStatus("", "");
+      });
+
+      btnStatusUnpaid.addEventListener("click", function () {
+        setPaymentStatus("unpaid");
+        setStatus("", "");
+      });
+
+      tabButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          switchView(button.getAttribute("data-view") || "entry");
+        });
+      });
+
+      historyList.addEventListener("click", function (event) {
+        var target = event.target;
+        if (!target) return;
+        if (target.matches("[data-mark-paid-id]")) {
+          var markId = target.getAttribute("data-mark-paid-id");
+          var updated = getRecords().map(function (item) {
+            if (item.id === markId) {
+              var copy = {};
+              for (var k in item) {
+                if (Object.prototype.hasOwnProperty.call(item, k)) copy[k] = item[k];
+              }
+              copy.paymentStatus = "paid";
+              return copy;
+            }
+            return item;
+          });
+          setRecords(updated);
+          renderHistory();
+          return;
+        }
+        if (target.matches("[data-mark-unpaid-id]")) {
+          var unpaidId = target.getAttribute("data-mark-unpaid-id");
+          var reverted = getRecords().map(function (item) {
+            if (item.id === unpaidId) {
+              var copy = {};
+              for (var k in item) {
+                if (Object.prototype.hasOwnProperty.call(item, k)) copy[k] = item[k];
+              }
+              copy.paymentStatus = "unpaid";
+              return copy;
+            }
+            return item;
+          });
+          setRecords(reverted);
+          renderHistory();
+          return;
+        }
+        if (!target.matches("[data-delete-id]")) return;
+        var recordId = target.getAttribute("data-delete-id");
+        var records = getRecords().filter(function (item) {
+          return item.id !== recordId;
+        });
+        setRecords(records);
+        renderHistory();
+      });
+
+      clearAllBtn.addEventListener("click", function () {
+        var ok = confirm("確定要清空所有紀錄？");
+        if (!ok) return;
+        localStorage.removeItem(STORAGE_KEY);
+        renderHistory();
+        setStatus("已清空所有紀錄", "success");
+      });
+
+      historyMonthInput.addEventListener("change", function () {
+        renderHistory();
+      });
+
+      emojiQuickPick.addEventListener("click", function (event) {
+        var btn = event.target.closest(".quick-emoji-btn");
+        if (!btn || !emojiQuickPick.contains(btn)) return;
+        var ch = (btn.textContent || "").trim();
+        if (!ch) return;
+        settingsEmojiInput.value = ch;
+        settingsEmojiInput.classList.remove("flash-ring");
+        void settingsEmojiInput.offsetWidth;
+        settingsEmojiInput.classList.add("flash-ring");
+        setTimeout(function () {
+          settingsEmojiInput.classList.remove("flash-ring");
+        }, 400);
+        settingsNameInput.focus();
+      });
+
+      settingsAddBtn.addEventListener("click", function () {
+        var emoji = (settingsEmojiInput.value || "").trim();
+        var name = (settingsNameInput.value || "").trim();
+        if (!name) {
+          setSettingsStatus("請輸入分類名稱", "error");
+          return;
+        }
+        var cats = getCategories();
+        if (editingCategoryName !== null) {
+          var dup = cats.some(function (c) {
+            return c.name === name && c.name !== editingCategoryName;
+          });
+          if (dup) {
+            setSettingsStatus("已有相同名稱嘅分類", "error");
+            return;
+          }
+          if (!emoji) emoji = "🏷️";
+          var oldName = editingCategoryName;
+          var idx = cats.findIndex(function (c) {
+            return c.name === oldName;
+          });
+          if (idx === -1) {
+            setSettingsStatus("找不到要修改嘅分類", "error");
+            exitCategoryEditMode();
+            renderSettingsCategoryList();
+            return;
+          }
+          cats[idx] = { name: name, emoji: emoji };
+          setCategories(cats);
+          var records = getRecords();
+          var cascaded = records.map(function (r) {
+            if (r.category === oldName) {
+              var copy = {};
+              for (var key in r) {
+                if (Object.prototype.hasOwnProperty.call(r, key)) {
+                  copy[key] = r[key];
+                }
+              }
+              copy.category = name;
+              return copy;
+            }
+            return r;
+          });
+          setRecords(cascaded);
+          if (selectedCategory === oldName) {
+            selectedCategory = name;
+          }
+          exitCategoryEditMode();
+          setSettingsStatus("已儲存分類修改", "success");
+          renderCategories();
+          render();
+          renderSettingsCategoryList();
+          renderHistory();
+          return;
+        }
+        if (cats.some(function (c) {
+          return c.name === name;
+        })) {
+          setSettingsStatus("已有相同名稱嘅分類", "error");
+          return;
+        }
+        if (!emoji) emoji = "🏷️";
+        cats.push({ name: name, emoji: emoji });
+        setCategories(cats);
+        settingsEmojiInput.value = "";
+        settingsNameInput.value = "";
+        setSettingsStatus("已新增分類", "success");
+        renderCategories();
+        renderSettingsCategoryList();
+      });
+
+      settingsCancelEditBtn.addEventListener("click", function () {
+        exitCategoryEditMode();
+        setSettingsStatus("", "");
+      });
+
+      settingsCategoryList.addEventListener("click", function (event) {
+        var target = event.target;
+        if (!target) return;
+        var editBtn = target.closest("[data-edit-category]");
+        if (editBtn) {
+          var editName = editBtn.getAttribute("data-edit-category");
+          var list = getCategories();
+          var found = list.find(function (c) {
+            return c.name === editName;
+          });
+          if (!found) return;
+          editingCategoryName = editName;
+          settingsEmojiInput.value = found.emoji || "🏷️";
+          settingsNameInput.value = found.name;
+          settingsAddBtn.textContent = "儲存修改";
+          settingsCancelEditBtn.hidden = false;
+          setSettingsStatus("", "");
+          var addCard = document.querySelector(".settings-add-card");
+          if (addCard) {
+            addCard.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+          settingsNameInput.focus();
+          return;
+        }
+        if (!target.matches("[data-delete-category]")) return;
+        if (target.disabled) return;
+        var name = target.getAttribute("data-delete-category");
+        var cats = getCategories();
+        if (cats.length <= 1) {
+          setSettingsStatus("至少要保留一個分類", "error");
+          return;
+        }
+        var next = cats.filter(function (c) {
+          return c.name !== name;
+        });
+        setCategories(next);
+        if (selectedCategory === name) {
+          selectedCategory = "";
+        }
+        setSettingsStatus("已刪除分類", "success");
+        renderCategories();
+        render();
+        renderSettingsCategoryList();
+        renderHistory();
+      });
+
+      entryDateInput.value = getTodayString();
+      historyMonthInput.value = getCurrentMonthString();
+      initCategories();
+      renderCategories();
+      syncEntryPaymentUI();
+      render();
+      renderHistory();
+    })();
+  </script>
+</body>
+</html>
