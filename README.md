@@ -16,6 +16,7 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 - `/tools/spring-couplet-generator/` — Spring Couplet Generator
 - `/tools/gift-list-manager/` — Gift List Manager
 - `/tools/travel-expense-tracker/` — Travel Expense Tracker
+- `/tools/mom-expense-pwa/` — 屋企數簿（家居記帳 PWA）
 - `/tools/memorable-password/` — Memorable Password Generator
 - `/tools/silly-unit-converter/` — Silly Unit Converter
 - `/tools/fortune-draw/` — Fortune Draw
@@ -57,6 +58,7 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 - [Spring Couplet Generator](https://im1person.github.io/playground/tools/spring-couplet-generator/): Create spring couplets (橫批 + 上聯 + 下聯) or single 福; download PNG or print.
 - [Gift List Manager](https://im1person.github.io/playground/tools/gift-list-manager/): Track gifts, recipients, and budget for your Christmas shopping.
 - [Travel Expense Tracker](https://im1person.github.io/playground/tools/travel-expense-tracker/): Offline-first travel expense tracker with currency conversion and budget management. **(PWA: Works Offline & Installable)**
+- [屋企數簿](https://im1person.github.io/playground/tools/mom-expense-pwa/): Home expense tracker (zh-Hant); categories, paid/unpaid bills, history with undo mark-paid, localStorage only. **(PWA: Works Offline & Installable)**
 - [Memorable Password Generator](https://im1person.github.io/playground/tools/memorable-password/): Generate memorable passphrases (word list) or random strings; copy to clipboard.
 - [Silly Unit Converter](https://im1person.github.io/playground/tools/silly-unit-converter/): Convert length, volume, or mass into football pitches, cups of coffee, elephants, etc.
 - [Fortune Draw](https://im1person.github.io/playground/tools/fortune-draw/): Draw a random fortune; fun, light-hearted messages.
