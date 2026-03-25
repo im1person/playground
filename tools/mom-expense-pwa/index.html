@@ -48,17 +48,34 @@
 
     .app {
       width: min(100%, 560px);
-      min-height: 100dvh;
-      padding: 10px 16px 76px;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 10px 16px 0;
     }
 
     .view {
+      flex: 1;
       display: none;
-      gap: 10px;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+      padding-bottom: 80px;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .view::-webkit-scrollbar {
+      display: none;
     }
 
     .view.active {
-      display: grid;
+      display: flex;
+    }
+
+    #view-entry {
+      overflow-y: hidden !important;
     }
 
     .display {
@@ -67,6 +84,7 @@
       border-radius: 18px;
       box-shadow: var(--shadow);
       padding: 12px 16px;
+      flex-shrink: 0;
     }
 
     .display-label {
@@ -78,7 +96,7 @@
 
     .amount-text {
       margin: 0;
-      font-size: clamp(2.2rem, 9vw, 3.5rem);
+      font-size: clamp(2rem, 8vw, 2.8rem);
       line-height: 1.1;
       font-weight: 800;
       letter-spacing: 0.02em;
@@ -86,17 +104,22 @@
     }
 
     .selected-category {
-      margin-top: 10px;
-      font-size: 1rem;
+      margin-top: 2px;
+      font-size: 0.8rem;
       font-weight: 700;
       color: var(--primary);
-      min-height: 1.4em;
+      min-height: 1.2em;
+      visibility: hidden;
+    }
+
+    .selected-category.is-picked {
+      visibility: visible;
     }
 
     .hint {
-      margin: 0 0 -4px;
+      margin: 0 0 8px;
       color: var(--muted);
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       font-weight: 700;
     }
 
@@ -104,6 +127,16 @@
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
+      flex-shrink: 0;
+      min-height: 0;
+      overflow-y: auto;
+      max-height: 200px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .category-grid::-webkit-scrollbar {
+      display: none;
     }
 
     .btn {
@@ -140,10 +173,6 @@
       font-size: 0.82rem;
     }
 
-    #view-entry .display-label {
-      display: none;
-    }
-
     .entry-meta-row {
       display: flex;
       justify-content: space-between;
@@ -153,10 +182,8 @@
     }
 
     .entry-meta-row--category .selected-category {
-      margin-top: 0;
+      margin-top: 2px;
       width: 100%;
-      min-height: 1.2em;
-      font-size: 0.92rem;
     }
 
     .payment-status-group {
@@ -191,15 +218,18 @@
       color: #b3261e;
     }
 
-    .entry-meta-row--dates {
-      align-items: flex-start;
+    .entry-dates-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
     }
 
-    .entry-dates-stack {
-      flex: 1;
+    .entry-date-primary {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
       min-width: 0;
-      display: grid;
-      gap: 6px;
     }
 
     .entry-dynamic-label,
@@ -233,13 +263,92 @@
     }
 
     .due-date-container {
-      display: none;
-      margin-top: 2px;
+      display: flex;
+      flex-direction: column;
       gap: 4px;
+      min-width: 0;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
     }
 
     .due-date-container.is-visible {
-      display: grid;
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-entry-dates {
+      height: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      padding: 20px;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: #fff;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      transform: translateY(20px);
+      transition: transform 0.2s;
+    }
+
+    .modal-overlay.show .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-title {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .payment-toggle {
+      margin-bottom: 4px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .modal-btn-cancel {
+      flex: 1;
+      background: #e2e8f0 !important;
+      color: #475569 !important;
+      box-shadow: none;
+    }
+
+    .modal-btn-save {
+      flex: 1;
+      background: var(--ok) !important;
+      color: #fff !important;
     }
 
     .category-btn .emoji {
@@ -255,9 +364,12 @@
     }
 
     .keypad {
+      flex-grow: 1;
+      flex-shrink: 1;
+      min-height: 0;
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 8px;
+      gap: 6px;
     }
 
     .keypad.disabled {
@@ -267,7 +379,8 @@
     }
 
     .key-btn {
-      min-height: 60px;
+      height: 100%;
+      min-height: 48px;
       font-size: 2rem;
       background: #ffffff;
       border: 2px solid var(--border);
@@ -305,16 +418,37 @@
     }
 
     .status {
-      min-height: 1.2em;
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translate(-50%, -20px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       margin: 0;
-      text-align: center;
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--muted);
+      background: #333;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 50px;
+      font-size: 1rem;
+      font-weight: 800;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      white-space: nowrap;
     }
 
-    .status.error { color: var(--danger); }
-    .status.success { color: var(--ok); }
+    .status.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .status.error {
+      background: var(--danger);
+    }
+
+    .status.success {
+      background: var(--ok);
+    }
 
     .history-list {
       display: grid;
@@ -663,6 +797,41 @@
       box-shadow: var(--shadow);
     }
 
+    .settings-cat-order {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .settings-cat-order-btn {
+      background: none;
+      border: 1px solid #d9e2ef;
+      border-radius: 6px;
+      font-size: 1.2rem;
+      padding: 4px;
+      cursor: pointer;
+      color: #5f6f82;
+      line-height: 1;
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .settings-cat-order-btn:active {
+      transform: scale(0.97);
+    }
+
+    .settings-cat-order-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
     .settings-cat-main {
       display: flex;
       align-items: center;
@@ -770,7 +939,65 @@
       }
 
       .key-btn {
-        min-height: 68px;
+        min-height: 48px;
+      }
+    }
+
+    @media (max-height: 700px) {
+      .app {
+        padding-top: 6px;
+      }
+
+      .view {
+        gap: 4px;
+        padding-bottom: 60px;
+      }
+
+      #view-entry .display {
+        padding: 4px 10px;
+      }
+
+      .selected-category,
+      .selected-category.is-picked {
+        display: none !important;
+      }
+
+      .category-grid {
+        display: flex;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        gap: 8px;
+        padding-bottom: 8px;
+        max-height: none !important;
+        overflow-y: visible;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+
+      .category-grid::-webkit-scrollbar {
+        display: none;
+      }
+
+      .category-btn {
+        min-width: 80px;
+        flex-shrink: 0;
+        min-height: 60px !important;
+        font-size: 0.85rem !important;
+        gap: 0;
+        padding: 4px;
+      }
+
+      .category-btn .emoji {
+        font-size: 1.6rem !important;
+      }
+
+      .keypad {
+        gap: 4px;
+      }
+
+      .key-btn {
+        min-height: 44px;
+        font-size: 1.6rem;
       }
     }
   </style>
@@ -779,28 +1006,11 @@
   <main class="app">
     <section id="view-entry" class="view active">
       <section class="display">
-        <p class="display-label">輸入金額</p>
         <p class="amount-text" id="amountDisplay">$0.00</p>
         <div class="entry-meta-row entry-meta-row--category">
           <p class="selected-category" id="selectedCategoryDisplay">尚未選擇分類</p>
         </div>
-        <div class="entry-meta-row entry-meta-row--dates">
-          <div class="entry-dates-stack">
-            <label for="entryDateInput" id="entryDateLabel" class="entry-dynamic-label">入數日期</label>
-            <input id="entryDateInput" class="entry-date-input entry-date-input--full" type="date" aria-label="入數日期">
-            <div id="dueDateContainer" class="due-date-container">
-              <label for="dueDateInput" class="due-date-label">🚨 到期日 (Due Date)</label>
-              <input type="date" id="dueDateInput" class="entry-date-input entry-date-input--full" aria-label="到期日">
-            </div>
-          </div>
-          <div class="payment-status-group" role="group" aria-label="交咗未">
-            <button type="button" class="payment-status-btn active-paid" id="btnStatusPaid" data-payment-status="paid">🟢 已交</button>
-            <button type="button" class="payment-status-btn" id="btnStatusUnpaid" data-payment-status="unpaid">🔴 未交</button>
-          </div>
-        </div>
       </section>
-
-      <p class="hint">先揀分類，再按數字，最後按「確認入數」</p>
 
       <section class="category-grid" id="categoryGrid" aria-label="開支分類"></section>
 
@@ -825,8 +1035,6 @@
         <button class="btn key-btn function-equal" id="equalBtn" type="button">=</button>
         <button class="btn key-btn function-submit" id="submitBtn" type="button">確認入數</button>
       </section>
-
-      <p class="status" id="statusMessage" aria-live="polite"></p>
     </section>
 
     <section id="view-history" class="view">
@@ -897,6 +1105,34 @@
     <button class="tab-btn" data-view="settings" type="button">設定</button>
   </nav>
 
+  <p class="status" id="statusMessage" aria-live="polite" role="status"></p>
+
+  <div id="dateModal" class="modal-overlay" aria-hidden="true" role="dialog" aria-labelledby="dateModalTitle">
+    <div class="modal-content">
+      <h3 id="dateModalTitle" class="modal-title">確認入數細節</h3>
+      <div class="payment-toggle">
+        <div class="payment-status-group" role="group" aria-label="交咗未">
+          <button type="button" class="payment-status-btn active-paid" id="btnStatusPaid" data-payment-status="paid">🟢 已交</button>
+          <button type="button" class="payment-status-btn" id="btnStatusUnpaid" data-payment-status="unpaid">🔴 未交</button>
+        </div>
+      </div>
+      <div class="entry-dates-stack modal-entry-dates">
+        <div class="entry-date-primary">
+          <label for="entryDateInput" id="entryDateLabel" class="entry-dynamic-label entry-date-label">入數日期</label>
+          <input id="entryDateInput" class="entry-date-input entry-date-input--full" type="date" aria-label="入數日期">
+        </div>
+        <div id="dueDateContainer" class="due-date-container" aria-hidden="true">
+          <label for="dueDateInput" class="due-date-label entry-date-label">🚨 到期日</label>
+          <input type="date" id="dueDateInput" class="entry-date-input entry-date-input--full" aria-label="到期日" tabindex="-1">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="modalCancelBtn" class="btn modal-btn-cancel">取消</button>
+        <button type="button" id="modalSaveBtn" class="btn modal-btn-save">確定儲存</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function () {
       var STORAGE_KEY = "travel-expense-records";
@@ -905,6 +1141,7 @@
       var amountText = "";
       var selectedPaymentStatus = "paid";
       var editingCategoryName = null;
+      var statusTimeout;
 
       var DEFAULT_CATEGORIES = [
         { name: "買餸", emoji: "🛒" },
@@ -936,6 +1173,9 @@
       var dueDateInput = document.getElementById("dueDateInput");
       var btnStatusPaid = document.getElementById("btnStatusPaid");
       var btnStatusUnpaid = document.getElementById("btnStatusUnpaid");
+      var dateModal = document.getElementById("dateModal");
+      var modalCancelBtn = document.getElementById("modalCancelBtn");
+      var modalSaveBtn = document.getElementById("modalSaveBtn");
       var historyList = document.getElementById("historyList");
       var clearAllBtn = document.getElementById("clearAllBtn");
       var historyMonthInput = document.getElementById("historyMonthInput");
@@ -1108,13 +1348,27 @@
       }
 
       function renderSettingsCategoryList() {
-        var cats = getCategories().slice().sort(function (a, b) {
-          return a.name.localeCompare(b.name, "zh-Hant");
-        });
+        var cats = getCategories().slice();
         settingsCategoryList.innerHTML = "";
-        cats.forEach(function (c) {
+        cats.forEach(function (c, index) {
           var row = document.createElement("div");
           row.className = "settings-cat-row";
+          var order = document.createElement("div");
+          order.className = "settings-cat-order";
+          var up = document.createElement("button");
+          up.type = "button";
+          up.className = "settings-cat-order-btn";
+          up.textContent = "⬆️";
+          up.setAttribute("data-move-up", String(index));
+          up.disabled = index === 0;
+          var down = document.createElement("button");
+          down.type = "button";
+          down.className = "settings-cat-order-btn";
+          down.textContent = "⬇️";
+          down.setAttribute("data-move-down", String(index));
+          down.disabled = index === cats.length - 1;
+          order.appendChild(up);
+          order.appendChild(down);
           var main = document.createElement("div");
           main.className = "settings-cat-main";
           var em = document.createElement("span");
@@ -1140,6 +1394,7 @@
           if (cats.length <= 1) del.disabled = true;
           actions.appendChild(edit);
           actions.appendChild(del);
+          row.appendChild(order);
           row.appendChild(main);
           row.appendChild(actions);
           settingsCategoryList.appendChild(row);
@@ -1150,17 +1405,22 @@
         return record.paymentStatus === "unpaid" ? "unpaid" : "paid";
       }
 
+      /* Due-date visibility: CSS only (.due-date-container + .is-visible). Never set style.display on that node. */
       function syncEntryPaymentUI() {
         btnStatusPaid.classList.toggle("active-paid", selectedPaymentStatus === "paid");
         btnStatusUnpaid.classList.toggle("active-unpaid", selectedPaymentStatus === "unpaid");
         if (selectedPaymentStatus === "unpaid") {
-          entryDateLabel.textContent = "📝 帳單日期 (Statement Date)";
+          entryDateLabel.textContent = "📝 帳單日期";
           entryDateInput.setAttribute("aria-label", "帳單日期");
           dueDateContainer.classList.add("is-visible");
+          dueDateContainer.setAttribute("aria-hidden", "false");
+          dueDateInput.removeAttribute("tabindex");
         } else {
           entryDateLabel.textContent = "入數日期";
           entryDateInput.setAttribute("aria-label", "入數日期");
           dueDateContainer.classList.remove("is-visible");
+          dueDateContainer.setAttribute("aria-hidden", "true");
+          dueDateInput.setAttribute("tabindex", "-1");
           dueDateInput.value = "";
         }
       }
@@ -1180,6 +1440,11 @@
         selectedCategoryDisplay.textContent = selectedCategory
           ? "已選擇: " + selectedCategory
           : "尚未選擇分類";
+        selectedCategoryDisplay.classList.toggle("is-picked", !!selectedCategory);
+        selectedCategoryDisplay.setAttribute(
+          "aria-hidden",
+          selectedCategory ? "false" : "true"
+        );
         keypad.classList.toggle("disabled", !selectedCategory);
         syncEntryPaymentUI();
       }
@@ -1275,12 +1540,23 @@
           renderSettingsCategoryList();
           setSettingsStatus("", "");
         }
-        if (viewName === "entry") renderCategories();
+        if (viewName === "entry") {
+          renderCategories();
+          render();
+        }
       }
 
       function setStatus(message, type) {
+        clearTimeout(statusTimeout);
+        if (!message) {
+          statusMessage.classList.remove("show");
+          return;
+        }
         statusMessage.textContent = message;
-        statusMessage.className = "status" + (type ? " " + type : "");
+        statusMessage.className = "status show " + (type || "");
+        statusTimeout = setTimeout(function () {
+          statusMessage.classList.remove("show");
+        }, 2500);
       }
 
       function isOperator(char) {
@@ -1351,18 +1627,43 @@
         amountText = amountText.slice(0, -1);
       }
 
-      function saveRecord() {
+      function closeDateModal() {
+        dateModal.classList.remove("show");
+        dateModal.setAttribute("aria-hidden", "true");
+        selectedPaymentStatus = "paid";
+        syncEntryPaymentUI();
+      }
+
+      function openConfirmModal() {
         if (!selectedCategory) {
           setStatus("請先選擇分類", "error");
           return;
         }
         var finalAmount = evaluateExpression();
         if (finalAmount === null || finalAmount <= 0) {
-          setStatus("請輸入有效算式", "error");
+          setStatus("請輸入有效金額", "error");
+          return;
+        }
+        if (!entryDateInput.value) {
+          entryDateInput.value = getTodayString();
+        }
+        selectedPaymentStatus = "paid";
+        syncEntryPaymentUI();
+        dateModal.classList.add("show");
+        dateModal.setAttribute("aria-hidden", "false");
+      }
+
+      function persistRecordFromModal() {
+        if (!selectedCategory) {
+          setStatus("請先選擇分類", "error");
+          return;
+        }
+        var finalAmount = evaluateExpression();
+        if (finalAmount === null || finalAmount <= 0) {
+          setStatus("請輸入有效金額", "error");
           return;
         }
         amountText = String(finalAmount);
-
         if (selectedPaymentStatus === "unpaid" && !dueDateInput.value) {
           setStatus("請輸入到期日", "error");
           return;
@@ -1387,12 +1688,11 @@
 
           amountText = "";
           selectedCategory = "";
-          if (selectedPaymentStatus === "unpaid") {
-            dueDateInput.value = "";
-          }
+          dueDateInput.value = "";
           categoryGrid.querySelectorAll(".category-btn").forEach(function (btn) {
             btn.classList.remove("active");
           });
+          closeDateModal();
           render();
           setStatus("已儲存紀錄", "success");
           renderHistory();
@@ -1443,7 +1743,16 @@
         setStatus("已計算", "success");
       });
 
-      submitBtn.addEventListener("click", saveRecord);
+      submitBtn.addEventListener("click", openConfirmModal);
+
+      modalCancelBtn.addEventListener("click", function () {
+        setStatus("", "");
+        closeDateModal();
+      });
+
+      modalSaveBtn.addEventListener("click", function () {
+        persistRecordFromModal();
+      });
 
       btnStatusPaid.addEventListener("click", function () {
         setPaymentStatus("paid");
@@ -1613,6 +1922,36 @@
       settingsCategoryList.addEventListener("click", function (event) {
         var target = event.target;
         if (!target) return;
+        var moveUpBtn = target.closest("[data-move-up]");
+        if (moveUpBtn) {
+          var upIndex = parseInt(moveUpBtn.getAttribute("data-move-up") || "-1", 10);
+          if (!isFinite(upIndex) || upIndex <= 0) return;
+          var listUp = getCategories();
+          if (upIndex >= listUp.length) return;
+          var tmpUp = listUp[upIndex - 1];
+          listUp[upIndex - 1] = listUp[upIndex];
+          listUp[upIndex] = tmpUp;
+          setCategories(listUp);
+          renderSettingsCategoryList();
+          renderCategories();
+          renderHistory();
+          return;
+        }
+        var moveDownBtn = target.closest("[data-move-down]");
+        if (moveDownBtn) {
+          var downIndex = parseInt(moveDownBtn.getAttribute("data-move-down") || "-1", 10);
+          var listDown = getCategories();
+          if (!isFinite(downIndex) || downIndex < 0) return;
+          if (downIndex >= listDown.length - 1) return;
+          var tmpDown = listDown[downIndex + 1];
+          listDown[downIndex + 1] = listDown[downIndex];
+          listDown[downIndex] = tmpDown;
+          setCategories(listDown);
+          renderSettingsCategoryList();
+          renderCategories();
+          renderHistory();
+          return;
+        }
         var editBtn = target.closest("[data-edit-category]");
         if (editBtn) {
           var editName = editBtn.getAttribute("data-edit-category");
