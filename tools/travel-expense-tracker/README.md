@@ -17,7 +17,10 @@ A modern, offline-first web app for travellers to track expenses across trips, c
   - IC / E-pay / 代付 support an optional owner/account field.
 - **Advanced Travel Accounting**:
   - **Cost Spreading**: Option to average accommodation cost over the stay (check-in to check-out) for accurate daily charts.
-  - **Receipts**: Attach one photo per expense (camera or choose from gallery on mobile). View in lightbox from the list.
+  - **Receipts**: Attach multiple photos per expense (camera or gallery on mobile, up to 12). View in lightbox with swipe-style prev/next from the list.
+- **Receipt Gallery**: Dedicated **相簿** tab (also header icon). **呢個行程** shows current-trip receipts grouped by day; **全部行程** is the master gallery across all trips, grouped by trip then day. Tap to browse; open expense from the thumb corner.
+- **Export Photos (ZIP)**: Album-style pack (trip → date → title). On mobile, share sheet after pack is ready.
+- **Full Backup ZIP**: Single archive with trip data + every receipt image. **Import** accepts ZIP (full restore) or JSON (data only, warns if photos missing).
 - **Quick Add & Presets**:
   - **FAB long-press**: Quick templates (早餐、午餐、晚餐、飲品、超市、手信、地鐵、巴士、的士、Uber).
   - **Title presets** in the add/edit modal change by category: 一般 (e.g. 早餐、手信、門票、藥房、貼士), 交通 (e.g. 地鐵/MTR、巴士、的士、機票、泊車費), 住宿 (e.g. 酒店、民宿、Airbnb).
@@ -26,7 +29,7 @@ A modern, offline-first web app for travellers to track expenses across trips, c
   - **Search**: Filter expenses by title, note, category, currency, address, flight, etc. in the list view.
   - **Category & Payment Filters**: Filter by 一般/住宿/交通 and by payment method.
   - **Sort**: Date (新→舊 / 舊→新) or amount (高→低 / 低→高).
-  - **Duplicate Expense**: One-tap copy of any expense with a new timestamp; receipt is not copied.
+  - **Duplicate Expense**: One-tap copy of any expense with a new timestamp; receipts are not copied.
   - **Undo Delete**: Deleted items can be restored within a few seconds via the toast.
   - **Timezone Awareness**: Trip-specific timezone so daily charts match your location.
   - **Notes Field**: Per-expense notes without cluttering the timeline.
@@ -38,7 +41,8 @@ A modern, offline-first web app for travellers to track expenses across trips, c
 - **Sharing**: Share a single expense or trip summary (Web Share API or copy to clipboard).
 - **Data Sovereignty**:
   - 100% client-side. Data in browser **localStorage** (receipt images in **IndexedDB**).
-  - **Export/Import**: Full JSON backup and CSV export for Excel/Google Sheets.
+  - **Full backup ZIP** (recommended): one file with `data.json` + all receipts — export & import for 100% restore.
+  - Also: JSON (data only), CSV, and album-style photo ZIPs.
 - **Dark Mode**: Toggle in Settings; all views, modals, and cards support dark theme.
 - **PWA Ready**: Install as a standalone app; works offline with automatic data persistence.
 
@@ -54,7 +58,7 @@ A modern, offline-first web app for travellers to track expenses across trips, c
 
 1. Open `index.html` in a modern browser (or install as PWA).
 2. In **Settings**, set budget, trip dates, currencies, timezone (e.g. 香港/台灣/北京), and optional **General Note** (Markdown). Enable **深色模式** if desired.
-3. Add expenses with **+** (tap = new entry, long-press = quick templates). Use **Title presets** under the title field; attach a receipt and **Duplicate** for recurring items.
+3. Add expenses with **+** (tap = new entry, long-press = quick templates). Use **Title presets** under the title field; attach one or more receipts and **Duplicate** for recurring items.
 4. In the list view, use **Search**, category/payment filters, and **Sort**. Group by day via the toggle. Use the header to switch or delete trips.
 
 ---

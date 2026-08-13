@@ -1,4 +1,4 @@
-const CACHE_NAME = 'travel-tracker-v1';
+const CACHE_NAME = 'travel-tracker-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -9,6 +9,11 @@ const ASSETS = [
   './js/store.js',
   './js/ui.js',
   './js/utils.js',
+  './js/gallery.js',
+  './js/export-photos.js',
+  './js/backup.js',
+  './js/zip-utils.js',
+  './js/db.js',
   '../../assets/style.css',
   '../../assets/header.js',
   '../../assets/theme-toggle.js',

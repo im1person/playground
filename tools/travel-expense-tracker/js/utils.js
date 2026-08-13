@@ -7,6 +7,21 @@ export function getCashPoolCurrencyCode(settings) {
     return f || '';
 }
 
+/** Normalize legacy receiptId + receiptIds into a unique id list */
+export function getReceiptIds(item) {
+    if (!item) return [];
+    const ids = [];
+    if (Array.isArray(item.receiptIds)) {
+        item.receiptIds.forEach(id => {
+            if (id && !ids.includes(id)) ids.push(id);
+        });
+    }
+    if (item.receiptId && !ids.includes(item.receiptId)) {
+        ids.unshift(item.receiptId);
+    }
+    return ids;
+}
+
 export function formatCurrency(num, curr) {
     try {
         return new Intl.NumberFormat('zh-Hant-HK', { style: 'currency', currency: curr }).format(num);
@@ -88,6 +103,10 @@ export function switchTab(viewName) {
     document.querySelectorAll('[id^="view-"]').forEach(el => el.classList.add('hidden'));
     const target = document.getElementById('view-' + viewName);
     if (target) target.classList.remove('hidden');
+
+    if (viewName === 'gallery' && typeof window.renderGallery === 'function') {
+        window.renderGallery();
+    }
 }
 
 export function getAdjustedExpenses(expenses) {

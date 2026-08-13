@@ -1,10 +1,20 @@
 // UI Module
 import { store } from './store.js';
-import { formatCurrency, getDetailedTime, switchTab, getAdjustedExpenses, getTripDate } from './utils.js';
+import { formatCurrency, getDetailedTime, switchTab, getAdjustedExpenses, getTripDate, getReceiptIds } from './utils.js';
 import { getReceipt } from './db.js';
 
 let currentCategory = 'general';
-let selectedReceiptBlob = null;
+/** @type {{ id: string|null, blob: Blob|null, url: string|null, isNew: boolean, loadFailed?: boolean }[]} */
+let selectedReceipts = [];
+const MAX_RECEIPTS = 12;
+let openModalToken = 0;
+
+let lightboxUrls = [];
+let lightboxCaptions = [];
+let lightboxIndex = 0;
+let lightboxCaption = '';
+/** Blob URLs created by viewReceipts — revoked on next open / close */
+let viewReceiptObjectUrls = [];
 
 export function getCurrentCategory() {
     return currentCategory;
@@ -199,8 +209,10 @@ export async function openAddModal(id = null) {
     // Safety check if DOM is ready
     if (!form) return;
 
+    const token = ++openModalToken;
+
     // Reset Receipt State
-    removeReceipt();
+    clearReceipts();
 
     form.reset();
     document.getElementById('entry-id').value = '';
@@ -265,30 +277,61 @@ export async function openAddModal(id = null) {
             togglePaymentFields(); // Update visibility based on loaded item
             populatePaidByFields(item.paidBy || '');
 
-            // Load Receipt
-            if (item.receiptId) {
+            // Load Receipts (multi) — keep failed IDs so save won't orphan-delete them
+            const ids = getReceiptIds(item);
+            for (const rid of ids) {
+                if (token !== openModalToken) return;
                 try {
-                    const blob = await getReceipt(item.receiptId);
+                    const blob = await getReceipt(rid);
+                    if (token !== openModalToken) return;
                     if (blob) {
-                        const url = URL.createObjectURL(blob);
-                        showReceiptPreview(url);
-                        selectedReceiptBlob = blob;
+                        selectedReceipts.push({
+                            id: rid,
+                            blob,
+                            url: URL.createObjectURL(blob),
+                            isNew: false
+                        });
+                    } else {
+                        selectedReceipts.push({
+                            id: rid,
+                            blob: null,
+                            url: null,
+                            isNew: false,
+                            loadFailed: true
+                        });
                     }
                 } catch (err) {
-                    console.error('Failed to load receipt:', err);
+                    console.error('Failed to load receipt:', rid, err);
+                    if (token !== openModalToken) return;
+                    selectedReceipts.push({
+                        id: rid,
+                        blob: null,
+                        url: null,
+                        isNew: false,
+                        loadFailed: true
+                    });
                 }
             }
+            if (token !== openModalToken) return;
+            renderReceiptPreviews();
 
             document.getElementById('modal-title').textContent = '編輯/睇返支出';
+        } else {
+            // Expense missing (e.g. trip switch race) — don't open a confusing empty "edit"
+            alert('搵唔到呢筆支出');
+            return;
         }
     } else {
         selectCategory('general');
         document.getElementById('modal-title').textContent = '新增支出';
     }
 
+    if (token !== openModalToken) return;
+
     const modalForm = document.getElementById('modal-form');
     modalForm.classList.remove('hidden');
     setTimeout(() => {
+        if (token !== openModalToken) return;
         modalForm.classList.remove('opacity-0');
         document.getElementById('modal-content').classList.remove('translate-y-full');
         if (window.lucide) lucide.createIcons();
@@ -296,11 +339,15 @@ export async function openAddModal(id = null) {
 }
 
 export function closeModal() {
+    const tokenAtClose = ++openModalToken; // cancel any in-flight receipt loads
+    closeLightbox();
     const modalForm = document.getElementById('modal-form');
     modalForm.classList.add('opacity-0');
     document.getElementById('modal-content').classList.add('translate-y-full');
     setTimeout(() => {
         modalForm.classList.add('hidden');
+        // Only clear if we didn't open another modal in the meantime
+        if (tokenAtClose === openModalToken) clearReceipts();
     }, 300);
 }
 
@@ -336,62 +383,229 @@ export function togglePaymentFields() {
 window.togglePaymentFields = togglePaymentFields;
 
 export function handleReceiptSelection(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
 
-    selectedReceiptBlob = file;
-    const url = URL.createObjectURL(file);
-    showReceiptPreview(url);
+    const room = MAX_RECEIPTS - selectedReceipts.length;
+    if (room <= 0) {
+        alert(`最多 ${MAX_RECEIPTS} 張收據`);
+        event.target.value = '';
+        return;
+    }
+    const toAdd = files.slice(0, room);
+    if (files.length > room) {
+        alert(`最多 ${MAX_RECEIPTS} 張，已加入 ${toAdd.length} 張`);
+    }
+
+    toAdd.forEach(file => {
+        // Some mobile cameras leave type empty — still accept
+        if (file.type && !file.type.startsWith('image/')) return;
+        selectedReceipts.push({
+            id: null,
+            blob: file,
+            url: URL.createObjectURL(file),
+            isNew: true
+        });
+    });
+    renderReceiptPreviews();
+    event.target.value = '';
 }
 
-export function removeReceipt() {
-    selectedReceiptBlob = null;
+export function removeReceiptAt(index) {
+    const item = selectedReceipts[index];
+    if (!item) return;
+    // Avoid broken lightbox if this preview was open
+    const lb = document.getElementById('lightbox');
+    if (lb && !lb.classList.contains('hidden') && item.url && lightboxUrls.includes(item.url)) {
+        closeLightbox();
+    }
+    if (item.url) URL.revokeObjectURL(item.url);
+    selectedReceipts.splice(index, 1);
+    renderReceiptPreviews();
+}
+
+export function clearReceipts() {
+    selectedReceipts.forEach(r => {
+        if (r.url) URL.revokeObjectURL(r.url);
+    });
+    selectedReceipts = [];
     ['inp-receipt-camera', 'inp-receipt-file'].forEach(id => {
         const inp = document.getElementById(id);
         if (inp) inp.value = '';
     });
-    const container = document.getElementById('receipt-preview-container');
-    if (container) container.classList.add('hidden');
+    renderReceiptPreviews();
 }
 
-function showReceiptPreview(url) {
-    const img = document.getElementById('receipt-preview');
+/** @deprecated use clearReceipts — kept for any leftover HTML refs */
+export function removeReceipt() {
+    clearReceipts();
+}
+
+function renderReceiptPreviews() {
     const container = document.getElementById('receipt-preview-container');
-    if (img && container) {
-        img.src = url;
-        container.classList.remove('hidden');
-        
-        // Add click listener to open lightbox
-        img.onclick = () => openLightbox(url, '收據預覽');
-        img.classList.add('cursor-zoom-in');
+    const grid = document.getElementById('receipt-preview-grid');
+    const countLabel = document.getElementById('receipt-count-label');
+    if (!container || !grid) return;
+
+    if (!selectedReceipts.length) {
+        container.classList.add('hidden');
+        grid.innerHTML = '';
+        if (countLabel) countLabel.classList.add('hidden');
+        return;
     }
+
+    container.classList.remove('hidden');
+    if (countLabel) {
+        countLabel.textContent = `${selectedReceipts.length} / ${MAX_RECEIPTS}`;
+        countLabel.classList.remove('hidden');
+    }
+
+    grid.innerHTML = selectedReceipts.map((r, idx) => {
+        if (r.loadFailed || !r.url) {
+            return `
+        <div class="relative group aspect-square">
+            <div class="w-full h-full rounded-xl border border-dashed border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 flex flex-col items-center justify-center gap-1 text-amber-600 dark:text-amber-400 text-[10px] px-1 text-center">
+                <i data-lucide="image-off" class="w-5 h-5"></i>
+                無法預覽
+            </div>
+            <button type="button" data-remove-idx="${idx}"
+                class="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 hover:bg-red-600 transition"
+                aria-label="移除相片">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>`;
+        }
+        return `
+        <div class="relative group aspect-square">
+            <img src="${r.url}" alt="收據 ${idx + 1}"
+                class="w-full h-full object-cover rounded-xl border border-gray-200 dark:border-gray-600 cursor-zoom-in"
+                data-preview-idx="${idx}">
+            <button type="button" data-remove-idx="${idx}"
+                class="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 hover:bg-red-600 transition"
+                aria-label="移除相片">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>`;
+    }).join('');
+
+    grid.querySelectorAll('img[data-preview-idx]').forEach(img => {
+        img.addEventListener('click', () => {
+            const i = parseInt(img.dataset.previewIdx, 10);
+            const previewable = selectedReceipts
+                .map((r, idx) => ({ r, idx }))
+                .filter(x => x.r.url);
+            const urls = previewable.map(x => x.r.url);
+            const start = Math.max(0, previewable.findIndex(x => x.idx === i));
+            openLightboxGallery(urls, start, '收據預覽');
+        });
+    });
+    grid.querySelectorAll('button[data-remove-idx]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            removeReceiptAt(parseInt(btn.dataset.removeIdx, 10));
+        });
+    });
+    if (window.lucide) lucide.createIcons();
 }
 
+export function getSelectedReceipts() {
+    return selectedReceipts;
+}
+
+/** @deprecated single-blob API — prefer getSelectedReceipts */
 export function getSelectedReceiptBlob() {
-    return selectedReceiptBlob;
+    return selectedReceipts[0]?.blob || null;
 }
 
 window.handleReceiptSelection = handleReceiptSelection;
 window.removeReceipt = removeReceipt;
+window.removeReceiptAt = removeReceiptAt;
+window.clearReceipts = clearReceipts;
 
 export function openLightbox(url, caption = '') {
+    openLightboxGallery([url], 0, caption);
+}
+
+/**
+ * @param {string[]} urls
+ * @param {number} startIndex
+ * @param {string|string[]} caption - single caption or per-image captions
+ */
+export function openLightboxGallery(urls, startIndex = 0, caption = '') {
+    const list = (urls || []).filter(Boolean);
+    if (!list.length) return;
+    lightboxUrls = list;
+    lightboxIndex = Math.max(0, Math.min(startIndex, list.length - 1));
+    if (Array.isArray(caption)) {
+        lightboxCaptions = caption;
+        lightboxCaption = caption[lightboxIndex] || '';
+    } else {
+        lightboxCaptions = [];
+        lightboxCaption = caption || '';
+    }
+    updateLightboxView();
     const lb = document.getElementById('lightbox');
-    const img = document.getElementById('lightbox-img');
-    const cap = document.getElementById('lightbox-caption');
-    if (lb && img) {
-        img.src = url;
-        cap.textContent = caption;
+    if (lb) {
         lb.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
     }
 }
 
+function updateLightboxView() {
+    const img = document.getElementById('lightbox-img');
+    const cap = document.getElementById('lightbox-caption');
+    const counter = document.getElementById('lightbox-counter');
+    const prev = document.getElementById('lightbox-prev');
+    const next = document.getElementById('lightbox-next');
+    if (img) img.src = lightboxUrls[lightboxIndex] || '';
+    const captionText = lightboxCaptions.length
+        ? (lightboxCaptions[lightboxIndex] || '')
+        : lightboxCaption;
+    if (cap) cap.textContent = captionText;
+    const multi = lightboxUrls.length > 1;
+    if (counter) {
+        counter.textContent = multi ? `${lightboxIndex + 1} / ${lightboxUrls.length}` : '';
+        counter.classList.toggle('hidden', !multi);
+    }
+    if (prev) prev.classList.toggle('hidden', !multi);
+    if (next) next.classList.toggle('hidden', !multi);
+    document.dispatchEvent(new CustomEvent('lightbox:index', { detail: { index: lightboxIndex } }));
+}
+
+export function lightboxNav(delta) {
+    if (lightboxUrls.length <= 1) return;
+    lightboxIndex = (lightboxIndex + delta + lightboxUrls.length) % lightboxUrls.length;
+    updateLightboxView();
+}
+
+function revokeViewReceiptUrls() {
+    viewReceiptObjectUrls.forEach(u => {
+        try { URL.revokeObjectURL(u); } catch {}
+    });
+    viewReceiptObjectUrls = [];
+}
+
 export function closeLightbox() {
     const lb = document.getElementById('lightbox');
     if (lb) lb.classList.add('hidden');
+    lightboxUrls = [];
+    lightboxCaptions = [];
+    lightboxIndex = 0;
+    revokeViewReceiptUrls();
 }
 
+document.addEventListener('keydown', (e) => {
+    const lb = document.getElementById('lightbox');
+    if (!lb || lb.classList.contains('hidden')) return;
+    if (e.key === 'Escape') closeLightbox();
+    else if (e.key === 'ArrowLeft') lightboxNav(-1);
+    else if (e.key === 'ArrowRight') lightboxNav(1);
+});
+
 window.openLightbox = openLightbox;
+window.openLightboxGallery = openLightboxGallery;
+window.lightboxNav = lightboxNav;
 window.closeLightbox = closeLightbox;
 
 
@@ -455,7 +669,10 @@ export function createItemElement(item, homeCurrency) {
         detailHtml = `<div class="text-[10px] text-gray-400 dark:text-gray-500 mt-1.5 flex items-start gap-1.5 min-w-0"><i data-lucide="calendar" class="w-3 h-3 shrink-0 mt-0.5 opacity-80"></i><span class="break-words leading-snug">${item.departure ? new Date(item.departure).toLocaleString() : ''} ${escapeHtml(item.flightNo || '')}</span></div>`;
     }
 
-    const titleSafeJs = String(item.title || '').replace(/'/g, "\\'");
+    const receiptIds = getReceiptIds(item);
+    const receiptBtn = receiptIds.length
+        ? `<button type="button" class="btn-receipts p-1 rounded-md text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 shrink-0 -m-0.5 inline-flex items-center gap-0.5" title="睇收據（${receiptIds.length}）" aria-label="睇收據"><i data-lucide="images" class="w-4 h-4"></i>${receiptIds.length > 1 ? `<span class="text-[10px] font-bold">${receiptIds.length}</span>` : ''}</button>`
+        : '';
 
     div.innerHTML = `
         <div class="flex gap-3 items-start min-w-0">
@@ -467,7 +684,7 @@ export function createItemElement(item, homeCurrency) {
                     <span class="font-bold text-base text-gray-800 dark:text-gray-100 break-words">${escapeHtml(item.title)}</span>
                     ${paymentBadge}
                     ${paidByTag}
-                    ${item.receiptId ? `<button type="button" class="p-1 rounded-md text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 shrink-0 -m-0.5" title="睇收據" aria-label="睇收據" onclick="event.stopPropagation(); window.viewReceipt('${item.receiptId}', '${titleSafeJs}')"><i data-lucide="image" class="w-4 h-4"></i></button>` : ''}
+                    ${receiptBtn}
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400">
                     <span class="tabular-nums">${formatCurrency(nativeAmount, item.currency)}</span>${item.currency !== homeCurrency ? ` <span class="text-gray-400">(@ ${item.rate})</span>` : ''}
@@ -489,6 +706,13 @@ export function createItemElement(item, homeCurrency) {
     div.querySelector('.btn-dup').onclick = (e) => { e.stopPropagation(); window.duplicateItem(item.id); };
     div.querySelector('.btn-share').onclick = (e) => { e.stopPropagation(); window.shareItem(item.id); };
     div.querySelector('.btn-delete').onclick = (e) => { e.stopPropagation(); window.deleteItem(item.id); };
+    const receiptEl = div.querySelector('.btn-receipts');
+    if (receiptEl) {
+        receiptEl.onclick = (e) => {
+            e.stopPropagation();
+            window.viewReceipts(receiptIds, item.title || '');
+        };
+    }
 
     return div;
 }
@@ -673,9 +897,15 @@ export function renderTripList() {
             const delBtn = document.createElement('button');
             delBtn.className = 'p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition';
             delBtn.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>';
-            delBtn.onclick = (e) => {
+            delBtn.onclick = async (e) => {
                 e.stopPropagation();
                 if (confirm(`刪除行程「${trip.name}」？呢個操作無法復原。`)) {
+                    const { deleteReceipt } = await import('./db.js');
+                    for (const exp of trip.expenses || []) {
+                        for (const rid of getReceiptIds(exp)) {
+                            try { await deleteReceipt(rid); } catch {}
+                        }
+                    }
                     store.deleteTrip(trip.id);
                     renderTripList();
                 }
@@ -691,19 +921,39 @@ export function renderTripList() {
 }
 window.renderTripList = renderTripList;
 
-export async function viewReceipt(receiptId, title = '') {
+export async function viewReceipts(receiptIds, title = '') {
+    const ids = Array.isArray(receiptIds) ? receiptIds : (receiptIds ? [receiptIds] : []);
+    if (!ids.length) {
+        alert('搵唔到收據檔案');
+        return;
+    }
     try {
-        const { getReceipt } = await import('./db.js');
-        const blob = await getReceipt(receiptId);
-        if (blob) {
-            const url = URL.createObjectURL(blob);
-            openLightbox(url, title);
-        } else {
-            alert('搵唔到收據檔案');
+        revokeViewReceiptUrls();
+        const urls = [];
+        for (const rid of ids) {
+            const blob = await getReceipt(rid);
+            if (blob) {
+                const url = URL.createObjectURL(blob);
+                viewReceiptObjectUrls.push(url);
+                urls.push(url);
+            }
         }
+        if (!urls.length) {
+            alert('搵唔到收據檔案');
+            return;
+        }
+        const captions = urls.map((_, i) =>
+            ids.length > 1 ? `${title || '收據'} (${i + 1}/${urls.length})` : (title || '收據')
+        );
+        openLightboxGallery(urls, 0, captions);
     } catch (err) {
-        console.error('Error viewing receipt:', err);
+        console.error('Error viewing receipts:', err);
         alert('讀取收據時發生錯誤');
     }
 }
+
+export async function viewReceipt(receiptId, title = '') {
+    return viewReceipts(receiptId ? [receiptId] : [], title);
+}
 window.viewReceipt = viewReceipt;
+window.viewReceipts = viewReceipts;

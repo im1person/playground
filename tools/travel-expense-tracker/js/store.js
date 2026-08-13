@@ -85,6 +85,20 @@ export class Store {
                 trip.settings.cashAllocations = [];
                 migrated = true;
             }
+            // Migrate single receiptId → receiptIds[]
+            (trip.expenses || []).forEach(exp => {
+                if (!Array.isArray(exp.receiptIds)) {
+                    exp.receiptIds = exp.receiptId ? [exp.receiptId] : [];
+                    migrated = true;
+                } else if (exp.receiptId && !exp.receiptIds.includes(exp.receiptId)) {
+                    exp.receiptIds = [exp.receiptId, ...exp.receiptIds];
+                    migrated = true;
+                }
+                if (exp.receiptId != null) {
+                    delete exp.receiptId;
+                    migrated = true;
+                }
+            });
         });
         if (migrated) this.save();
     }

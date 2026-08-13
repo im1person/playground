@@ -8,13 +8,16 @@ import {
     closeModal, 
     openAddModal, 
     togglePaymentFields,
-    getSelectedReceiptBlob,
+    getSelectedReceipts,
     populatePaidByFields,
     getPaidByFromForm,
     getCurrentCategory
 } from './ui.js';
-import { switchTab, formatCurrency, getTripDate, setCurrency, getCashPoolCurrencyCode } from './utils.js';
+import { switchTab, formatCurrency, getTripDate, setCurrency, getCashPoolCurrencyCode, getReceiptIds } from './utils.js';
 import { saveReceipt, deleteReceipt, clearAllReceipts } from './db.js';
+import { initGallery, renderGallery } from './gallery.js';
+import { exportPhotosZip } from './export-photos.js';
+import { exportFullBackup, importBackupFile } from './backup.js';
 
 function escapeAttr(s) {
     return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
@@ -149,6 +152,7 @@ function renderCashAllocSettingsUI() {
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     initDashboard();
+    initGallery();
     renderAll();
 
     // Global Listeners
@@ -314,6 +318,11 @@ function renderAll() {
     renderFullList(filteredExpenses, trip.settings.homeCurrency, listSort);
     updateSettingsUI(trip.settings);
 
+    const galleryView = document.getElementById('view-gallery');
+    if (galleryView && !galleryView.classList.contains('hidden')) {
+        renderGallery();
+    }
+
     const modal = document.getElementById('modal-form');
     if (modal && !modal.classList.contains('hidden')) {
         populatePaidByFields(getPaidByFromForm());
@@ -442,27 +451,26 @@ async function handleFormSubmit(e) {
         const isEdit = !!entryId;
         const id = entryId || Date.now().toString();
 
-        const selectedBlob = getSelectedReceiptBlob();
-        let receiptId = null;
+        const selected = getSelectedReceipts();
+        const oldItem = isEdit ? store.activeTrip.expenses.find(i => i.id === entryId) : null;
+        const oldIds = getReceiptIds(oldItem || {});
 
-        if (isEdit) {
-            const oldItem = store.activeTrip.expenses.find(i => i.id === entryId);
-            receiptId = oldItem?.receiptId || null;
+        const keptIds = selected.filter(r => r.id && !r.isNew).map(r => r.id);
+        const receiptIds = [...keptIds];
 
-            if (selectedBlob) {
-                // Check if it's a NEW file (File object) vs existing Blob we loaded
-                if (selectedBlob instanceof File) {
-                    receiptId = `rcpt_${id}_${Date.now()}`;
-                    await saveReceipt(receiptId, selectedBlob);
-                    if (oldItem?.receiptId) await deleteReceipt(oldItem.receiptId);
-                }
-            } else if (oldItem?.receiptId) {
-                await deleteReceipt(oldItem.receiptId);
-                receiptId = null;
+        for (const r of selected) {
+            if (r.isNew && r.blob) {
+                const newId = `rcpt_${id}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+                await saveReceipt(newId, r.blob);
+                receiptIds.push(newId);
             }
-        } else if (selectedBlob) {
-            receiptId = `rcpt_${id}_${Date.now()}`;
-            await saveReceipt(receiptId, selectedBlob);
+        }
+
+        // Delete receipts removed from the form
+        for (const oldId of oldIds) {
+            if (!receiptIds.includes(oldId)) {
+                try { await deleteReceipt(oldId); } catch {}
+            }
         }
 
         const newItem = {
@@ -484,7 +492,7 @@ async function handleFormSubmit(e) {
             flightNo: document.getElementById('inp-flight-no').value,
             airline: document.getElementById('inp-airline').value,
             departure: document.getElementById('inp-departure').value,
-            receiptId: receiptId
+            receiptIds: receiptIds
         };
 
         if (isEdit) {
@@ -505,7 +513,24 @@ function deleteItem(id) {
     const item = store.activeTrip.expenses.find(i => i.id === id);
     if (!item) return;
 
-    undoItem = { ...item };
+    // If a previous delete is still in the undo window, purge its receipts now
+    // (otherwise clearing the timer would orphan those IndexedDB blobs forever)
+    if (undoTimer) {
+        clearTimeout(undoTimer);
+        undoTimer = null;
+        const stale = undoItem;
+        undoItem = null;
+        if (stale) {
+            const staleIds = getReceiptIds(stale);
+            (async () => {
+                for (const rid of staleIds) {
+                    try { await deleteReceipt(rid); } catch {}
+                }
+            })();
+        }
+    }
+
+    undoItem = { ...item, receiptIds: [...getReceiptIds(item)] };
     store.deleteExpense(id);
 
     const toast = document.getElementById('undo-toast');
@@ -514,17 +539,19 @@ function deleteItem(id) {
     msg.textContent = `已刪除「${item.title}」`;
     toast.classList.remove('hidden');
 
-    if (undoTimer) clearTimeout(undoTimer);
     undoTimer = setTimeout(async () => {
         toast.classList.add('hidden');
-        if (undoItem?.receiptId) {
-            try { await deleteReceipt(undoItem.receiptId); } catch {}
+        const ids = getReceiptIds(undoItem || {});
+        for (const rid of ids) {
+            try { await deleteReceipt(rid); } catch {}
         }
         undoItem = null;
+        undoTimer = null;
     }, 5000);
 
     btn.onclick = () => {
         if (undoTimer) clearTimeout(undoTimer);
+        undoTimer = null;
         if (undoItem) {
             store.addExpense(undoItem);
             undoItem = null;
@@ -536,7 +563,8 @@ function deleteItem(id) {
 function duplicateItem(id) {
     const item = store.activeTrip.expenses.find(i => i.id === id);
     if (!item) return;
-    const dup = { ...item, id: Date.now().toString(), date: new Date().toISOString(), receiptId: null };
+    const { receiptId, receiptIds, ...rest } = item;
+    const dup = { ...rest, id: Date.now().toString(), date: new Date().toISOString(), receiptIds: [] };
     store.addExpense(dup);
 }
 
@@ -553,23 +581,8 @@ function exportJSON() {
 }
 
 function importJSON(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const data = JSON.parse(e.target.result);
-            if (data.trips) {
-                store.data = data;
-                store.save();
-                alert('匯入成功');
-                location.reload();
-            } else {
-                alert('檔案格式唔啱');
-            }
-        } catch (err) { alert('唔係有效嘅 JSON'); }
-    };
-    reader.readAsText(file);
+    // Legacy alias → unified importer
+    return importBackupFile(input);
 }
 
 function csvEscape(cell) {
@@ -685,7 +698,10 @@ async function shareSummary() {
 window.handleFormSubmit = handleFormSubmit;
 window.exportJSON = exportJSON;
 window.exportCSV = exportCSV;
-window.importJSON = importJSON;
+window.exportPhotosZip = exportPhotosZip;
+window.exportFullBackup = exportFullBackup;
+window.importBackupFile = importBackupFile;
+window.importJSON = importJSON; // legacy JSON-only alias
 window.clearAllData = clearAllData;
 window.createNewTrip = createNewTrip;
 window.shareItem = shareItem;
