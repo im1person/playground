@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BX Tracker 爆旋陀螺圖鑑</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel 7 (核心修復：移除 module 依賴，支援本機開啟) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- FontAwesome 6 (取代 Lucide，解決編譯報錯問題) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body { background-color: #09090b; color: #f4f4f5; font-family: sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #3f3f46; border-radius: 20px; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="selection:bg-emerald-500/30">
+  
+  <!-- React 渲染目標與安全提示 -->
+  <div id="root">
+    <div style="text-align:center; padding: 100px 20px; color: #a1a1aa;">
+      <i class="fa-solid fa-bolt fa-spin" style="font-size: 32px; color: #10b981; margin-bottom: 20px;"></i>
+      <h2 style="font-size: 24px; font-weight: bold; color: white;">BX Tracker 載入中...</h2>
+      <p style="margin-top: 10px;">正在編譯系統與載入圖庫，請稍候。</p>
+      <p style="font-size: 12px; margin-top: 30px; color: #52525b;">若長時間未顯示畫面，請確保你的設備已連上網路，且檔案副檔名為 .html</p>
+    </div>
+  </div>
+
+  <!-- 注意：這裡拿掉了 data-type="module" 以支援本機雙擊開啟 -->
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+
+    // --- FontAwesome 圖示元件封裝 ---
+    const Icon = ({ name, className = "" }) => {
+      const map = {
+        Plus: 'fa-plus', Minus: 'fa-minus', Trash2: 'fa-trash-can',
+        Settings: 'fa-gear', Swords: 'fa-khanda', Shield: 'fa-shield-halved',
+        Wind: 'fa-wind', Scale: 'fa-scale-balanced', Box: 'fa-box',
+        Layers: 'fa-layer-group', PenTool: 'fa-pen-nib', Search: 'fa-magnifying-glass',
+        Save: 'fa-floppy-disk', X: 'fa-xmark', Zap: 'fa-bolt-lightning',
+        AlertTriangle: 'fa-triangle-exclamation', Trophy: 'fa-trophy',
+        CheckCircle2: 'fa-circle-check', ChevronRight: 'fa-chevron-right',
+        Edit3: 'fa-pen-to-square', Image: 'fa-image', Filter: 'fa-filter',
+        PackagePlus: 'fa-box-open', ShoppingBag: 'fa-bag-shopping'
+      };
+      return <i className={`fa-solid ${map[name]} ${className}`}></i>;
+    };
+
+    const Plus = ({className}) => <Icon name="Plus" className={className} />;
+    const Minus = ({className}) => <Icon name="Minus" className={className} />;
+    const Trash2 = ({className}) => <Icon name="Trash2" className={className} />;
+    const Settings = ({className}) => <Icon name="Settings" className={className} />;
+    const Swords = ({className}) => <Icon name="Swords" className={className} />;
+    const Shield = ({className}) => <Icon name="Shield" className={className} />;
+    const Wind = ({className}) => <Icon name="Wind" className={className} />;
+    const Scale = ({className}) => <Icon name="Scale" className={className} />;
+    const Box = ({className}) => <Icon name="Box" className={className} />;
+    const Layers = ({className}) => <Icon name="Layers" className={className} />;
+    const PenTool = ({className}) => <Icon name="PenTool" className={className} />;
+    const Search = ({className}) => <Icon name="Search" className={className} />;
+    const Save = ({className}) => <Icon name="Save" className={className} />;
+    const CloseIcon = ({className}) => <Icon name="X" className={className} />;
+    const Zap = ({className}) => <Icon name="Zap" className={className} />;
+    const AlertTriangle = ({className}) => <Icon name="AlertTriangle" className={className} />;
+    const Trophy = ({className}) => <Icon name="Trophy" className={className} />;
+    const CheckCircle2 = ({className}) => <Icon name="CheckCircle2" className={className} />;
+    const ChevronRight = ({className}) => <Icon name="ChevronRight" className={className} />;
+    const Edit3 = ({className}) => <Icon name="Edit3" className={className} />;
+    const ImageIcon = ({className}) => <Icon name="Image" className={className} />;
+    const Filter = ({className}) => <Icon name="Filter" className={className} />;
+    const PackagePlus = ({className}) => <Icon name="PackagePlus" className={className} />;
+    const ShoppingBag = ({className}) => <Icon name="ShoppingBag" className={className} />;
+
+    const DEFAULT_BLADE_IMG = 'https://placehold.co/100x100/1e293b/38bdf8?text=Blade';
+    const DEFAULT_RATCHET_IMG = 'https://placehold.co/100x100/1e293b/a3e635?text=Ratchet';
+    const DEFAULT_BIT_IMG = 'https://placehold.co/100x100/1e293b/f43f5e?text=Bit';
+
+    const PRODUCTS_DB = [
+      { id: 'BX-01', name: '翔龍神劍 3-60F', combos: [{ bladeId: 'b_ds', ratchetId: 'r_360', bitId: 't_f' }] },
+      { id: 'BX-02', name: '煉獄魔鐮 4-60T', combos: [{ bladeId: 'b_hs', ratchetId: 'r_460', bitId: 't_t' }] },
+      { id: 'BX-03', name: '巫師弩箭 4-80B', combos: [{ bladeId: 'b_wa', ratchetId: 'r_480', bitId: 't_b' }] },
+      { id: 'BX-04', name: '騎士護盾 3-80N', combos: [{ bladeId: 'b_ks', ratchetId: 'r_380', bitId: 't_n' }] },
+      { id: 'BX-08', name: '三陀螺套裝 (BX-08)', combos: [
+        { bladeId: 'b_hs', ratchetId: 'r_380', bitId: 't_b' },
+        { bladeId: 'b_wa', ratchetId: 'r_460', bitId: 't_n' },
+        { bladeId: 'b_ks', ratchetId: 'r_480', bitId: 't_t' }
+      ]},
+      { id: 'BX-13', name: '騎士長槍 4-80HN', combos: [{ bladeId: 'b_kl', ratchetId: 'r_480', bitId: 't_hn' }] },
+      { id: 'BX-14', name: '鮫鯊狂鱗 3-60LF', combos: [{ bladeId: 'b_se', ratchetId: 'r_360', bitId: 't_lf' }] },
+      { id: 'BX-15', name: '獅王銳爪 5-60P', combos: [{ bladeId: 'b_lc', ratchetId: 'r_560', bitId: 't_p' }] },
+      { id: 'BX-16', name: '毒蛇靈尾 5-80O', combos: [{ bladeId: 'b_vt', ratchetId: 'r_580', bitId: 't_o' }] },
+      { id: 'BX-19', name: '犀牛號角 3-80S', combos: [{ bladeId: 'b_rh', ratchetId: 'r_380', bitId: 't_s' }] },
+      { id: 'BX-20', name: '翔龍雙刃 三陀螺套裝', combos: [
+        { bladeId: 'b_dd', ratchetId: 'r_460', bitId: 't_r' },
+        { bladeId: 'b_se', ratchetId: 'r_380', bitId: 't_f' },
+        { bladeId: 'b_ks', ratchetId: 'r_580', bitId: 't_t' }
+      ]},
+      { id: 'BX-21', name: '惡魔鎖鏈 改造組', combos: [
+        { bladeId: 'b_hc', ratchetId: 'r_560', bitId: 't_ht' },
+        { bladeId: 'b_kl', ratchetId: 'r_360', bitId: 't_lf' },
+        { bladeId: 'b_wa', ratchetId: 'r_480', bitId: 't_n' }
+      ]},
+      { id: 'BX-23', name: '鳳凰飛翼 9-60GF', combos: [{ bladeId: 'b_pw', ratchetId: 'r_960', bitId: 't_gf' }] },
+      { id: 'BX-24', name: '飛龍狂風 5-80GB', combos: [{ bladeId: 'b_wg', ratchetId: 'r_580', bitId: 't_gb' }] },
+      { id: 'BX-26', name: '獨角螫刺 5-70GP', combos: [{ bladeId: 'b_us', ratchetId: 'r_570', bitId: 't_gp' }] },
+      { id: 'BX-27', name: '史芬克斯斗篷 9-80GN', combos: [{ bladeId: 'b_sc', ratchetId: 'r_980', bitId: 't_gn' }] },
+      { id: 'BX-31', name: '暴龍節拍 4-70Q', combos: [{ bladeId: 'b_tb', ratchetId: 'r_470', bitId: 't_q' }] },
+      { id: 'BX-33', name: '純白猛虎 3-60U', combos: [{ bladeId: 'b_wt', ratchetId: 'r_360', bitId: 't_u' }] },
+      { id: 'BX-34', name: '鈷藍青龍 2-60C', combos: [{ bladeId: 'b_cdg', ratchetId: 'r_260', bitId: 't_c' }] },
+      { id: 'BX-35', name: '玄武黑殼 4-60D', combos: [{ bladeId: 'b_bs', ratchetId: 'r_460', bitId: 't_d' }] },
+      { id: 'BX-36', name: '戰鯨波浪 5-80E', combos: [{ bladeId: 'b_ww', ratchetId: 'r_580', bitId: 't_e' }] },
+      { id: 'BX-38', name: '緋紅迦樓羅 4-70TP', combos: [{ bladeId: 'b_cg', ratchetId: 'r_470', bitId: 't_tp' }] },
+      { id: 'BX-39', name: '神護魔龍 4-80O', combos: [{ bladeId: 'b_sd', ratchetId: 'r_480', bitId: 't_o' }] },
+      { id: 'BX-44', name: '三角龍壓 M-85BS', combos: [{ bladeId: 'b_tp', ratchetId: 'r_m85', bitId: 't_bs' }] },
+      { id: 'BX-45', name: '武士聖劍 6-70M', combos: [{ bladeId: 'b_scb', ratchetId: 'r_670', bitId: 't_m' }] },
+      { id: 'BX-46', name: '對戰入門套裝 (BX-46)', combos: [
+        { bladeId: 'b_cdk', ratchetId: 'r_460', bitId: 't_f' },
+        { bladeId: 'b_gt', ratchetId: 'r_380', bitId: 't_n' }
+      ]},
+      { id: 'BX-48', name: '隨機陀螺Vol.9 (大獎)', combos: [{ bladeId: 'b_ds', ratchetId: 'r_360', bitId: 't_f' }] },
+      { id: 'BX-49', name: '翔龍突擊 4-50FF', combos: [{ bladeId: 'b_dsk', ratchetId: 'r_450', bitId: 't_ff' }] },
+      { id: 'BX-50', name: '天界之環 (Vol.11)', combos: [{ bladeId: 'b_hr', ratchetId: 'r_560', bitId: 't_ds' }] },
+      { id: 'UX-01', name: '翔龍破壞劍 1-60A', combos: [{ bladeId: 'b_db', ratchetId: 'r_160', bitId: 't_a' }] },
+      { id: 'UX-02', name: '煉獄惡鎚 3-70H', combos: [{ bladeId: 'b_hh', ratchetId: 'r_370', bitId: 't_h' }] },
+      { id: 'UX-03', name: '巫師幻棍 5-70DB', combos: [{ bladeId: 'b_wr', ratchetId: 'r_570', bitId: 't_db' }] },
+      { id: 'UX-05', name: '忍者幻影 1-80MN', combos: [{ bladeId: 'b_ss', ratchetId: 'r_180', bitId: 't_mn' }] },
+      { id: 'UX-06', name: '獅王徽章 7-60GN', combos: [{ bladeId: 'b_lcr', ratchetId: 'r_760', bitId: 't_gn' }] },
+      { id: 'UX-07', name: '鳳凰炎舵 三陀螺套裝', combos: [
+        { bladeId: 'b_pr', ratchetId: 'r_970', bitId: 't_g' },
+        { bladeId: 'b_wg', ratchetId: 'r_260', bitId: 't_gf' },
+        { bladeId: 'b_sc', ratchetId: 'r_180', bitId: 't_gf' }
+      ]},
+      { id: 'UX-08', name: '白銀戰狼 3-80FB', combos: [{ bladeId: 'b_sw', ratchetId: 'r_380', bitId: 't_fb' }] },
+      { id: 'UX-09', name: '武士之刃 2-70L', combos: [{ bladeId: 'b_ssb', ratchetId: 'r_270', bitId: 't_l' }] },
+      { id: 'UX-10', name: '改造套裝U (UX-10)', combos: [
+        { bladeId: 'b_km', ratchetId: 'r_770', bitId: 't_ra' },
+        { bladeId: 'b_lc', ratchetId: 'r_385', bitId: 't_bs' }
+      ]},
+      { id: 'UX-11', name: '衝擊魔龍 9-60LR', combos: [{ bladeId: 'b_id', ratchetId: 'r_960', bitId: 't_lr' }] },
+      { id: 'UX-12', name: '幽靈元魂 (Vol.5)', combos: [{ bladeId: 'b_gc', ratchetId: 'r_080', bitId: 't_e' }] },
+      { id: 'UX-13', name: '魔像巨石 1-60UN', combos: [{ bladeId: 'b_gr', ratchetId: 'r_160', bitId: 't_un' }] },
+      { id: 'UX-14', name: '毒蠍刺槍 0-70Z', combos: [{ bladeId: 'b_ssp', ratchetId: 'r_070', bitId: 't_z' }] },
+      { id: 'UX-15', name: '烈鯊鱗甲 三陀螺套裝', combos: [
+        { bladeId: 'b_ssc', ratchetId: 'r_170', bitId: 't_uf' },
+        { bladeId: 'b_kl', ratchetId: 'r_570', bitId: 't_gf' },
+        { bladeId: 'b_vt', ratchetId: 'r_450', bitId: 't_p' }
+      ]},
+      { id: 'UX-16', name: '時鐘幽景 (隨機)', combos: [{ bladeId: 'b_cm', ratchetId: 'r_965', bitId: 't_b' }] },
+      { id: 'UX-17', name: '隕石青龍 3-70J', combos: [{ bladeId: 'b_md', ratchetId: 'r_370', bitId: 't_j' }] },
+      { id: 'UX-18', name: '古屍詛咒 (Vol.8)', combos: [{ bladeId: 'b_mc', ratchetId: 'r_755', bitId: 't_w' }] },
+      { id: 'UX-19', name: '彈丸獅鷲 H', combos: [{ bladeId: 'b_bg', ratchetId: 'r_160', bitId: 't_h' }] },
+      { id: 'UX-20', name: '榮耀戰神', combos: [{ bladeId: 'b_gv', ratchetId: 'r_360', bitId: 't_a' }] },
+      { id: 'UX-21', name: '煉獄幽冥 三陀螺套裝', combos: [
+        { bladeId: 'b_hn', ratchetId: 'r_880', bitId: 't_z' },
+        { bladeId: 'b_wh', ratchetId: 'r_880', bitId: 't_b' },
+        { bladeId: 'b_hs', ratchetId: 'r_380', bitId: 't_hn' }
+      ]},
+      { id: 'CX-01', name: '翔龍勇者 S6-60V', combos: [{ bladeId: 'b_cx_dr', ratchetId: 'r_660', bitId: 't_v' }] },
+      { id: 'CX-02', name: '巫師弧光 R4-55LO', combos: [{ bladeId: 'b_cx_arc', ratchetId: 'r_455', bitId: 't_lo' }] },
+      { id: 'CX-03', name: '英仙幽暗 B6-80W', combos: [{ bladeId: 'b_cx_dark', ratchetId: 'r_680', bitId: 't_w' }] },
+      { id: 'CX-05', name: '獵魂主刃 (Vol.6)', combos: [{ bladeId: 'b_cx_reaper', ratchetId: 'r_760', bitId: 't_k' }] },
+      { id: 'CX-06', name: '狐尾 (隨機大獎)', combos: [{ bladeId: 'b_cx_brush', ratchetId: 'r_970', bitId: 't_gr' }] },
+      { id: 'CX-07', name: '天馬轟裂 ATr', combos: [{ bladeId: 'b_ap', ratchetId: 'r_370', bitId: 't_tr' }] }, 
+      { id: 'CX-00_T', name: '迪卡狂怒', combos: [{ bladeId: 'b_cx_tiga', ratchetId: 'r_360', bitId: 't_t' }] },
+      { id: 'CX-00_E1', name: 'EVA 初號機套裝', combos: [{ bladeId: 'b_cx_eva01', ratchetId: 'r_360', bitId: 't_f' }] }, 
+    ];
+
+    const COMPLETE_DB = {
+      blades: [
+        { id: 'b_ds', name: 'BX-01 翔龍神劍 (Dran Sword)', type: '攻擊', qty: 0, img: '', series: 'BX', includedIn: 'BX-01, BX-07, BX-17, BX-22' },
+        { id: 'b_hs', name: 'BX-02 煉獄魔鐮 (Hells Scythe)', type: '平衡', qty: 0, img: '', series: 'BX', includedIn: 'BX-02, BX-08, BX-17, BX-22' },
+        { id: 'b_wa', name: 'BX-03 巫師弩箭 (Wizard Arrow)', type: '持久', qty: 0, img: '', series: 'BX', includedIn: 'BX-03, BX-05, BX-08, BX-17' },
+        { id: 'b_ks', name: 'BX-04 騎士護盾 (Knight Shield)', type: '防禦', qty: 0, img: '', series: 'BX', includedIn: 'BX-04, BX-06, BX-08' },
+        { id: 'b_kl', name: 'BX-13 騎士長槍 (Knight Lance)', type: '防禦', qty: 0, img: '', series: 'BX', includedIn: 'BX-13, BX-14, BX-21' },
+        { id: 'b_se', name: 'BX-14 鮫鯊狂鱗 (Shark Edge)', type: '攻擊', qty: 0, img: '', series: 'BX', includedIn: 'BX-14, BX-21, BX-24' },
+        { id: 'b_lc', name: 'BX-15 獅王銳爪 (Leon Claw)', type: '平衡', qty: 0, img: '', series: 'BX', includedIn: 'BX-15, BX-21' },
+        { id: 'b_vt', name: 'BX-16 毒蛇靈尾 (Viper Tail)', type: '持久', qty: 0, img: '', series: 'BX', includedIn: 'BX-16, BX-24, BX-35' },
+        { id: 'b_rh', name: 'BX-19 犀牛號角 (Rhino Horn)', type: '防禦', qty: 0, img: '', series: 'BX', includedIn: 'BX-19, BX-24, BX-31' },
+        { id: 'b_dd', name: 'BX-20 翔龍雙刃 (Dran Dagger)', type: '攻擊', qty: 0, img: '', series: 'BX', includedIn: 'BX-20, BX-21, BX-35' },
+        { id: 'b_hc', name: 'BX-21 惡魔鎖鏈 (Hells Chain)', type: '平衡', qty: 0, img: '', series: 'BX', includedIn: 'BX-21' },
+        { id: 'b_pw', name: 'BX-23 鳳凰飛翼 (Phoenix Wing)', type: '攻擊', qty: 0, img: '', series: 'BX', includedIn: 'BX-23' },
+        { id: 'b_wg', name: 'BX-24 飛龍狂風 (Wyvern Gale)', type: '持久', qty: 0, img: '', series: 'BX', includedIn: 'BX-24, BX-31' },
+        { id: 'b_us', name: 'BX-26 獨角螫刺 (Unicorn Sting)', type: '平衡', qty: 0, img: '', series: 'BX', includedIn: 'BX-26, BX-31' },
+        { id: 'b_sc', name: 'BX-27 史芬克斯斗篷 (Sphinx Cowl)', type: '防禦', qty: 0, img: '', series: 'BX', includedIn: 'BX-27, BX-35' },
+        { id: 'b_tb', name: 'BX-31 暴龍節拍 (Tyranno Beat)', type: '攻擊', qty: 0, img: '', series: 'BX', includedIn: 'BX-31' },
+        { id: 'b_wt', name: 'BX-33 純白猛虎 (Weiss Tiger)', type: '平衡', qty: 0, img: '', series: 'BX', includedIn: 'BX-33' },
+        { id: 'b_cdg', name: 'BX-34 鈷藍青龍 (Cobalt Dragoon) [左]', type: '攻擊', qty: 0, img: '', series: 'BX', includedIn: 'BX-34' },
+        { id: 'b_bs', name: 'BX-35 玄武黑殼 (Black Shell)', type: '防禦', qty: 0, img: '', series: 'BX', includedIn: 'BX-35' },
+        { id: 'b_ww', name: 'BX-36 戰鯨波浪 (Whale Wave)', type: '平衡', qty: 0, img: '', series: 'BX', includedIn: 'BX-36' },
+        { id: 'b_bsc', name: 'BX-37 悍熊猛爪 (Bear Scratch)', type: '防禦', qty: 0, img: '', series: 'BX', includedIn: 'BX-37' },
+        { id: 'b_cg', name: 'BX-38 緋紅迦樓羅 (Crimson Garuda)', type: '平衡', qty: 0, img: '', series: 'BX', includedIn: 'BX-38' },
+        { id: 'b_sd', name: 'BX-39 神護魔龍 (Shelter Drake)', type: '平衡', qty: 0, img: '', series: 'BX', includedIn: 'BX-39' },
+        { id: 'b_tp', name: 'BX-44 三角龍壓 (Tricera Press)', type: '防禦', qty: 0, img: '', series: 'BX', includedIn: 'BX-44' },
+        { id: 'b_scb', name: 'BX-45 武士聖劍 (Samurai Calibur)', type: '平衡', qty: 0, img: '', series: 'BX', includedIn: 'BX-45' },
+        { id: 'b_cdk', name: 'BX-46 鈷藍火龍 (Cobalt Drake)', type: '攻擊', qty: 0, img: '', series: 'BX', includedIn: 'BX-46' },
+        { id: 'b_gt', name: 'BX-46 戰羊阻截 (Goat Tackle)', type: '平衡', qty: 0, img: '', series: 'BX', includedIn: 'BX-46' },
+        { id: 'b_dsk', name: 'BX-49 翔龍突擊 (Dran Strike)', type: '攻擊', qty: 0, img: '', series: 'BX', includedIn: 'BX-49' },
+        { id: 'b_hr', name: 'BX-50 天界之環 (Heaven\'s Ring)', type: '防禦', qty: 0, img: '', series: 'BX', includedIn: 'BX-50' },
+        { id: 'b_db', name: 'UX-01 翔龍破壞劍 (Dran Buster)', type: '攻擊', qty: 0, img: '', series: 'UX', includedIn: 'UX-01' },
+        { id: 'b_hh', name: 'UX-02 煉獄惡鎚 (Hells Hammer)', type: '平衡', qty: 0, img: '', series: 'UX', includedIn: 'UX-02' },
+        { id: 'b_wr', name: 'UX-03 巫師幻棍 (Wizard Rod)', type: '持久', qty: 0, img: '', series: 'UX', includedIn: 'UX-03' },
+        { id: 'b_ss', name: 'UX-05 忍者幻影 (Shinobi Shadow)', type: '防禦', qty: 0, img: '', series: 'UX', includedIn: 'UX-05' },
+        { id: 'b_lcr', name: 'UX-06 獅王徽章 (Leon Crest)', type: '防禦', qty: 0, img: '', series: 'UX', includedIn: 'UX-06' },
+        { id: 'b_pr', name: 'UX-07 鳳凰炎舵 (Phoenix Rudder)', type: '持久', qty: 0, img: '', series: 'UX', includedIn: 'UX-07' },
+        { id: 'b_sw', name: 'UX-08 白銀戰狼 (Silver Wolf)', type: '持久', qty: 0, img: '', series: 'UX', includedIn: 'UX-08' },
+        { id: 'b_ssb', name: 'UX-09 武士之刃 (Samurai Saber)', type: '攻擊', qty: 0, img: '', series: 'UX', includedIn: 'UX-09' },
+        { id: 'b_km', name: 'UX-10 騎士圓甲 (Knight Mail)', type: '防禦', qty: 0, img: '', series: 'UX', includedIn: 'UX-10' },
+        { id: 'b_id', name: 'UX-11 衝擊魔龍 (Impact Drake)', type: '攻擊', qty: 0, img: '', series: 'UX', includedIn: 'UX-11' },
+        { id: 'b_gc', name: 'UX-12 幽靈元魂 (Ghost Circle)', type: '持久', qty: 0, img: '', series: 'UX', includedIn: 'UX-12' },
+        { id: 'b_gr', name: 'UX-13 魔像巨石 (Golem Rock)', type: '防禦', qty: 0, img: '', series: 'UX', includedIn: 'UX-13' },
+        { id: 'b_ssp', name: 'UX-14 毒蠍刺槍 (Scorpio Spear)', type: '平衡', qty: 0, img: '', series: 'UX', includedIn: 'UX-14' },
+        { id: 'b_ssc', name: 'UX-15 烈鯊鱗甲 (Shark Scale)', type: '攻擊', qty: 0, img: '', series: 'UX', includedIn: 'UX-15' },
+        { id: 'b_cm', name: 'UX-16 時鐘幽景 (Clock Mirage)', type: '持久', qty: 0, img: '', series: 'UX', includedIn: 'UX-16' },
+        { id: 'b_md', name: 'UX-17 隕石青龍 (Meteor Dragoon) [左]', type: '攻擊', qty: 0, img: '', series: 'UX', includedIn: 'UX-17' },
+        { id: 'b_mc', name: 'UX-18 古屍詛咒 (Mummy Curse)', type: '防禦', qty: 0, img: '', series: 'UX', includedIn: 'UX-18' },
+        { id: 'b_bg', name: 'UX-19 彈丸獅鷲 (Bullet Griffon) [61g]', type: '平衡', qty: 0, img: '', series: 'UX', includedIn: 'UX-19' },
+        { id: 'b_gv', name: 'UX-20 榮耀戰神 (Glory Valkyrie)', type: '攻擊', qty: 0, img: '', series: 'UX', includedIn: 'UX-20' },
+        { id: 'b_hn', name: 'UX-21 煉獄幽冥 (Hells Nether)', type: '平衡', qty: 0, img: '', series: 'UX', includedIn: 'UX-21' },
+        { id: 'b_ap', name: 'UX 空力天馬 (Aero Pegasus)', type: '攻擊', qty: 0, img: '', series: 'UX', includedIn: '抽獎/限定' },
+        { id: 'b_cx_eva01', name: 'CX 初號機紋章 (EVA-01)', type: '攻擊', qty: 0, img: '', series: 'CX', includedIn: 'CX-00-eva' },
+        { id: 'b_cx_tiga', name: 'CX 迪卡紋章 (Tiga)', type: '平衡', qty: 0, img: '', series: 'CX', includedIn: 'CX-00' },
+        { id: 'b_cx_dr', name: 'CX-01 翔龍勇者 (Brave)', type: '攻擊', qty: 0, img: '', series: 'CX', includedIn: 'CX-01' },
+        { id: 'b_cx_arc', name: 'CX-02 巫師弧光 (Arc)', type: '持久', qty: 0, img: '', series: 'CX', includedIn: 'CX-02, CX-05' },
+        { id: 'b_cx_dark', name: 'CX-03 英仙幽暗 (Dark)', type: '防禦', qty: 0, img: '', series: 'CX', includedIn: 'CX-03, CX-08' },
+        { id: 'b_cx_reaper', name: 'CX-05 獵魂主刃 (Reaper)', type: '平衡', qty: 0, img: '', series: 'CX', includedIn: 'CX-05' },
+        { id: 'b_cx_brush', name: 'CX-06 狐尾 (Brush)', type: '攻擊', qty: 0, img: '', series: 'CX', includedIn: 'CX-06' },
+      ],
+      ratchets: [
+        { id: 'r_060', name: '0-60', type: '防禦', qty: 0, img: '', points: '0', height: '60', includedIn: 'CX-10' },
+        { id: 'r_070', name: '0-70', type: '防禦', qty: 0, img: '', points: '0', height: '70', includedIn: 'UX-14' },
+        { id: 'r_080', name: '0-80', type: '防禦', qty: 0, img: '', points: '0', height: '80', includedIn: 'UX-12, CX-06' },
+        { id: 'r_150', name: '1-50', type: '攻擊', qty: 0, img: '', points: '1', height: '50', includedIn: 'CX-13, CX-16' },
+        { id: 'r_160', name: '1-60', type: '攻擊', qty: 0, img: '', points: '1', height: '60', includedIn: 'BX-31, BX-35, UX-01, UX-04' },
+        { id: 'r_170', name: '1-70', type: '攻擊', qty: 0, img: '', points: '1', height: '70', includedIn: 'UX-15' },
+        { id: 'r_180', name: '1-80', type: '攻擊', qty: 0, img: '', points: '1', height: '80', includedIn: 'UX-05, UX-07, CX-17' },
+        { id: 'r_260', name: '2-60', type: '平衡', qty: 0, img: '', points: '2', height: '60', includedIn: 'BX-34, UX-07, UX-12' },
+        { id: 'r_270', name: '2-70', type: '平衡', qty: 0, img: '', points: '2', height: '70', includedIn: 'UX-09' },
+        { id: 'r_280', name: '2-80', type: '平衡', qty: 0, img: '', points: '2', height: '80', includedIn: 'BX-48' },
+        { id: 'r_360', name: '3-60', type: '攻擊', qty: 0, img: '', points: '3', height: '60', includedIn: 'BX-01, BX-07, BX-14' },
+        { id: 'r_370', name: '3-70', type: '攻擊', qty: 0, img: '', points: '3', height: '70', includedIn: 'BX-35, UX-02, UX-05' },
+        { id: 'r_380', name: '3-80', type: '攻擊', qty: 0, img: '', points: '3', height: '80', includedIn: 'BX-04, BX-06, BX-08' },
+        { id: 'r_385', name: '3-85', type: '攻擊', qty: 0, img: '', points: '3', height: '85', includedIn: 'BX-48, UX-10, UX-18' },
+        { id: 'r_450', name: '4-50', type: '防禦', qty: 0, img: '', points: '4', height: '50', includedIn: 'BX-49, UX-15' },
+        { id: 'r_455', name: '4-55', type: '防禦', qty: 0, img: '', points: '4', height: '55', includedIn: 'CX-02, CX-05' },
+        { id: 'r_460', name: '4-60', type: '防禦', qty: 0, img: '', points: '4', height: '60', includedIn: 'BX-02, BX-08, BX-14' },
+        { id: 'r_470', name: '4-70', type: '防禦', qty: 0, img: '', points: '4', height: '70', includedIn: 'BX-31, BX-36, BX-38' },
+        { id: 'r_480', name: '4-80', type: '防禦', qty: 0, img: '', points: '4', height: '80', includedIn: 'BX-03, BX-05, BX-08' },
+        { id: 'r_560', name: '5-60', type: '防禦', qty: 0, img: '', points: '5', height: '60', includedIn: 'BX-15, BX-21, BX-24' },
+        { id: 'r_570', name: '5-70', type: '防禦', qty: 0, img: '', points: '5', height: '70', includedIn: 'BX-35, UX-03, UX-04' },
+        { id: 'r_580', name: '5-80', type: '防禦', qty: 0, img: '', points: '5', height: '80', includedIn: 'BX-16, BX-20, BX-24' },
+        { id: 'r_660', name: '6-60', type: '攻擊', qty: 0, img: '', points: '6', height: '60', includedIn: 'CX-01, CX-04' },
+        { id: 'r_670', name: '6-70', type: '攻擊', qty: 0, img: '', points: '6', height: '70', includedIn: 'BX-45' },
+        { id: 'r_680', name: '6-80', type: '攻擊', qty: 0, img: '', points: '6', height: '80', includedIn: 'CX-03, CX-04' },
+        { id: 'r_755', name: '7-55', type: '防禦', qty: 0, img: '', points: '7', height: '55', includedIn: 'UX-18' },
+        { id: 'r_760', name: '7-60', type: '防禦', qty: 0, img: '', points: '7', height: '60', includedIn: 'BX-48, UX-06, CX-05' },
+        { id: 'r_770', name: '7-70', type: '防禦', qty: 0, img: '', points: '7', height: '70', includedIn: 'BX-46, UX-10, CX-08' },
+        { id: 'r_780', name: '7-80', type: '防禦', qty: 0, img: '', points: '7', height: '80', includedIn: 'BX-39, CX-17' },
+        { id: 'r_870', name: '8-70', type: '平衡', qty: 0, img: '', points: '8', height: '70', includedIn: 'CX-14' },
+        { id: 'r_880', name: '8-80', type: '平衡', qty: 0, img: '', points: '8', height: '80', includedIn: 'UX-21' },
+        { id: 'r_960', name: '9-60', type: '攻擊', qty: 0, img: '', points: '9', height: '60', includedIn: 'BX-23, BX-46, UX-05' },
+        { id: 'r_965', name: '9-65', type: '攻擊', qty: 0, img: '', points: '9', height: '65', includedIn: 'UX-16, CX-17' },
+        { id: 'r_970', name: '9-70', type: '攻擊', qty: 0, img: '', points: '9', height: '70', includedIn: 'UX-07, UX-18, CX-06' },
+        { id: 'r_980', name: '9-80', type: '攻擊', qty: 0, img: '', points: '9', height: '80', includedIn: 'BX-27, BX-31, BX-35' },
+        { id: 'r_m85', name: 'M-85 (Metal)', type: '持久', qty: 0, img: '', points: 'M', height: '85', includedIn: 'BX-44, CX-11' }
+      ],
+      bits: [
+        { id: 't_a', name: 'A (Accel) 衝刺', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'UX-01, UX-04' },
+        { id: 't_b', name: 'B (Ball) 球形', type: '持久', qty: 0, img: '', shape: '球形', includedIn: 'BX-03, BX-05, BX-08' },
+        { id: 't_bs', name: 'BS (Bound Spike) 彈跳釘刺', type: '防禦', qty: 0, img: '', shape: '尖鋭', includedIn: 'BX-44, UX-10' },
+        { id: 't_c', name: 'C (Cyclone) 旋風', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'BX-34, UX-12, UX-18' },
+        { id: 't_d', name: 'D (Dot) 圓點', type: '防禦', qty: 0, img: '', shape: '尖鋭', includedIn: 'BX-35, BX-39, CX-05' },
+        { id: 't_db', name: 'DB (Dumbbell) 啞鈴', type: '持久', qty: 0, img: '', shape: '球形', includedIn: 'UX-03, UX-04' },
+        { id: 't_ds', name: 'DS (Disk Spike) 圓盤釘刺', type: '防禦', qty: 0, img: '', shape: '尖鋭', includedIn: 'BX-50' },
+        { id: 't_e', name: 'E (Elevate) 昇高', type: '平衡', qty: 0, img: '', shape: '平坦', includedIn: 'BX-36, BX-48, UX-12' },
+        { id: 't_f', name: 'F (Flat) 平台', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'BX-01, BX-07, BX-16' },
+        { id: 't_fb', name: 'FB (Free Ball) 自由球', type: '持久', qty: 0, img: '', shape: '球形', includedIn: 'UX-08, CX-11' },
+        { id: 't_ff', name: 'FF (Free Flat) 自由平台', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'BX-49' },
+        { id: 't_g', name: 'G (Glide) 滑行', type: '持久', qty: 0, img: '', shape: '球形', includedIn: 'UX-07, UX-18' },
+        { id: 't_gb', name: 'GB (Glide Ball) 滑行球', type: '持久', qty: 0, img: '', shape: '球形', includedIn: 'BX-24, BX-36, BX-48' },
+        { id: 't_gf', name: 'GF (Gear Flat) 齒輪平台', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'BX-23, UX-07, UX-15' },
+        { id: 't_gn', name: 'GN (Gear Needle) 齒輪針刺', type: '防禦', qty: 0, img: '', shape: '尖鋭', includedIn: 'BX-27, UX-06, CX-14' },
+        { id: 't_gp', name: 'GP (Gear Point) 齒輪尖端', type: '平衡', qty: 0, img: '', shape: '球形', includedIn: 'BX-26, BX-39, UX-05' },
+        { id: 't_gr', name: 'GR (Glide Rush) 滑行衝刺', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'CX-06, CX-17' },
+        { id: 't_gu', name: 'GU (Glide Unite) 滑行綜合', type: '平衡', qty: 0, img: '', shape: '球形', includedIn: 'CX-17' },
+        { id: 't_h', name: 'H (Hexa) 六角', type: '平衡', qty: 0, img: '', shape: '尖鋭', includedIn: 'BX-35, UX-02, UX-12' },
+        { id: 't_hn', name: 'HN (High Needle) 高針刺', type: '防禦', qty: 0, img: '', shape: '尖鋭', includedIn: 'BX-13, BX-16, BX-24' },
+        { id: 't_ht', name: 'HT (High Taper) 高錐形', type: '平衡', qty: 0, img: '', shape: '平坦', includedIn: 'BX-21, BX-27, CX-08' },
+        { id: 't_i', name: 'I (Ignition) 點火', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'CX-13, CX-16' },
+        { id: 't_j', name: 'J (Jolt) 顛簸', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'UX-17' },
+        { id: 't_k', name: 'K (Kick) 踢擊', type: '平衡', qty: 0, img: '', shape: '平坦', includedIn: 'CX-05' },
+        { id: 't_l', name: 'L (Level) 階級', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'UX-09, UX-15' },
+        { id: 't_lf', name: 'LF (Low Flat) 低平台', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'BX-14, BX-21, UX-05' },
+        { id: 't_lo', name: 'LO (Low Orb) 低圓珠', type: '持久', qty: 0, img: '', shape: '球形', includedIn: 'CX-02, CX-17' },
+        { id: 't_lr', name: 'LR (Low Rush) 低衝刺', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'UX-11, UX-18' },
+        { id: 't_m', name: 'M (Merge) 融合', type: '平衡', qty: 0, img: '', shape: '尖鋭', includedIn: 'BX-45' },
+        { id: 't_mn', name: 'MN (Metal Needle) 金屬針', type: '防禦', qty: 0, img: '', shape: '尖鋭', includedIn: 'UX-05, CX-08' },
+        { id: 't_n', name: 'N (Needle) 針刺', type: '防禦', qty: 0, img: '', shape: '尖鋭', includedIn: 'BX-04, BX-06, BX-08' },
+        { id: 't_nr', name: 'Nr (Narrow) 狹窄', type: '持久', qty: 0, img: '', shape: '球形', includedIn: 'CX-18' },
+        { id: 't_o', name: 'O (Orb) 圓珠', type: '持久', qty: 0, img: '', shape: '球形', includedIn: 'BX-16, BX-27, BX-31' },
+        { id: 't_op', name: 'Op (Operate) 運作', type: '平衡', qty: 0, img: '', shape: '複合', includedIn: 'CX-11' },
+        { id: 't_p', name: 'P (Point) 尖端', type: '平衡', qty: 0, img: '', shape: '球形', includedIn: 'BX-15, BX-31, UX-10' },
+        { id: 't_q', name: 'Q (Quake) 震動', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'BX-31, BX-48' },
+        { id: 't_r', name: 'R (Rush) 衝刺', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'BX-20, BX-35, BX-46' },
+        { id: 't_ra', name: 'RA (Rubber Accel) 橡膠衝', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'UX-10' },
+        { id: 't_s', name: 'S (Spike) 釘刺', type: '防禦', qty: 0, img: '', shape: '尖鋭', includedIn: 'BX-19, BX-31, BX-48' },
+        { id: 't_t', name: 'T (Taper) 錐形', type: '平衡', qty: 0, img: '', shape: '平坦', includedIn: 'BX-02, BX-08, BX-14' },
+        { id: 't_tk', name: 'TK (Taper Kick) 錐形踢', type: '平衡', qty: 0, img: '', shape: '平坦', includedIn: 'CX-09' },
+        { id: 't_tp', name: 'TP (Taper Point) 錐形尖', type: '平衡', qty: 0, img: '', shape: '球形', includedIn: 'BX-38, UX-18' },
+        { id: 't_tr', name: 'Tr (Turbo) 渦輪', type: '攻擊', qty: 0, img: '', shape: '複合', includedIn: 'CX-07' },
+        { id: 't_u', name: 'U (Unite) 綜合', type: '平衡', qty: 0, img: '', shape: '球形', includedIn: 'BX-33, CX-06' },
+        { id: 't_uf', name: 'UF (Under Flat) 下平台', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'UX-15' },
+        { id: 't_un', name: 'UN (Under Needle) 下針刺', type: '防禦', qty: 0, img: '', shape: '尖鋭', includedIn: 'UX-13' },
+        { id: 't_v', name: 'V (Vortex) 漩渦', type: '攻擊', qty: 0, img: '', shape: '平坦', includedIn: 'CX-01, CX-04' },
+        { id: 't_w', name: 'W (Wedge) 楔形', type: '防禦', qty: 0, img: '', shape: '尖鋭', includedIn: 'UX-18, CX-03' },
+        { id: 't_wb', name: 'WB (Wall Ball) 牆球', type: '持久', qty: 0, img: '', shape: '球形', includedIn: 'CX-08' },
+        { id: 't_ww', name: 'WW (Wall Wedge) 牆楔', type: '防禦', qty: 0, img: '', shape: '尖鋭', includedIn: 'CX-12' },
+        { id: 't_y', name: 'Y (Yielding) 屈服', type: '持久', qty: 0, img: '', shape: '球形', includedIn: 'CX-15' },
+        { id: 't_z', name: 'Z (Zap) 閃電', type: '平衡', qty: 0, img: '', shape: '球形', includedIn: 'UX-14' }
+      ]
+    };
+
+    const META_COMBOS = [
+      { id: 'meta_1', name: '絕對持久王者', bladeId: 'b_wr', ratchetId: 'r_960', bitId: 't_b', tier: 'S 級', notes: '魔導神杖的超強離心力，配上9-60與B軸，是最常見且極難擊破的比賽常勝軍。' },
+      { id: 'meta_2', name: '極致超重一擊', bladeId: 'b_pw', ratchetId: 'r_160', bitId: 't_r', tier: 'S 級', notes: '鳳凰飛翼本身的極高重量，配合R軸在盤中持續奔走找尋機會。' },
+      { id: 'meta_3', name: '左迴旋奇襲', bladeId: 'b_cdg', ratchetId: 'r_770', bitId: 't_l', tier: 'A 級', notes: '少數左迴旋機體，面對主流右迴旋對手能產生意想不到的化解或彈飛效果。' },
+      { id: 'meta_4', name: '下段狂暴偷襲', bladeId: 'b_se', ratchetId: 'r_360', bitId: 't_lf', tier: 'A 級', notes: '鯊魚刀刃設計針對對手的輪盤，配上LF軸壓低重心，極易將對手挑飛或Burst。' },
+      { id: 'meta_5', name: '暴龍連擊掃蕩', bladeId: 'b_tb', ratchetId: 'r_960', bitId: 't_q', tier: 'A 級', notes: '利用暴龍不規則的刀刃形狀與Q軸的跳躍特性，從上方強壓破壞對手。' }
+    ];
+
+    const TYPE_CONFIG = {
+      '攻擊': { icon: Swords, color: 'text-red-400', bg: 'bg-red-400/10', border: 'border-red-500/30' },
+      '防禦': { icon: Shield, color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-500/30' },
+      '持久': { icon: Wind, color: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-500/30' },
+      '平衡': { icon: Scale, color: 'text-purple-400', bg: 'bg-purple-400/10', border: 'border-purple-500/30' },
+      '預設': { icon: Box, color: 'text-slate-400', bg: 'bg-slate-800', border: 'border-slate-700' }
+    };
+
+    function BeybladeXTracker() {
+      const [activeTab, setActiveTab] = useState('blades');
+      const [searchQuery, setSearchQuery] = useState('');
+      
+      const [filterType, setFilterType] = useState('ALL'); 
+      const [filterSeries, setFilterSeries] = useState('ALL'); 
+      const [filterPoints, setFilterPoints] = useState('ALL'); 
+      const [filterHeight, setFilterHeight] = useState('ALL'); 
+      const [filterShape, setFilterShape] = useState('ALL');
+      const [filterOwned, setFilterOwned] = useState(false); 
+      const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+      const [isPackageModalOpen, setIsPackageModalOpen] = useState(false);
+      const [packageSearch, setPackageSearch] = useState('');
+      const [packageFilterSeries, setPackageFilterSeries] = useState('ALL');
+      const [successMessage, setSuccessMessage] = useState('');
+      
+      const [inventory, setInventory] = useState(() => {
+        try {
+          const saved = localStorage.getItem('bx_inventory_v10');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            const merged = { ...COMPLETE_DB };
+            ['blades', 'ratchets', 'bits'].forEach(category => {
+              merged[category] = COMPLETE_DB[category].map(dbItem => {
+                const savedItem = parsed[category]?.find(p => p.id === dbItem.id);
+                return savedItem ? { ...dbItem, qty: savedItem.qty, img: savedItem.img || dbItem.img } : dbItem;
+              });
+              const customItems = parsed[category]?.filter(p => p.id.startsWith('custom_')) || [];
+              merged[category] = [...customItems, ...merged[category]];
+            });
+            return merged;
+          }
+          return COMPLETE_DB;
+        } catch {
+          return COMPLETE_DB;
+        }
+      });
+
+      const [combos, setCombos] = useState(() => {
+        try {
+          const saved = localStorage.getItem('bx_combos_v4');
+          return saved ? JSON.parse(saved) : [];
+        } catch {
+          return [];
+        }
+      });
+
+      useEffect(() => { localStorage.setItem('bx_inventory_v10', JSON.stringify(inventory)); }, [inventory]);
+      useEffect(() => { localStorage.setItem('bx_combos_v4', JSON.stringify(combos)); }, [combos]);
+
+      useEffect(() => {
+        setFilterType('ALL');
+        setFilterPoints('ALL');
+        setFilterHeight('ALL');
+        setFilterShape('ALL');
+        if (activeTab !== 'blades' && activeTab !== 'products') setFilterSeries('ALL');
+        setIsFilterOpen(false);
+      }, [activeTab]);
+
+      const [isPartModalOpen, setIsPartModalOpen] = useState(false);
+      const [newPart, setNewPart] = useState({ name: '', type: '攻擊', qty: 1, img: '', points: '3', height: '60', shape: '平坦', includedIn: '' });
+      const [isImgModalOpen, setIsImgModalOpen] = useState(false);
+      const [editingImg, setEditingImg] = useState({ category: '', id: '', url: '' });
+      const [isComboModalOpen, setIsComboModalOpen] = useState(false);
+      const [editingCombo, setEditingCombo] = useState({ name: '', bladeId: '', ratchetId: '', bitId: '', notes: '' });
+      const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+      const checkCanBuild = (combo) => {
+        return inventory.blades.some(p => p.id === combo.bladeId && p.qty > 0) &&
+               inventory.ratchets.some(p => p.id === combo.ratchetId && p.qty > 0) &&
+               inventory.bits.some(p => p.id === combo.bitId && p.qty > 0);
+      };
+
+      const handleQtyChange = (category, id, delta) => {
+        setInventory(prev => ({
+          ...prev,
+          [category]: prev[category].map(item => item.id === id ? { ...item, qty: Math.max(0, item.qty + delta) } : item)
+        }));
+      };
+
+      const handlePackageAdd = (product) => {
+        setInventory(prev => {
+          let newInventory = { ...prev };
+          const combosToAdd = product.combos || [product]; 
+          
+          combosToAdd.forEach(combo => {
+            newInventory.blades = newInventory.blades.map(item => item.id === combo.bladeId ? { ...item, qty: item.qty + 1 } : item);
+            newInventory.ratchets = newInventory.ratchets.map(item => item.id === combo.ratchetId ? { ...item, qty: item.qty + 1 } : item);
+            newInventory.bits = newInventory.bits.map(item => item.id === combo.bitId ? { ...item, qty: item.qty + 1 } : item);
+          });
+          return newInventory;
+        });
+        
+        const totalParts = (product.combos ? product.combos.length : 1) * 3;
+        setSuccessMessage(`✅ 成功將 ${product.id} (${product.name}) 拆件加入庫存！共入庫 ${totalParts} 件零件。`);
+        setTimeout(() => setSuccessMessage(''), 3000);
+      };
+
+      const confirmDelete = () => {
+        if (!deleteConfirm) return;
+        if (deleteConfirm.category === 'combos') {
+          setCombos(prev => prev.filter(c => c.id !== deleteConfirm.id));
+        } else {
+          setInventory(prev => ({ ...prev, [deleteConfirm.category]: prev[deleteConfirm.category].filter(item => item.id !== deleteConfirm.id) }));
+        }
+        setDeleteConfirm(null);
+      };
+
+      const saveNewPart = (e) => {
+        e.preventDefault();
+        if (!newPart.name.trim()) return;
+        const newItem = { ...newPart, id: `custom_${Date.now()}` };
+        setInventory(prev => ({ ...prev, [activeTab]: [newItem, ...prev[activeTab]] }));
+        setIsPartModalOpen(false);
+        setNewPart({ name: '', type: '攻擊', qty: 1, img: '', points: '3', height: '60', shape: '平坦', includedIn: '' });
+      };
+
+      const saveCombo = (e) => {
+        e.preventDefault();
+        if (!editingCombo.name || !editingCombo.bladeId || !editingCombo.ratchetId || !editingCombo.bitId) return;
+        if (editingCombo.id && !editingCombo.id.startsWith('meta_')) {
+          setCombos(prev => prev.map(c => c.id === editingCombo.id ? editingCombo : c));
+        } else {
+          setCombos(prev => [{ ...editingCombo, id: Date.now().toString() }, ...prev]);
+        }
+        setIsComboModalOpen(false);
+      };
+
+      const saveImage = (e) => {
+        e.preventDefault();
+        setInventory(prev => ({
+          ...prev,
+          [editingImg.category]: prev[editingImg.category].map(item => 
+            item.id === editingImg.id ? { ...item, img: editingImg.url } : item
+          )
+        }));
+        setIsImgModalOpen(false);
+      };
+
+      const getPart = (category, id) => inventory[category].find(p => p.id === id);
+      const getDefaultImg = (category) => {
+        if(category === 'blades') return DEFAULT_BLADE_IMG;
+        if(category === 'ratchets') return DEFAULT_RATCHET_IMG;
+        return DEFAULT_BIT_IMG;
+      };
+
+      const filteredList = useMemo(() => {
+        if (activeTab === 'products') {
+          return PRODUCTS_DB.filter(p => {
+            const matchSearch = !searchQuery || p.id.toLowerCase().includes(searchQuery.toLowerCase()) || p.name.toLowerCase().includes(searchQuery.toLowerCase());
+            const series = p.id.split('-')[0].split('_')[0]; 
+            const matchSeries = filterSeries === 'ALL' || series === filterSeries;
+            return matchSearch && matchSeries;
+          });
+        }
+
+        if (activeTab === 'combos') return combos.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (activeTab === 'meta_combos') return META_COMBOS.filter(c => c.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        return inventory[activeTab].filter(item => {
+          if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+          if (filterOwned && item.qty <= 0) return false;
+          if (activeTab !== 'ratchets' && filterType !== 'ALL' && item.type !== filterType) return false;
+          
+          if (activeTab === 'blades' && filterSeries !== 'ALL') {
+            if (filterSeries === 'Custom' && !item.id.startsWith('custom_')) return false;
+            if (filterSeries !== 'Custom' && item.series !== filterSeries) return false;
+          }
+          
+          if (activeTab === 'ratchets') {
+            if (filterPoints !== 'ALL' && item.points !== filterPoints) return false;
+            if (filterHeight !== 'ALL' && item.height !== filterHeight) return false;
+          }
+
+          if (activeTab === 'bits') {
+            if (filterShape !== 'ALL' && item.shape !== filterShape) return false;
+          }
+
+          return true;
+        });
+      }, [activeTab, inventory, combos, searchQuery, filterType, filterSeries, filterOwned, filterPoints, filterHeight, filterShape]);
+
+      const getFilterOptions = () => {
+        if (activeTab.includes('combos')) return null;
+        
+        const types = ['攻擊', '防禦', '持久', '平衡'];
+        const seriesOptions = activeTab === 'blades' ? ['BX', 'UX', 'CX', 'Custom'] : (activeTab === 'products' ? ['BX', 'UX', 'CX'] : null);
+        const pointsOptions = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'M'];
+        const heightOptions = ['50', '55', '60', '65', '70', '80', '85'];
+        const shapeOptions = ['平坦', '球形', '尖鋭', '複合'];
+
+        return (
+          <div className={`mt-3 p-3 bg-zinc-900 border border-zinc-800 rounded-xl space-y-3 ${isFilterOpen ? 'block' : 'hidden'} sm:block transition-all`}>
+            
+            {activeTab !== 'products' && (
+              <div className="flex items-center space-x-2">
+                <button onClick={() => setFilterOwned(!filterOwned)} className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-sm font-bold border transition-colors ${filterOwned ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-zinc-950 text-zinc-500 border-zinc-800 hover:border-zinc-700'}`}>
+                  {filterOwned ? '✓ 只顯示已擁有' : '顯示全部圖鑑'}
+                </button>
+              </div>
+            )}
+
+            {activeTab !== 'ratchets' && activeTab !== 'products' && (
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs text-zinc-600 font-bold self-center mr-2 w-10">類型:</span>
+                <button onClick={() => setFilterType('ALL')} className={`px-3 py-1 rounded text-xs font-bold transition-colors ${filterType === 'ALL' ? 'bg-zinc-700 text-white' : 'bg-zinc-950 text-zinc-500 border border-zinc-800'}`}>全部</button>
+                {types.map(t => (
+                  <button key={t} onClick={() => setFilterType(t)} className={`px-3 py-1 rounded text-xs font-bold transition-colors border ${filterType === t ? TYPE_CONFIG[t].bg + ' ' + TYPE_CONFIG[t].color + ' ' + TYPE_CONFIG[t].border : 'bg-zinc-950 text-zinc-500 border-zinc-800'}`}>{t}</button>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'bits' && (
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs text-zinc-600 font-bold self-center mr-2 w-10">形狀:</span>
+                <button onClick={() => setFilterShape('ALL')} className={`px-3 py-1 rounded text-xs font-bold transition-colors ${filterShape === 'ALL' ? 'bg-zinc-700 text-white' : 'bg-zinc-950 text-zinc-500 border border-zinc-800'}`}>全部</button>
+                {shapeOptions.map(s => (
+                  <button key={s} onClick={() => setFilterShape(s)} className={`px-3 py-1 rounded text-xs font-bold transition-colors border ${filterShape === s ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' : 'bg-zinc-950 text-zinc-500 border-zinc-800'}`}>{s}</button>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'ratchets' && (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs text-zinc-600 font-bold self-center mr-2 w-10">凸點:</span>
+                  <button onClick={() => setFilterPoints('ALL')} className={`px-2 py-1 rounded text-xs font-bold transition-colors ${filterPoints === 'ALL' ? 'bg-zinc-700 text-white' : 'bg-zinc-950 text-zinc-500 border border-zinc-800'}`}>全部</button>
+                  {pointsOptions.map(p => (
+                    <button key={p} onClick={() => setFilterPoints(p)} className={`px-2 py-1 rounded text-xs font-bold transition-colors border ${filterPoints === p ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-zinc-950 text-zinc-500 border-zinc-800'}`}>{p}</button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs text-zinc-600 font-bold self-center mr-2 w-10">高度:</span>
+                  <button onClick={() => setFilterHeight('ALL')} className={`px-2 py-1 rounded text-xs font-bold transition-colors ${filterHeight === 'ALL' ? 'bg-zinc-700 text-white' : 'bg-zinc-950 text-zinc-500 border border-zinc-800'}`}>全部</button>
+                  {heightOptions.map(h => (
+                    <button key={h} onClick={() => setFilterHeight(h)} className={`px-2 py-1 rounded text-xs font-bold transition-colors border ${filterHeight === h ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-zinc-950 text-zinc-500 border-zinc-800'}`}>{h}</button>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {seriesOptions && (
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs text-zinc-600 font-bold self-center mr-2 w-10">系列:</span>
+                <button onClick={() => setFilterSeries('ALL')} className={`px-3 py-1 rounded text-xs font-bold transition-colors ${filterSeries === 'ALL' ? 'bg-zinc-700 text-white' : 'bg-zinc-950 text-zinc-500 border border-zinc-800'}`}>全部</button>
+                {seriesOptions.map(s => (
+                  <button key={s} onClick={() => setFilterSeries(s)} className={`px-3 py-1 rounded text-xs font-bold transition-colors border ${filterSeries === s ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/50' : 'bg-zinc-950 text-zinc-500 border-zinc-800'}`}>{s === 'Custom' ? '自訂' : s}</button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      const renderPartCard = (item, category) => {
+        const typeStyle = TYPE_CONFIG[item.type] || TYPE_CONFIG['預設'];
+        const TypeIcon = typeStyle.icon;
+        const isOwned = item.qty > 0;
+        const displayImg = item.img || getDefaultImg(category);
+
+        return (
+          <div key={item.id} className={`bg-zinc-900 border ${isOwned ? 'border-emerald-500/50 shadow-[0_0_12px_rgba(16,185,129,0.15)]' : 'border-zinc-800 opacity-70'} rounded-xl p-3 flex flex-col transition-all hover:border-emerald-500/80 hover:opacity-100 group overflow-hidden relative`}>
+            
+            {item.series && (
+               <div className={`absolute top-0 right-0 text-[9px] font-black px-1.5 py-0.5 rounded-bl-lg z-10 ${item.series === 'UX' ? 'bg-indigo-500 text-white' : item.series === 'CX' ? 'bg-rose-500 text-white' : 'bg-zinc-700 text-zinc-300'}`}>
+                 {item.series}
+               </div>
+            )}
+
+            <div className="flex gap-3 mb-3">
+              <div 
+                className="w-16 h-16 rounded-lg bg-zinc-950 border border-zinc-800 flex-shrink-0 relative overflow-hidden cursor-pointer group/img"
+                onClick={() => { setEditingImg({ category, id: item.id, url: item.img || '' }); setIsImgModalOpen(true); }}
+              >
+                <img src={displayImg} alt={item.name} className="w-full h-full object-contain p-1" onError={(e) => e.target.src = getDefaultImg(category)} />
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity"><Edit3 className="w-4 h-4 text-white" /></div>
+              </div>
+              <div className="flex-1 min-w-0 flex flex-col py-0.5">
+                <h3 className={`font-bold text-sm leading-tight line-clamp-2 mb-1 pr-4 ${isOwned ? 'text-zinc-100' : 'text-zinc-400'}`} title={item.name}>{item.name}</h3>
+
+                {category === 'ratchets' && item.points && (
+                  <div className="flex gap-1 mb-1">
+                    <span className="text-[9px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded border border-zinc-700">凸點: {item.points}</span>
+                    <span className="text-[9px] bg-zinc-800 text-zinc-300 px-1.5 py-0.5 rounded border border-zinc-700">高度: {item.height}</span>
+                  </div>
+                )}
+                
+                {category === 'bits' && item.shape && (
+                  <div className="flex gap-1 mb-1">
+                    <span className="text-[9px] bg-amber-900/40 text-amber-400 px-1.5 py-0.5 rounded border border-amber-500/30">底部: {item.shape}</span>
+                  </div>
+                )}
+                
+                {item.includedIn && (
+                  <div className="text-[9px] text-zinc-500 mb-1.5 line-clamp-1" title={`包含於: ${item.includedIn}`}>
+                    📦 {item.includedIn}
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between mt-auto">
+                  <div className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] border ${typeStyle.bg} ${typeStyle.color} ${typeStyle.border}`}>
+                    <TypeIcon className="w-3 h-3 mr-1" />{item.type}
+                  </div>
+                  {item.id.startsWith('custom_') && (
+                    <button onClick={() => setDeleteConfirm({ category, id: item.id, name: item.name })} className="text-zinc-600 hover:text-red-400 p-1"><Trash2 className="w-3 h-3" /></button>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className={`mt-auto flex items-center justify-between rounded-lg border p-1 ${isOwned ? 'bg-emerald-900/10 border-emerald-500/20' : 'bg-zinc-950 border-zinc-800'}`}>
+              <button onClick={() => handleQtyChange(category, item.id, -1)} disabled={!isOwned} className="p-1.5 rounded bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 disabled:opacity-30 transition-colors"><Minus className="w-3 h-3" /></button>
+              <div className="flex items-center gap-2 px-2">
+                <span className="text-[10px] text-zinc-500 font-medium">持有</span>
+                <span className={`text-lg font-black leading-none ${isOwned ? 'text-emerald-400' : 'text-zinc-600'}`}>{item.qty}</span>
+              </div>
+              <button onClick={() => handleQtyChange(category, item.id, 1)} className="p-1.5 rounded bg-zinc-800 text-zinc-400 hover:text-emerald-400 hover:bg-zinc-700 transition-colors"><Plus className="w-3 h-3" /></button>
+            </div>
+          </div>
+        );
+      };
+
+      const renderComboCard = (comboOrProduct, isMeta = false, isProduct = false) => {
+        if (isProduct) {
+          const product = comboOrProduct;
+          const isMulti = product.combos && product.combos.length > 1; 
+
+          return (
+            <div key={product.id} className="bg-gradient-to-br from-indigo-900/20 border-indigo-500/30 to-zinc-950 border rounded-xl p-4 transition-all relative overflow-hidden flex flex-col hover:border-opacity-60 group">
+              {isMulti && (
+                <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[10px] font-black px-2 py-1 rounded-bl-lg flex items-center shadow-lg z-10">
+                  <Layers className="w-3 h-3 mr-1" /> 套裝
+                </div>
+              )}
+              
+              <div className="flex justify-between items-start mb-3 border-b border-zinc-800 pb-2">
+                <div className="min-w-0 pr-2 pt-1">
+                  <span className="bg-indigo-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded mr-2 align-middle">{product.id}</span>
+                  <h3 className="font-bold text-lg align-middle truncate text-indigo-300">
+                    {product.name}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="flex-1 space-y-2 mb-3 overflow-y-auto max-h-32 custom-scrollbar pr-1">
+                {(product.combos || [product]).map((combo, idx) => {
+                  const b = getPart('blades', combo.bladeId);
+                  const r = getPart('ratchets', combo.ratchetId);
+                  const t = getPart('bits', combo.bitId);
+                  
+                  return (
+                    <div key={idx} className="flex gap-1.5 p-1.5 bg-zinc-900/50 rounded-lg border border-zinc-800/50">
+                      {[{ p: b, c: 'blades' }, { p: r, c: 'ratchets' }, { p: t, c: 'bits' }].map((part, pIdx) => (
+                        <div key={pIdx} className="flex-1 aspect-square bg-zinc-950 rounded border border-zinc-800 relative flex items-center justify-center overflow-hidden">
+                          <img src={part.p?.img || getDefaultImg(part.c)} alt={part.p?.name} className="w-full h-full object-contain p-0.5 opacity-80" onError={(e) => e.target.src = getDefaultImg(part.c)} />
+                          <div className="absolute bottom-0 inset-x-0 bg-black/80 text-[8px] text-center text-zinc-300 py-[1px] truncate px-0.5 font-bold">
+                            {part.p ? part.p.name.split(' (')[0] : '缺'}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+              
+              <button onClick={() => handlePackageAdd(product)} className="w-full py-2 bg-zinc-800 hover:bg-indigo-500 hover:text-white text-indigo-400 text-xs font-bold rounded-lg border border-zinc-700 hover:border-indigo-500 transition-colors flex justify-center items-center mt-auto shrink-0">
+                <Plus className="w-3 h-3 mr-1" /> {isMulti ? '全部套裝件入庫' : '一鍵入庫'}
+              </button>
+            </div>
+          );
+        }
+
+        const combo = comboOrProduct;
+        const b = getPart('blades', combo.bladeId);
+        const r = getPart('ratchets', combo.ratchetId);
+        const t = getPart('bits', combo.bitId);
+        const canBuild = !isMeta || checkCanBuild(combo);
+
+        return (
+          <div key={combo.id} className={`bg-gradient-to-br ${isMeta ? 'from-amber-900/20 border-amber-500/30' : 'from-zinc-900 border-emerald-500/30'} to-zinc-950 border rounded-xl p-4 transition-all relative overflow-hidden flex flex-col group`}>
+            {isMeta && canBuild && (
+              <div className="absolute top-0 right-0 bg-emerald-500 text-zinc-950 text-[10px] font-black px-2 py-1 rounded-bl-lg flex items-center shadow-lg z-10">
+                <CheckCircle2 className="w-3 h-3 mr-1" /> 可組裝
+              </div>
+            )}
+            <div className="flex justify-between items-start mb-3 border-b border-zinc-800 pb-2">
+              <div className="min-w-0 pr-2">
+                {isMeta && <span className="bg-amber-500 text-zinc-950 text-[10px] font-black px-1.5 py-0.5 rounded mr-2 align-middle">{combo.tier}</span>}
+                <h3 className={`font-bold text-lg align-middle truncate ${isMeta ? 'text-amber-400' : 'text-emerald-400'}`}>{combo.name}</h3>
+              </div>
+              {!isMeta && (
+                <div className="flex space-x-1 flex-shrink-0">
+                  <button onClick={() => { setEditingCombo(combo); setIsComboModalOpen(true); }} className="text-zinc-500 hover:text-emerald-400 p-1"><Settings className="w-4 h-4" /></button>
+                  <button onClick={() => setDeleteConfirm({ category: 'combos', id: combo.id, name: combo.name })} className="text-zinc-500 hover:text-red-400 p-1"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2 mb-3">
+              {[{ p: b, c: 'blades' }, { p: r, c: 'ratchets' }, { p: t, c: 'bits' }].map((part, idx) => (
+                <div key={idx} className="flex-1 aspect-square bg-zinc-900 rounded-lg border border-zinc-800 relative flex items-center justify-center overflow-hidden">
+                  <img src={part.p?.img || getDefaultImg(part.c)} alt={part.p?.name} className="w-full h-full object-contain p-1 opacity-80" onError={(e) => e.target.src = getDefaultImg(part.c)} />
+                  <div className="absolute bottom-0 inset-x-0 bg-black/70 text-[9px] text-center text-zinc-200 py-0.5 truncate px-1 font-bold">
+                    {part.p ? part.p.name.split(' ')[0] : '缺件'}
+                  </div>
+                  {isMeta && part.p && part.p.qty <= 0 && <div className="absolute top-0 right-0 bg-red-500 text-white text-[8px] font-bold px-1 rounded-bl">缺</div>}
+                </div>
+              ))}
+            </div>
+            {combo.notes && <p className="text-xs text-zinc-400 italic line-clamp-3 mb-3 flex-1">"{combo.notes}"</p>}
+            {isMeta && (
+              <button onClick={() => { setEditingCombo(combo); setIsComboModalOpen(true); }} className="w-full py-2 bg-zinc-800 hover:bg-amber-500/20 hover:text-amber-400 text-zinc-300 text-xs font-bold rounded-lg border border-zinc-700 transition-colors flex justify-center items-center mt-auto">
+                匯入配置 <ChevronRight className="w-3 h-3 ml-1" />
+              </button>
+            )}
+          </div>
+        );
+      };
+
+      return (
+        <div className="min-h-screen pb-20">
+          {successMessage && (
+            <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-zinc-950 px-4 py-2 rounded-lg font-bold shadow-lg z-50">
+              {successMessage}
+            </div>
+          )}
+
+          <header className="bg-zinc-900 border-b border-zinc-800 sticky top-0 z-10 shadow-lg shadow-black/50">
+            <div className="max-w-[1400px] mx-auto px-4 py-4 flex flex-col xl:flex-row xl:justify-between xl:items-center gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="bg-emerald-500 text-zinc-950 p-1.5 rounded-lg transform -skew-x-12">
+                  <Zap className="w-6 h-6" />
+                </div>
+                <h1 className="text-xl md:text-2xl font-black tracking-widest italic text-white uppercase">BX<span className="text-emerald-400"> Tracker</span></h1>
+              </div>
+              <div className="flex space-x-1 bg-zinc-950 p-1 rounded-xl border border-zinc-800 overflow-x-auto hide-scrollbar text-sm">
+                {[
+                  { id: 'blades', label: '戰刃 Blade', icon: Layers },
+                  { id: 'ratchets', label: '輪盤 Ratchet', icon: Box },
+                  { id: 'bits', label: '軸心 Bit', icon: PenTool },
+                  { id: 'products', label: '完整產品', icon: ShoppingBag, color: 'text-indigo-400' },
+                  { id: 'meta_combos', label: '大賽 Meta', icon: Trophy, color: 'text-amber-400' },
+                  { id: 'combos', label: '我的配置', icon: Settings }
+                ].map(tab => (
+                  <button
+                    key={tab.id} onClick={() => { setActiveTab(tab.id); setSearchQuery(''); }}
+                    className={`flex items-center px-4 py-2 rounded-lg font-bold whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-zinc-800 text-emerald-400 shadow-md' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900'}`}
+                  >
+                    <tab.icon className={`w-4 h-4 mr-2 ${tab.color && activeTab !== tab.id ? tab.color : ''}`} />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </header>
+
+          <main className="max-w-[1400px] mx-auto px-4 py-6">
+            <div className="mb-6">
+              <div className="flex flex-row gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-4 h-4" />
+                  <input 
+                    type="text" placeholder={['combos', 'meta_combos', 'products'].includes(activeTab) ? "搜尋名稱或編號..." : "搜尋名稱 (如 UX-03)..."}
+                    value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl focus:outline-none focus:border-emerald-500 text-zinc-100 text-sm placeholder-zinc-600 shadow-inner"
+                  />
+                </div>
+                
+                {!['combos', 'meta_combos'].includes(activeTab) && (
+                  <button 
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    className={`sm:hidden flex items-center justify-center px-4 py-2 rounded-xl transition-all text-sm font-bold border ${isFilterOpen || filterType !== 'ALL' || filterSeries !== 'ALL' || filterOwned || filterShape !== 'ALL' || filterPoints !== 'ALL' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50' : 'bg-zinc-900 text-zinc-400 border-zinc-800'}`}
+                  >
+                    <Filter className="w-4 h-4" />
+                  </button>
+                )}
+
+                {!['meta_combos', 'combos', 'products'].includes(activeTab) && (
+                  <button 
+                    onClick={() => { setPackageSearch(''); setPackageFilterSeries('ALL'); setIsPackageModalOpen(true); }}
+                    className="flex items-center justify-center px-3 py-2 bg-indigo-500 hover:bg-indigo-400 text-white font-black rounded-xl transition-all text-sm whitespace-nowrap"
+                  >
+                    <PackagePlus className="w-4 h-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">一鍵入庫</span>
+                  </button>
+                )}
+
+                {!['meta_combos', 'combos', 'products'].includes(activeTab) && (
+                  <button 
+                    onClick={() => { setNewPart({ name: '', type: activeTab === 'ratchets' ? '低' : '攻擊', qty: 1, img: '', points: '3', height: '60', shape: '平坦', includedIn: '' }); setIsPartModalOpen(true); }}
+                    className="flex items-center justify-center px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl transition-all text-sm whitespace-nowrap"
+                  >
+                    <Plus className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">新增</span>
+                  </button>
+                )}
+                {activeTab === 'combos' && (
+                  <button 
+                    onClick={() => { setEditingCombo({ name: '', bladeId: '', ratchetId: '', bitId: '', notes: '' }); setIsComboModalOpen(true); }}
+                    className="flex items-center justify-center px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-xl transition-all text-sm whitespace-nowrap"
+                  >
+                    <Plus className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">新增配置</span>
+                  </button>
+                )}
+              </div>
+              
+              {getFilterOptions()}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {activeTab === 'products' && filteredList.map(p => renderComboCard(p, false, true))}
+              {activeTab === 'combos' && filteredList.map(c => renderComboCard(c, false, false))}
+              {activeTab === 'meta_combos' && filteredList.map(c => renderComboCard(c, true, false))}
+              {!['combos', 'meta_combos', 'products'].includes(activeTab) && filteredList.map(item => renderPartCard(item, activeTab))}
+            </div>
+          </main>
+
+          {}
+          {isPackageModalOpen && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+                <div className="px-5 py-4 border-b border-zinc-800 flex justify-between items-center bg-indigo-950/30 shrink-0">
+                  <h2 className="text-lg font-bold text-indigo-400 flex items-center"><PackagePlus className="w-5 h-5 mr-2"/> 產品一鍵拆件入庫</h2>
+                  <button onClick={() => setIsPackageModalOpen(false)} className="text-zinc-500 hover:text-white"><CloseIcon className="w-5 h-5"/></button>
+                </div>
+                <div className="p-5 flex flex-col flex-1 overflow-hidden">
+                  <div className="relative mb-3 shrink-0">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-4 h-4" />
+                    <input 
+                      type="text" autoFocus placeholder="搜尋編號或名稱 (如 BX-14)..."
+                      value={packageSearch} onChange={e => setPackageSearch(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2.5 bg-zinc-950 border border-indigo-500/50 focus:border-indigo-400 rounded-xl outline-none text-white text-sm shadow-inner"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 mb-3 shrink-0">
+                    {['ALL', 'BX', 'UX', 'CX'].map(s => (
+                      <button 
+                        key={s} onClick={() => setPackageFilterSeries(s)} 
+                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${packageFilterSeries === s ? 'bg-indigo-500 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
+                      >
+                        {s === 'ALL' ? '全部系列' : s}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="overflow-y-auto space-y-2 pr-1 custom-scrollbar flex-1">
+                    {PRODUCTS_DB.filter(p => {
+                      const matchSearch = !packageSearch || p.id.toLowerCase().includes(packageSearch.toLowerCase()) || p.name.toLowerCase().includes(packageSearch.toLowerCase());
+                      const series = p.id.split('-')[0].split('_')[0];
+                      const matchSeries = packageFilterSeries === 'ALL' || series === packageFilterSeries;
+                      return matchSearch && matchSeries;
+                    }).map(product => {
+                      const sampleCombo = product.combos ? product.combos[0] : product;
+                      const b = getPart('blades', sampleCombo.bladeId);
+                      const r = getPart('ratchets', sampleCombo.ratchetId);
+                      const t = getPart('bits', sampleCombo.bitId);
+                      
+                      return (
+                        <div key={product.id} className="bg-zinc-950 border border-zinc-800 rounded-lg p-3 flex justify-between items-center hover:border-indigo-500/30 transition-colors group">
+                          <div className="min-w-0 pr-3">
+                            <div className="font-bold text-indigo-300 text-sm mb-1">{product.id} <span className="text-zinc-400 font-normal">| {product.name}</span></div>
+                            <div className="text-[10px] text-zinc-500 truncate group-hover:text-zinc-400 transition-colors">
+                              {b?.name.split(' (')[0] || '未知'} + {r?.name || '未知'} + {t?.name.split(' (')[0] || '未知'}
+                              {product.combos && product.combos.length > 1 && ` 等 ${product.combos.length} 顆陀螺`}
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handlePackageAdd(product)}
+                            className="px-3 py-1.5 bg-zinc-800 hover:bg-indigo-500 text-indigo-400 hover:text-white border border-indigo-500/30 hover:border-indigo-500 text-xs font-bold rounded-lg whitespace-nowrap transition-all"
+                          >
+                            +{product.combos ? product.combos.length * 3 : 3}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isImgModalOpen && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+                <div className="px-5 py-3 border-b border-zinc-800 flex justify-between items-center">
+                  <h2 className="text-base font-bold text-white flex items-center"><ImageIcon className="w-4 h-4 mr-2"/> 編輯配件圖片</h2>
+                  <button onClick={() => setIsImgModalOpen(false)} className="text-zinc-500 hover:text-white"><CloseIcon className="w-5 h-5"/></button>
+                </div>
+                <form onSubmit={saveImage} className="p-5 space-y-4">
+                  <div className="flex justify-center mb-2">
+                     <div className="w-24 h-24 bg-zinc-950 border border-zinc-800 rounded-lg p-2">
+                       <img src={editingImg.url || getDefaultImg(editingImg.category)} alt="Preview" className="w-full h-full object-contain" onError={(e) => e.target.src = getDefaultImg(editingImg.category)} />
+                     </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-400 mb-1">圖片網址 (URL)</label>
+                    <input 
+                      type="url" placeholder="https://..."
+                      value={editingImg.url} onChange={e => setEditingImg({...editingImg, url: e.target.value})}
+                      className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg outline-none text-white text-sm"
+                    />
+                  </div>
+                  <button type="submit" className="w-full py-2.5 mt-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black rounded-lg text-sm">儲存圖片</button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {deleteConfirm && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+              <div className="bg-zinc-900 border border-red-500/30 rounded-2xl p-5 text-center shadow-2xl max-w-xs w-full">
+                <h3 className="text-lg font-bold text-white mb-2">確定要刪除？</h3>
+                <div className="flex gap-2 mt-4">
+                  <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-2 rounded bg-zinc-800 text-white font-bold text-sm">取消</button>
+                  <button onClick={confirmDelete} className="flex-1 py-2 rounded bg-red-500 text-white font-bold text-sm">刪除</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isComboModalOpen && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+                <div className="px-5 py-3 border-b border-zinc-800 flex justify-between items-center">
+                  <h2 className="text-base font-bold text-emerald-400">{editingCombo.id && !editingCombo.id.startsWith('meta_') ? '編輯配置' : '儲存新配置'}</h2>
+                  <button onClick={() => setIsComboModalOpen(false)} className="text-zinc-500"><CloseIcon className="w-4 h-4"/></button>
+                </div>
+                <form onSubmit={saveCombo} className="p-5 space-y-3">
+                  <input type="text" required placeholder="配置名稱" value={editingCombo.name} onChange={e => setEditingCombo({...editingCombo, name: e.target.value})} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg outline-none text-emerald-300 font-bold text-sm" />
+                  
+                  {['bladeId', 'ratchetId', 'bitId'].map((field, idx) => {
+                    const category = ['blades', 'ratchets', 'bits'][idx];
+                    return (
+                      <select key={field} required value={editingCombo[field]} onChange={e => setEditingCombo({...editingCombo, [field]: e.target.value})} className="w-full px-3 py-2 bg-zinc-900 border border-zinc-700 rounded-lg text-white outline-none text-sm">
+                        <option value="" disabled>選擇 {['戰刃', '輪盤', '軸心'][idx]}</option>
+                        {inventory[category].filter(p => p.qty > 0 || p.id === editingCombo[field]).map(p => (
+                          <option key={p.id} value={p.id}>{p.name.split(' (')[0]}</option>
+                        ))}
+                      </select>
+                    );
+                  })}
+                  <textarea placeholder="備註 (戰術、手感等)..." value={editingCombo.notes} onChange={e => setEditingCombo({...editingCombo, notes: e.target.value})} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg outline-none text-zinc-300 text-sm h-16 resize-none" />
+                  <button type="submit" className="w-full py-2.5 bg-emerald-500 text-zinc-950 font-black rounded-lg text-sm">儲存</button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {isPartModalOpen && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+               <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-5">
+                 <h2 className="text-base font-bold text-white mb-4">新增自訂配件</h2>
+                 <form onSubmit={saveNewPart} className="space-y-3">
+                    <input type="text" required placeholder="名稱" value={newPart.name} onChange={e => setNewPart({...newPart, name: e.target.value})} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white text-sm" />
+                    <input type="text" placeholder="來源 (如：包含於 BX-00)" value={newPart.includedIn || ''} onChange={e => setNewPart({...newPart, includedIn: e.target.value})} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white text-sm" />
+                    <select value={newPart.type} onChange={e => setNewPart({...newPart, type: e.target.value})} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white text-sm">
+                      {activeTab === 'ratchets' ? ['低', '中', '高'].map(t => <option key={t} value={t}>{t}</option>) : ['攻擊', '防禦', '持久', '平衡'].map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                    
+                    {activeTab === 'ratchets' && (
+                      <div className="flex gap-2">
+                        <input type="text" placeholder="凸點 (如: 3)" value={newPart.points} onChange={e => setNewPart({...newPart, points: e.target.value})} className="w-1/2 px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white text-sm" />
+                        <input type="text" placeholder="高度 (如: 60)" value={newPart.height} onChange={e => setNewPart({...newPart, height: e.target.value})} className="w-1/2 px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white text-sm" />
+                      </div>
+                    )}
+                    
+                    {activeTab === 'bits' && (
+                      <select value={newPart.shape} onChange={e => setNewPart({...newPart, shape: e.target.value})} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white text-sm">
+                        {['平坦', '球形', '尖鋭', '複合'].map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    )}
+
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => setIsPartModalOpen(false)} className="flex-1 py-2 bg-zinc-800 text-white rounded-lg text-sm">取消</button>
+                      <button type="submit" className="flex-1 py-2 bg-emerald-500 text-zinc-950 font-bold rounded-lg text-sm">新增</button>
+                    </div>
+                 </form>
+               </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root')); 
+    root.render(<BeybladeXTracker />);
+  </script>
+</body>
+</html>

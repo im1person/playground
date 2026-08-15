@@ -25,6 +25,7 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 - `/tools/custom-countdown/` — Custom Countdown
 - `/tools/idiom-quiz/` — Idiom Quiz (歇後語／成語)
 - `/tools/bingo-card-generator/` — Bingo Card Generator
+- `/tools/beyblade-x/` — BX Tracker（爆旋陀螺 X 圖鑑）
 - `/games/falling-balls/` — Falling Balls Game
 - `/games/tetris/` — Tetris Game
 - `/games/tetris-tspin/` — Tetris (T-Spin)
@@ -67,6 +68,7 @@ Welcome to my interactive playground(ai)! This is a collection of fun games and 
 - [Custom Countdown](https://im1person.github.io/playground/tools/custom-countdown/): Countdown to any date and time; shareable link with date in URL.
 - [Idiom Quiz](https://im1person.github.io/playground/tools/idiom-quiz/): Quiz on 歇後語 and 成語; multiple choice, bilingual.
 - [Bingo Card Generator](https://im1person.github.io/playground/tools/bingo-card-generator/): Create 5×5 Bingo cards from your words; shuffle, tick, and print.
+- [BX Tracker](https://im1person.github.io/playground/tools/beyblade-x/): Track Beyblade X parts inventory, packages, and custom combos (localStorage).
 
 ### Games
 
